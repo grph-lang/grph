@@ -1,6 +1,12 @@
-public struct GRPHLexer {
-    public private(set) var text = "Hello, World!"
+//
+//  GRPHLexer.swift
+//  GRPHLexer
+//
+//  Created by Emil Pedersen on 27/08/2021.
+//
 
-    public init() {
-    }
+import Foundation
+
+public struct GRPHLexer {
+    
 }

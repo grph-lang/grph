@@ -1,3 +1,3 @@
 # GRPHLexer
 
-A description of this package.
+A tokenizer for GRPH
