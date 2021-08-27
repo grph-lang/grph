@@ -9,6 +9,8 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "::LABEL /// great", assert: [.indent, .labelPrefixOperator, .label, .docComment])
         parsing(line: "pos p = 4,7", assert: [.indent, .identifier, .identifier, .assignmentOperator, .posLiteral])
         parsing(line: #"string s = "something\n\"great\"""#, assert: [.indent, .identifier, .identifier, .assignmentOperator, .stringLiteral])
+        parsing(line: #"log["hey" "you"] // hey"#, assert: [.indent, .identifier, .squareBrackets, .comment])
+        parsing(line: #"Background(pos(640 480) WHITE)"#, assert: [.indent, .identifier, .parentheses])
     }
     
     func parsing(line: String, assert tokenTypes: [TokenType]) {
