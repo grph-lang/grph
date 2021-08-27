@@ -2,10 +2,19 @@ import XCTest
 @testable import GRPHLexer
 
 final class GRPHLexerTests: XCTestCase {
+    let lexer = GRPHLexer()
+    
     func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(GRPHLexer().text, "Hello, World!")
+        parsing(line: "#requires GRPH 1.1 // this is a comment", assert: [.indent, .commandName, .identifier, .numberLiteral, .comment])
+        parsing(line: "::LABEL /// great", assert: [.indent, .labelPrefixOperator, .label, .docComment])
+        parsing(line: "pos p = 4,7", assert: [.indent, .identifier, .identifier, .assignmentOperator, .posLiteral])
+        parsing(line: #"string s = "something\n\"great\"""#, assert: [.indent, .identifier, .identifier, .assignmentOperator, .stringLiteral])
+    }
+    
+    func parsing(line: String, assert tokenTypes: [TokenType]) {
+        var result = lexer.parseLine(lineNumber: 0, content: line)
+        result.stripWhitespaces()
+        print(result.represent())
+        XCTAssertEqual(result.children.map({$0.tokenType }), tokenTypes)
     }
 }

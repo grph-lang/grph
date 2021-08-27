@@ -8,14 +8,16 @@
 import Foundation
 
 public enum TokenType {
-    /// Insignificant whitespace, that gets removed at a later stage
+    /// Insignificant whitespace, that gets removed at a later stage. This is also used to separate tokens, so the token literal may be empty.
     case ignoreableWhiteSpace
     /// Indentation at the beginning of a line. Not necessarily whitespace
     case indent
-    /// An ignoreable comment (starting with `//`)
+    /// An ignoreable comment (starting with `//`). Supports children of type `commentContent`.
     case comment
-    /// A documentation comment (starting with `///`)
+    /// A documentation comment (starting with `///`). Supports children of type `commentContent`.
     case docComment
+    /// The content of a comment
+    case commentContent
     
     /// A word, that hasn't been resolved yet
     case identifier
@@ -40,14 +42,16 @@ public enum TokenType {
     case booleanLiteral
     /// null
     case nullLiteral
-    /// An integer
-    case integerLiteral
-    /// A float
-    case floatLiteral
-    /// A double-quoted string
+    /// An integer, a float, or a rotation
+    case numberLiteral
+    /// A position
+    case posLiteral
+    /// A double-quoted string. Supports children of type `.stringLiteralEscapeSequence`
     case stringLiteral
     /// A single-quoted string
     case fileLiteral
+    /// A two-character escape sequence in a string or file literal. The first character is always a backslash.
+    case stringLiteralEscapeSequence
     
     /// A binary or unary operator
     case `operator`
@@ -67,6 +71,8 @@ public enum TokenType {
     case namespaceSeparator
     /// The `.` token
     case dot
+    /// The single `/` token
+    case slashOperator
     
     /// A bracketized expression. Supports children.
     case squareBrackets
@@ -74,6 +80,8 @@ public enum TokenType {
     case parentheses
     /// An expression in curly braces `{}`. Supports children.
     case curlyBraces
+    /// The root token for a line. Supports children.
+    case line
     
     /// Anything unknown, out of normal, errored
     case unresolved
