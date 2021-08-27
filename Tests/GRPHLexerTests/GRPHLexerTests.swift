@@ -12,6 +12,10 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: #"log["hey" "you"] // hey"#, assert: [.indent, .identifier, .squareBrackets, .comment])
         parsing(line: #"Background(pos(640 480) WHITE)"#, assert: [.indent, .identifier, .parentheses])
         parsing(line: "shape? s = null", assert: [.indent, .identifier, .operator, .identifier, .assignmentOperator, .nullLiteral])
+        parsing(line: "p += 1,1", assert: [.indent, .identifier, .assignmentCompound, .posLiteral])
+        parsing(line: "p == 5,8", assert: [.indent, .identifier, .operator, .posLiteral])
+        parsing(line: "i+-7", assert: [.indent, .identifier, .operator, .operator, .numberLiteral])
+        parsing(line: "~i >> 2", assert: [.indent, .operator, .identifier, .operator, .numberLiteral])
     }
     
     func parsing(line: String, assert tokenTypes: [TokenType]) {

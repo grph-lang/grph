@@ -152,8 +152,23 @@ public class GRPHLexer {
             }
         case .stringLiteralEscapeSequence:
             return .satisfiesAndCloses
-        case .lambdaHatOperator, .labelPrefixOperator, .comma, .dot, .operator, .assignmentOperator:
+        case .lambdaHatOperator, .labelPrefixOperator, .comma, .dot:
             return .newToken
+        case .assignmentOperator:
+            if char == "=" {
+                return .changeCurrentType(.operator) // ==
+            } else {
+                return .newToken
+            }
+        case .operator:
+            switch char {
+            // these are either syntax errors, or valid as second character of a binary operator
+            // they don't conflict with binary+unary (ex 3+-7 has two operator tokens)
+            case "<", ">", "&", "|", "=":
+                return .satisfies
+            default:
+                return .newToken
+            }
         case .methodCallOperator:
             if char == ":" {
                 return .changeCurrentType(.labelPrefixOperator)
@@ -219,7 +234,7 @@ public class GRPHLexer {
     
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved, .assignmentOperator:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -235,9 +250,16 @@ public class GRPHLexer {
             default:
                 break // another identifier: .variable, .function, .method, .type
             }
-        case .operator, .assignmentOperator:
-            // TODO they actually should be pre-squashed
-            break
+        case .operator: // detect compounds s.t. `+=`
+            let literal = token.literal
+            if literal == "==" || literal == "!=" {
+                break
+            } else if literal.hasSuffix("=") {
+                token.tokenType = .assignmentCompound
+                let op = literal.dropLast()
+                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator, children: []))
+                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator, children: []))
+            }
         case .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
             assertionFailure("tried to validate an already validated token")
         }
