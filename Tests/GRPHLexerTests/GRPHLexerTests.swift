@@ -16,6 +16,7 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "p == 5,8", assert: [.indent, .identifier, .operator, .posLiteral])
         parsing(line: "i+-7", assert: [.indent, .identifier, .operator, .operator, .numberLiteral])
         parsing(line: "~i >> 2", assert: [.indent, .operator, .identifier, .operator, .numberLiteral])
+        parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
     }
     
     func parsing(line: String, assert tokenTypes: [TokenType]) {

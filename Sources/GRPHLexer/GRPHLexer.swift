@@ -234,7 +234,7 @@ public class GRPHLexer {
     
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved, .assignmentOperator:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved, .assignmentOperator, .keyword:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -242,7 +242,7 @@ public class GRPHLexer {
                 token.tokenType = .booleanLiteral
             case "null":
                 token.tokenType = .nullLiteral
-            case "as", "is", "global", "static", "final", "auto": // TODO squash the as(?)(!)
+            case "is", "global", "static", "final", "auto": // `as` is already handled
                 token.tokenType = .keyword
             case "right", "downRight", "down", "downLeft", "left", "upLeft", "up", "upRight", "elongated", "cut", "rounded":
                 token.tokenType = .enumCase
@@ -260,10 +260,33 @@ public class GRPHLexer {
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator, children: []))
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator, children: []))
             }
-        case .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
+        case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
             assertionFailure("tried to validate an already validated token")
         }
         // TODO squash the namespace identifiers
+        
+        // Squashing tokens
+        var i = 0
+        var squashingResult: [Token] = []
+        while i < token.children.count {
+            if token.children[i].literal == "as" {
+                let index = i
+                i += 1
+                if token.children[i].tokenType == .operator && token.children[i].literal == "?" {
+                    i += 1
+                }
+                if token.children[i].tokenType == .operator && token.children[i].literal == "!" {
+                    i += 1
+                }
+                let squash = token.children[index..<i]
+                let result = Token(lineNumber: token.lineNumber, lineOffset: squash.first!.lineOffset, literal: token.literal[squash.first!.lineOffset..<squash.last!.literal.endIndex], tokenType: .keyword, children: [])
+                squashingResult.append(result)
+            } else {
+                squashingResult.append(token.children[i])
+                i += 1
+            }
+        }
+        token.children = squashingResult
         
         // recurse
         token.children = token.children.map {
@@ -290,7 +313,7 @@ public class GRPHLexer {
 }
 
 extension Array {
-    /// Same as `last`, but with a setter
+    /// Same as `last`, but with a setter, and it crashes if empty
     var head: Element {
         get {
             self[count - 1]
