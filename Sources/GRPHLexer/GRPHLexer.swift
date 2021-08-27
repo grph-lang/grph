@@ -19,7 +19,9 @@ public class GRPHLexer {
         var tokens: [Token] = []
         tokens.reserveCapacity(lines.count)
         for lineNumber in 0..<lines.count {
-            tokens.append(parseLine(lineNumber: lineNumber, content: lines[lineNumber]))
+            var line = parseLine(lineNumber: lineNumber, content: lines[lineNumber])
+            performTokenDetection(token: &line)
+            tokens.append(line)
         }
         return tokens
     }
@@ -202,7 +204,7 @@ public class GRPHLexer {
             return .stringLiteral
         case "\'":
             return .fileLiteral
-        case "+", "-", "*", "%", "<", ">", "≥", "≤", "~", "!", "&", "|", "≠":
+        case "+", "-", "*", "%", "<", ">", "≥", "≤", "~", "!", "&", "|", "≠", "?":
             return .operator
         case "[": // these are handled specially
             return .squareBrackets
@@ -212,6 +214,40 @@ public class GRPHLexer {
             return .curlyBraces
         default:
             return .unresolved
+        }
+    }
+    
+    func performTokenDetection(token: inout Token) {
+        switch token.tokenType {
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved:
+            break // nothing to do
+        case .identifier:
+            switch token.literal {
+            case "true", "false":
+                token.tokenType = .booleanLiteral
+            case "null":
+                token.tokenType = .nullLiteral
+            case "as", "is", "global", "static", "final", "auto": // TODO squash the as(?)(!)
+                token.tokenType = .keyword
+            case "right", "downRight", "down", "downLeft", "left", "upLeft", "up", "upRight", "elongated", "cut", "rounded":
+                token.tokenType = .enumCase
+                // TODO type
+            default:
+                break // another identifier: .variable, .function, .method, .type
+            }
+        case .operator, .assignmentOperator:
+            // TODO they actually should be pre-squashed
+            break
+        case .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
+            assertionFailure("tried to validate an already validated token")
+        }
+        // TODO squash the namespace identifiers
+        
+        // recurse
+        token.children = token.children.map {
+            var copy = $0
+            performTokenDetection(token: &copy)
+            return copy
         }
     }
     

@@ -26,7 +26,7 @@ public struct Token {
 
 extension Token {
     func represent(indent: String = "") -> String {
-        let head = "\(indent)\(literal.debugDescription) \(tokenType) (\(lineNumber):\(lineOffset.encodedOffset))\n"
+        let head = "\(indent)\(literal.debugDescription) \(tokenType) (\(lineNumber):\(lineOffset.utf16Offset(in: literal.base)))\n"
         
         return head + children.map { $0.represent(indent: indent + "    ") }.joined()
     }
