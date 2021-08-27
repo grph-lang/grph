@@ -9,7 +9,10 @@ import Foundation
 
 public class GRPHLexer {
     
+    // State for the current line
     var lineNumber = 0
+    var line = ""
+    var hierarchy: [Token] = []
     
     public func parseDocument(content: String) -> [Token] {
         let lines = content.components(separatedBy: "\n")
@@ -23,7 +26,8 @@ public class GRPHLexer {
     
     public func parseLine(lineNumber: Int, content: String) -> Token {
         self.lineNumber = lineNumber
-        var hierarchy = [Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: content[...], tokenType: .line, children: []), Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: "", tokenType: .indent, children: [])]
+        self.line = content
+        hierarchy = [Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: content[...], tokenType: .line, children: []), Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: "", tokenType: .indent, children: [])]
         for index in content.indices {
             let char = content[index]
             let currentTokenType = hierarchy.head.tokenType
@@ -34,7 +38,7 @@ public class GRPHLexer {
                 var last = hierarchy.popLast()!
                 last.literal = content[last.lineOffset..<index] // notice ..<, not including current
                 hierarchy.head.children.append(last)
-                if !maybeHandleClosingBrackets(hierarchy: &hierarchy, content: content, char: char, index: index) {
+                if !maybeHandleClosingBrackets(char: char, index: index) {
                     let resolved = newTokenType(previous: currentTokenType, char: char)
                     hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: resolved, children: []))
                     if resolved == .squareBrackets || resolved == .parentheses || resolved == .curlyBraces {
@@ -42,10 +46,10 @@ public class GRPHLexer {
                     }
                 }
             case .satisfiesAndTerminates:
-                popHierarchyClosing(hierarchy: &hierarchy, content: content, index: index)
+                popHierarchyClosing(index: index)
                 hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
             case .satisfiesAndCloses:
-                popHierarchyClosing(hierarchy: &hierarchy, content: content, index: index)
+                popHierarchyClosing(index: index)
             case .satisfiesSubToken(let subtokenType):
                 hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: subtokenType, children: []))
             case .changeCurrentType(let tokenType):
@@ -60,36 +64,36 @@ public class GRPHLexer {
         return hierarchy[0]
     }
     
-    func maybeHandleClosingBrackets(hierarchy: inout [Token], content: String, char: Character, index: String.Index) -> Bool {
+    func maybeHandleClosingBrackets(char: Character, index: String.Index) -> Bool {
         switch char {
         case "]":
             if hierarchy.head.tokenType == .squareBrackets {
-                popHierarchyClosing(hierarchy: &hierarchy, content: content, index: index)
+                popHierarchyClosing(index: index)
             } else {
                 print("Error: brackets incorrectly closed")
             }
         case ")":
             if hierarchy.head.tokenType == .parentheses {
-                popHierarchyClosing(hierarchy: &hierarchy, content: content, index: index)
+                popHierarchyClosing(index: index)
             } else {
                 print("Error: parentheses incorrectly closed")
             }
         case "}":
             if hierarchy.head.tokenType == .curlyBraces {
-                popHierarchyClosing(hierarchy: &hierarchy, content: content, index: index)
+                popHierarchyClosing(index: index)
             } else {
                 print("Error: braces incorrectly closed")
             }
         default:
             return false
         }
-        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
+        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: line.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
         return true
     }
     
-    func popHierarchyClosing(hierarchy: inout [Token], content: String, index: String.Index) {
+    func popHierarchyClosing(index: String.Index) {
         var last = hierarchy.popLast()!
-        last.literal = content[last.lineOffset...index]
+        last.literal = line[last.lineOffset...index]
         hierarchy.head.children.append(last)
     }
     
