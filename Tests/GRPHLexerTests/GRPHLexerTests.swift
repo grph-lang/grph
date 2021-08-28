@@ -2,10 +2,15 @@ import XCTest
 @testable import GRPHLexer
 
 final class GRPHLexerTests: XCTestCase {
-    let lexer = GRPHLexer()
+    var lexer = GRPHLexer()
     var lineNumber = 0
     
-    func testExample() throws {
+    override func setUp() {
+        lexer = GRPHLexer()
+        lineNumber = 0
+    }
+    
+    func testLexing() throws {
         parsing(line: "#requires GRPH 1.1 // this is a comment", assert: [.indent, .commandName, .identifier, .numberLiteral, .comment])
         parsing(line: "::LABEL /// great", assert: [.indent, .labelPrefixOperator, .label, .docComment])
         parsing(line: "pos p = 4,7", assert: [.indent, .identifier, .identifier, .assignmentOperator, .posLiteral])
@@ -44,4 +49,30 @@ final class GRPHLexerTests: XCTestCase {
         XCTAssertEqual(lexer.diagnostics.last?.message, notice)
         lineNumber += 1
     }
+    
+    func testIndentation() throws {
+        expectIndent(spec: "tabs", expectedResult: "\t")
+        expectIndent(spec: "spaces", expectedResult: "    ")
+        expectIndent(spec: "2*spaces", expectedResult: "  ")
+        expectIndent(spec: "2*tabs", expectedResult: "\t\t")
+        expectIndent(spec: "uwus", expectedResult: "uwu ")
+        
+        expectDiagnostic(line: "#compiler indent true", notice: "Unknown indent 'true'")
+        expectDiagnostic(line: "#compiler indent space*4", notice: "Expected integer multiplier in syntax '#compiler indent n*string'")
+        expectDiagnostic(line: "#compiler indent spaces/4", notice: "Expected '*' in syntax '#compiler indent n*string'")
+        expectDiagnostic(line: "#compiler indent spaces*", notice: "Unexpected token in syntax '#compiler indent string'")
+        print(lexer.diagnostics.map { $0.represent() }.joined(separator: "\n"))
+    }
+    
+    func expectIndent(spec: String, expectedResult: String) {
+        var result = lexer.parseLine(lineNumber: lineNumber, content: "#compiler indent \(spec)")
+        lexer.tokenDetectLine(line: &result)
+        
+        let next = lexer.parseLine(lineNumber: lineNumber + 1, content: "\(expectedResult)\(expectedResult)auto a = 1")
+        
+        XCTAssertEqual(lexer.indentation, expectedResult)
+        XCTAssertEqual(next.children[0].data, .integer(2))
+        lineNumber += 2
+    }
 }
+

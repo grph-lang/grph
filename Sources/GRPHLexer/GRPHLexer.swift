@@ -252,25 +252,65 @@ public class GRPHLexer {
     func tokenDetectLine(line: inout Token) {
         performTokenDetection(token: &line)
         
-        if line.children.count >= 6,
-           line.children[1].literal == "#compiler",
-           line.children[2].tokenType == .ignoreableWhiteSpace,
-           line.children[4].tokenType == .ignoreableWhiteSpace {
+        let stripped = line.strippedChildren
+        // [.indent, .commandName, .identifier, value(s)...]
+        if stripped.count >= 4,
+           stripped[1].literal == "#compiler" {
             // handle what we can
-            // [.indent, .commandName, .ignoreableWhiteSpace, .identifier, .ignoreableWhiteSpace, value(s)...]
-            switch line.children[3].literal {
+            switch stripped[2].literal {
             case "indent":
-                print("#compiler indent is not supported by this lexer") // TODO
-            case "altBrackets", "altBracketSet", "alternativeBracketSet":
-                guard line.children[5].tokenType == .booleanLiteral else {
-                    diagnostics.append(Notice(token: line.children[5], severity: .error, source: .tokenDetector, message: "Expected value to be a boolean literal"))
+                let multiplier: Int?
+                let specifier: Token
+                if stripped.count == 6 {
+                    // n*name
+                    guard stripped[4].tokenType == .operator && stripped[4].literal == "*" else {
+                        diagnostics.append(Notice(token: stripped[4], severity: .error, source: .tokenDetector, message: "Expected '*' in syntax '#compiler indent n*string'"))
+                        break
+                    }
+                    guard stripped[3].tokenType == .numberLiteral,
+                          let int = Int(stripped[3].literal) else {
+                          diagnostics.append(Notice(token: stripped[3], severity: .error, source: .tokenDetector, message: "Expected integer multiplier in syntax '#compiler indent n*string'"))
+                          break
+                    }
+                    multiplier = int
+                    specifier = stripped[5]
+                } else if stripped.count == 4 {
+                    multiplier = nil
+                    specifier = stripped[3]
+                } else {
+                    diagnostics.append(Notice(token: stripped[4], severity: .error, source: .tokenDetector, message: "Unexpected token in syntax '#compiler indent string'"))
                     break
                 }
-                alternativeBracketSet = line.children[5].literal == "true"
+                if specifier.tokenType == .stringLiteral {
+                    print("TODO")
+                } else {
+                    switch specifier.literal {
+                    case "spaces", "space":
+                        indentation = String(repeating: " ", count: multiplier ?? 4)
+                    case "tabs", "tab", "tabulation", "tabulations":
+                        indentation = String(repeating: "\t", count: multiplier ?? 1)
+                    case "dash", "dashes", "-":
+                        indentation = String(repeating: "-", count: multiplier ?? 4)
+                    case "underscores", "underscore", "_":
+                        indentation = String(repeating: "_", count: multiplier ?? 4)
+                    case "tildes", "tilde", "~":
+                        indentation = String(repeating: "~", count: multiplier ?? 4)
+                    case "uwus":
+                        indentation = String(repeating: "uwu ", count: multiplier ?? 1)
+                    default:
+                        diagnostics.append(Notice(token: specifier, severity: .error, source: .tokenDetector, message: "Unknown indent '\(specifier.literal)'"))
+                    }
+                }
+            case "altBrackets", "altBracketSet", "alternativeBracketSet":
+                guard stripped[3].tokenType == .booleanLiteral else {
+                    diagnostics.append(Notice(token: stripped[3], severity: .error, source: .tokenDetector, message: "Expected value to be a boolean literal"))
+                    break
+                }
+                alternativeBracketSet = stripped[3].literal == "true"
             case "strict", "strictUnbox", "strictUnboxing", "noAutoUnbox", "strictBoxing", "noAutobox", "noAutoBox", "strictest", "ignore":
                 break // this is the job of the generator
             default:
-                diagnostics.append(Notice(token: line.children[3], severity: .warning, source: .tokenDetector, message: "Unknown compiler key '\(line.children[3].literal)'"))
+                diagnostics.append(Notice(token: stripped[2], severity: .warning, source: .tokenDetector, message: "Unknown compiler key '\(stripped[2].literal)'"))
             }
         }
     }

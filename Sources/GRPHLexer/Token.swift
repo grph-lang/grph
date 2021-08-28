@@ -33,6 +33,10 @@ extension Token {
         return head + children.map { $0.represent(indent: indent + "    ") }.joined()
     }
     
+    var strippedChildren: [Token] {
+        children.filter { $0.tokenType != .ignoreableWhiteSpace }
+    }
+    
     mutating func stripWhitespaces() {
         children = children.filter { $0.tokenType != .ignoreableWhiteSpace }.map {
             var copy = $0
@@ -43,7 +47,7 @@ extension Token {
 }
 
 extension Token {
-    public enum AssociatedData {
+    public enum AssociatedData: Equatable {
         case integer(Int)
         case float(Float)
         case string(String)
