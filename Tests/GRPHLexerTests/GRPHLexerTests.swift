@@ -17,11 +17,13 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "i+-7", assert: [.indent, .identifier, .operator, .operator, .numberLiteral])
         parsing(line: "~i >> 2", assert: [.indent, .operator, .identifier, .operator, .numberLiteral])
         parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
+        parsing(line: "#compiler altBrackets true", assert: [.indent, .commandName, .identifier, .booleanLiteral])
+        parsing(line: "log: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])
     }
     
     func parsing(line: String, assert tokenTypes: [TokenType]) {
         var result = lexer.parseLine(lineNumber: 0, content: line)
-        lexer.performTokenDetection(token: &result)
+        lexer.tokenDetectLine(line: &result)
         result.stripWhitespaces()
         print(result.represent())
         XCTAssertEqual(result.children.map({$0.tokenType }), tokenTypes)

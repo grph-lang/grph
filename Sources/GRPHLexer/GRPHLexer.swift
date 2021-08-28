@@ -14,17 +14,22 @@ public class GRPHLexer {
     var line = ""
     var hierarchy: [Token] = []
     
+    // lexing options
+    var alternativeBracketSet = false
+    
     public func parseDocument(content: String) -> [Token] {
         let lines = content.components(separatedBy: "\n")
         var tokens: [Token] = []
         tokens.reserveCapacity(lines.count)
         for lineNumber in 0..<lines.count {
             var line = parseLine(lineNumber: lineNumber, content: lines[lineNumber])
-            performTokenDetection(token: &line)
+            tokenDetectLine(line: &line)
             tokens.append(line)
         }
         return tokens
     }
+    
+    // MARK: - Phase 1 - Base lexing
     
     public func parseLine(lineNumber: Int, content: String) -> Token {
         self.lineNumber = lineNumber
@@ -232,9 +237,37 @@ public class GRPHLexer {
         }
     }
     
+    // MARK: - Phase 2 - Token detection
+    
+    func tokenDetectLine(line: inout Token) {
+        performTokenDetection(token: &line)
+        
+        if line.children.count >= 6,
+           line.children[1].literal == "#compiler",
+           line.children[2].tokenType == .ignoreableWhiteSpace,
+           line.children[4].tokenType == .ignoreableWhiteSpace {
+            // handle what we can
+            // [.indent, .commandName, .ignoreableWhiteSpace, .identifier, .ignoreableWhiteSpace, value(s)...]
+            switch line.children[3].literal {
+            case "indent":
+                print("#compiler indent is not supported by this lexer") // TODO
+            case "altBrackets", "altBracketSet", "alternativeBracketSet":
+                guard line.children[5].tokenType == .booleanLiteral else {
+                    print("expected boolean literal")
+                    break
+                }
+                alternativeBracketSet = line.children[5].literal == "true"
+            case "strict", "strictUnbox", "strictUnboxing", "noAutoUnbox", "strictBoxing", "noAutobox", "noAutoBox", "strictest", "ignore":
+                break // this is the job of the generator
+            default:
+                print("unsupported compiler key")
+            }
+        }
+    }
+    
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .curlyBraces, .line, .unresolved, .assignmentOperator, .keyword:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .unresolved, .assignmentOperator, .keyword:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -259,6 +292,18 @@ public class GRPHLexer {
                 let op = literal.dropLast()
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator, children: []))
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator, children: []))
+            }
+        case .squareBrackets:
+            if alternativeBracketSet {
+                token.tokenType = .curlyBraces
+            }
+        case .parentheses:
+            if alternativeBracketSet {
+                token.tokenType = .squareBrackets
+            }
+        case .curlyBraces:
+            if alternativeBracketSet {
+                token.tokenType = .parentheses
             }
         case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
             assertionFailure("tried to validate an already validated token")
@@ -295,7 +340,9 @@ public class GRPHLexer {
             return copy
         }
     }
-    
+}
+
+extension GRPHLexer {
     enum SatisfiesResult {
         /// The character is a valid part of this token type
         case satisfies
