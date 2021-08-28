@@ -296,7 +296,11 @@ public class GRPHLexer {
                     break
                 }
                 if specifier.tokenType == .stringLiteral {
-                    print("TODO")
+                    if case .string(let data) = specifier.data {
+                        indentation = String(repeating: data, count: multiplier ?? 1)
+                    } else {
+                        diagnostics.append(Notice(token: specifier, severity: .error, source: .tokenDetector, message: "Invalid string literal given"))
+                    }
                 } else {
                     switch specifier.literal {
                     case "spaces", "space":

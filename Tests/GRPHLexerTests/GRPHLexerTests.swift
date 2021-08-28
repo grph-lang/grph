@@ -60,6 +60,8 @@ final class GRPHLexerTests: XCTestCase {
         expectIndent(spec: "2*spaces", expectedResult: "  ")
         expectIndent(spec: "2*tabs", expectedResult: "\t\t")
         expectIndent(spec: "uwus", expectedResult: "uwu ")
+        expectIndent(spec: #""pizza""#, expectedResult: "pizza")
+        expectIndent(spec: #""\t""#, expectedResult: "\t")
         
         expectDiagnostic(line: "#compiler indent true", notice: "Unknown indent 'true'")
         expectDiagnostic(line: "#compiler indent space*4", notice: "Expected integer multiplier in syntax '#compiler indent n*string'")
