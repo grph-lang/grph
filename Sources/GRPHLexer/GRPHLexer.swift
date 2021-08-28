@@ -18,8 +18,11 @@ public class GRPHLexer {
     var alternativeBracketSet = false
     var indentation = "\t"
     
-    var diagnostics: [Notice] = []
+    public private(set) var diagnostics: [Notice] = []
     
+    /// Fully lexes (base lexing + token detection) a full source file.
+    /// - Parameter content: The source to parse
+    /// - Returns: An array of line tokens. Each token in the array is a fully lexed `.line` token
     public func parseDocument(content: String) -> [Token] {
         let lines = content.components(separatedBy: "\n")
         var tokens: [Token] = []
@@ -34,6 +37,11 @@ public class GRPHLexer {
     
     // MARK: - Phase 1 - Base lexing
     
+    /// Parses a line with base lexing only
+    /// - Parameters:
+    ///   - lineNumber: the line number of the given line
+    ///   - content: the line to parse
+    /// - Returns: A token of type `.line`, containing all the tokens in the line as its children
     public func parseLine(lineNumber: Int, content: String) -> Token {
         self.lineNumber = lineNumber
         self.line = content
@@ -95,6 +103,11 @@ public class GRPHLexer {
         return hierarchy[0]
     }
     
+    /// Reads a token, and if it is a closing bracket, closes it in the hierarchy, or errors if it is unmatched
+    /// - Parameters:
+    ///   - char: The character to evaluate
+    ///   - index: The index in the line at which the character was found
+    /// - Returns: True if a valid closing bracket was found, false otherwise
     func maybeHandleClosingBrackets(char: Character, index: String.Index) -> Bool {
         let token = { [self] in Token(lineNumber: lineNumber, lineOffset: index, literal: line[index..<line.index(after: index)], tokenType: .operator) }
         switch char {
@@ -147,13 +160,19 @@ public class GRPHLexer {
         return true
     }
     
+    /// Closes a token in the hierarchy. This finished token will include the given index.
+    /// - Parameter index: the index of the last character to include in the token
     func popHierarchyClosing(index: String.Index) {
         var last = hierarchy.popLast()!
         last.literal = line[last.lineOffset...index]
         hierarchy.head.children.append(last)
     }
     
-    // when the previous character was of type `tokenType`, is the next too?
+    /// Answers the question: when the previous character was of type `tokenType`, is the next too?
+    /// - Parameters:
+    ///   - tokenType: the current token type
+    ///   - char: the current character to consider
+    /// - Returns: what to do with that character (include in previous token? new token? change token type? include and close token?)
     func satisfies(tokenType: TokenType, char: Character) -> SatisfiesResult {
         switch tokenType {
         case .ignoreableWhiteSpace:
@@ -239,6 +258,10 @@ public class GRPHLexer {
     }
     
     /// When a new token is encountered. Most of the time, previous is ignoreable. Only used for identifying labels.
+    /// - Parameters:
+    ///   - previous: the token type of the previous token
+    ///   - char: the current character to consider
+    /// - Returns: the token type of this new token
     func newTokenType(previous: TokenType, char: Character) -> TokenType {
         if char.isWhitespace {
             return .ignoreableWhiteSpace
@@ -290,7 +313,11 @@ public class GRPHLexer {
     
     // MARK: - Phase 2 - Token detection
     
-    func tokenDetectLine(line: inout Token) {
+    /// Performs the token detection phase for this line
+    /// This will execute #compiler directives, change some identifiers to their correct token type (literals, keywords), and parse & store data in literals.
+    /// It will also apply the alternative bracket set if needed, and squash some tokens together.
+    /// - Parameter line: the line to update
+    public func tokenDetectLine(line: inout Token) {
         performTokenDetection(token: &line)
         
         let stripped = line.strippedChildren
@@ -360,6 +387,8 @@ public class GRPHLexer {
         }
     }
     
+    /// Recursively performs token detection on a token
+    /// - Parameter token: the token to update. it's type and stored data may change, and this will happen recursively with all its children
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
         case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword:

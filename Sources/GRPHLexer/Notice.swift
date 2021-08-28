@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct Notice {
+public struct Notice {
     /// The token that has a problem
-    var token: Token
+    public var token: Token
     
-    var severity: Severity
+    public var severity: Severity
     
-    var source: Source
+    public var source: Source
     
-    var message: String
+    public var message: String
 }
 
-extension Notice {
+public extension Notice {
     func represent() -> String {
         var msg = token.literal.base + "\n"
         msg += String(repeating: " ", count: token.literal.base.distance(from: token.literal.base.startIndex, to: token.lineOffset))
@@ -28,7 +28,7 @@ extension Notice {
     }
 }
 
-extension Notice {
+public extension Notice {
     /// This enum is compatible with LSP's `DiagnosticSeverity`
     enum Severity: Int {
         case error = 1
@@ -38,10 +38,13 @@ extension Notice {
     }
 }
 
-extension Notice {
+public extension Notice {
     enum Source: String {
+        /// This problem was catched by the base lexer
         case lexer
+        /// This problem was catched by the token detector
         case tokenDetector
+        /// This problem was catched by the generator
         case generator
     }
 }

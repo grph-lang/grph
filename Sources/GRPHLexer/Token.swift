@@ -27,16 +27,18 @@ public struct Token {
 }
 
 extension Token {
-    func represent(indent: String = "") -> String {
+    public func represent(indent: String = "") -> String {
         let head = "\(indent)\(literal.debugDescription) \(tokenType) (\(lineNumber):\(lineOffset.utf16Offset(in: literal.base))) \(data)\n"
         
         return head + children.map { $0.represent(indent: indent + "    ") }.joined()
     }
     
-    var strippedChildren: [Token] {
+    /// The children, removing all whitespace characters in immediate children
+    public var strippedChildren: [Token] {
         children.filter { $0.tokenType != .ignoreableWhiteSpace }
     }
     
+    /// Removes absolutely all whitespaces in the token. Should only be used for cleaning debug data, as whitespaces are necessary for splitting arguments.
     mutating func stripWhitespaces() {
         children = children.filter { $0.tokenType != .ignoreableWhiteSpace }.map {
             var copy = $0
