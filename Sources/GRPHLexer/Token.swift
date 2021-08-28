@@ -22,11 +22,13 @@ public struct Token {
     
     /// The children of this token. Not all token types support children
     public var children: [Token]
+    
+    public var data: AssociatedData = .none
 }
 
 extension Token {
     func represent(indent: String = "") -> String {
-        let head = "\(indent)\(literal.debugDescription) \(tokenType) (\(lineNumber):\(lineOffset.utf16Offset(in: literal.base)))\n"
+        let head = "\(indent)\(literal.debugDescription) \(tokenType) (\(lineNumber):\(lineOffset.utf16Offset(in: literal.base))) \(data)\n"
         
         return head + children.map { $0.represent(indent: indent + "    ") }.joined()
     }
@@ -36,6 +38,31 @@ extension Token {
             var copy = $0
             copy.stripWhitespaces()
             return copy
+        }
+    }
+}
+
+extension Token {
+    public enum AssociatedData {
+        case integer(Int)
+        case float(Float)
+        case string(String)
+        
+        case none
+    }
+}
+
+extension Token.AssociatedData: CustomStringConvertible {
+    public var description: String {
+        switch self {
+        case .integer(let data):
+            return data.description
+        case .float(let data):
+            return data.description
+        case .string(let data):
+            return data.debugDescription
+        case .none:
+            return ""
         }
     }
 }

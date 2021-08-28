@@ -19,7 +19,7 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "~i >> 2", assert: [.indent, .operator, .identifier, .operator, .numberLiteral])
         parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
         parsing(line: "#compiler altBrackets true", assert: [.indent, .commandName, .identifier, .booleanLiteral])
-        parsing(line: "log: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])
+        parsing(line: "\t\tlog: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])
         
         expectDiagnostic(line: "#compiler ayo true", notice: "Unknown compiler key 'ayo'")
         expectDiagnostic(line: "#compiler altBrackets 1", notice: "Expected value to be a boolean literal")

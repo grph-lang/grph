@@ -16,6 +16,7 @@ public class GRPHLexer {
     
     // lexing options
     var alternativeBracketSet = false
+    var indentation = "\t"
     
     var diagnostics: [Notice] = []
     
@@ -37,7 +38,14 @@ public class GRPHLexer {
         self.lineNumber = lineNumber
         self.line = content
         hierarchy = [Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: content[...], tokenType: .line, children: []), Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: "", tokenType: .indent, children: [])]
-        for index in content.indices {
+        var unindented = line[...]
+        var level = 0
+        while unindented.hasPrefix(indentation) {
+            unindented = unindented.dropFirst(indentation.count)
+            level += 1
+        }
+        hierarchy.head.data = .integer(level)
+        for index in unindented.indices {
             let char = content[index]
             let currentTokenType = hierarchy.head.tokenType
             switch satisfies(tokenType: currentTokenType, char: char) {
@@ -112,7 +120,7 @@ public class GRPHLexer {
         case .ignoreableWhiteSpace:
             return char.isWhitespace ? .satisfies : .newToken
         case .indent:
-            return char == "\t" ? .satisfies : .newToken
+            return .newToken // indentation is fully parsed before this phase. just a start of line, always a new token
         case .slashOperator:
             if char == "/" {
                 return .changeCurrentType(.comment)
