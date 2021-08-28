@@ -17,6 +17,8 @@ public class GRPHLexer {
     // lexing options
     var alternativeBracketSet = false
     
+    var diagnostics: [Notice] = []
+    
     public func parseDocument(content: String) -> [Token] {
         let lines = content.components(separatedBy: "\n")
         var tokens: [Token] = []
@@ -253,21 +255,21 @@ public class GRPHLexer {
                 print("#compiler indent is not supported by this lexer") // TODO
             case "altBrackets", "altBracketSet", "alternativeBracketSet":
                 guard line.children[5].tokenType == .booleanLiteral else {
-                    print("expected boolean literal")
+                    diagnostics.append(Notice(token: line.children[5], severity: .error, source: .tokenDetector, message: "Expected value to be a boolean literal"))
                     break
                 }
                 alternativeBracketSet = line.children[5].literal == "true"
             case "strict", "strictUnbox", "strictUnboxing", "noAutoUnbox", "strictBoxing", "noAutobox", "noAutoBox", "strictest", "ignore":
                 break // this is the job of the generator
             default:
-                print("unsupported compiler key")
+                diagnostics.append(Notice(token: line.children[3], severity: .warning, source: .tokenDetector, message: "Unknown compiler key '\(line.children[3].literal)'"))
             }
         }
     }
     
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .unresolved, .assignmentOperator, .keyword:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -305,6 +307,8 @@ public class GRPHLexer {
             if alternativeBracketSet {
                 token.tokenType = .parentheses
             }
+        case .unresolved:
+            diagnostics.append(Notice(token: token, severity: .error, source: .lexer, message: "Unresolved token '\(token.literal)' in source"))
         case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespaceSeparator:
             assertionFailure("tried to validate an already validated token")
         }

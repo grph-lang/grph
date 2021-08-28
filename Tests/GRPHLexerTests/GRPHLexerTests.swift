@@ -3,6 +3,7 @@ import XCTest
 
 final class GRPHLexerTests: XCTestCase {
     let lexer = GRPHLexer()
+    var lineNumber = 0
     
     func testExample() throws {
         parsing(line: "#requires GRPH 1.1 // this is a comment", assert: [.indent, .commandName, .identifier, .numberLiteral, .comment])
@@ -19,13 +20,28 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
         parsing(line: "#compiler altBrackets true", assert: [.indent, .commandName, .identifier, .booleanLiteral])
         parsing(line: "log: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])
+        
+        expectDiagnostic(line: "#compiler ayo true", notice: "Unknown compiler key 'ayo'")
+        expectDiagnostic(line: "#compiler altBrackets 1", notice: "Expected value to be a boolean literal")
+        expectDiagnostic(line: #"@echo "hey";"#, notice: "Unresolved token ';' in source")
+        print(lexer.diagnostics.map { $0.represent() }.joined(separator: "\n"))
     }
     
     func parsing(line: String, assert tokenTypes: [TokenType]) {
-        var result = lexer.parseLine(lineNumber: 0, content: line)
+        var result = lexer.parseLine(lineNumber: lineNumber, content: line)
         lexer.tokenDetectLine(line: &result)
         result.stripWhitespaces()
         print(result.represent())
         XCTAssertEqual(result.children.map({$0.tokenType }), tokenTypes)
+        lineNumber += 1
+    }
+    
+    func expectDiagnostic(line: String, notice: String) {
+        var result = lexer.parseLine(lineNumber: lineNumber, content: line)
+        lexer.tokenDetectLine(line: &result)
+        result.stripWhitespaces()
+        print(result.represent())
+        XCTAssertEqual(lexer.diagnostics.last?.message, notice)
+        lineNumber += 1
     }
 }
