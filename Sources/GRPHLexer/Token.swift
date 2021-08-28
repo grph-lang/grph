@@ -21,7 +21,7 @@ public struct Token {
     public var tokenType: TokenType
     
     /// The children of this token. Not all token types support children
-    public var children: [Token]
+    public var children: [Token] = []
     
     public var data: AssociatedData = .none
 }

@@ -96,24 +96,49 @@ public class GRPHLexer {
     }
     
     func maybeHandleClosingBrackets(char: Character, index: String.Index) -> Bool {
+        let token = { [self] in Token(lineNumber: lineNumber, lineOffset: index, literal: line[index..<line.index(after: index)], tokenType: .operator) }
         switch char {
         case "]":
             if hierarchy.head.tokenType == .squareBrackets {
                 popHierarchyClosing(index: index)
             } else {
-                print("Error: brackets incorrectly closed")
+                switch hierarchy.head.tokenType {
+                case .parentheses:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing parenthesis ')'"))
+                case .curlyBraces:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing brace '}'"))
+                default:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Unexpected closing bracket, no opening bracket found"))
+                }
+                return false
             }
         case ")":
             if hierarchy.head.tokenType == .parentheses {
                 popHierarchyClosing(index: index)
             } else {
-                print("Error: parentheses incorrectly closed")
+                switch hierarchy.head.tokenType {
+                case .squareBrackets:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing bracket ']'"))
+                case .curlyBraces:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing brace '}'"))
+                default:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Unexpected closing parentheses, no opening parentheses found"))
+                }
+                return false
             }
         case "}":
             if hierarchy.head.tokenType == .curlyBraces {
                 popHierarchyClosing(index: index)
             } else {
-                print("Error: braces incorrectly closed")
+                switch hierarchy.head.tokenType {
+                case .squareBrackets:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing bracket ']'"))
+                case .parentheses:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Expected a closing parenthesis ')'"))
+                default:
+                    diagnostics.append(Notice(token: token(), severity: .error, source: .lexer, message: "Unexpected closing brace, no opening brace found"))
+                }
+                return false
             }
         default:
             return false
@@ -256,6 +281,8 @@ public class GRPHLexer {
             return .parentheses
         case "{":
             return .curlyBraces
+        case "]", ")", "}":
+            return .ignoreableWhiteSpace // only happens for unmatched braces, we decide to ignore them (error already triggered)
         default:
             return .unresolved
         }

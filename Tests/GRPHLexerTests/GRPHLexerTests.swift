@@ -33,6 +33,8 @@ final class GRPHLexerTests: XCTestCase {
         expectDiagnostic(line: #"@echo "hey";"#, notice: "Unresolved token ';' in source")
         expectDiagnostic(line: "createPos[1 2", notice: "Expected a closing bracket ']'")
         expectDiagnostic(line: #""flower"#, notice: "Unclosed string literal")
+        expectDiagnostic(line: #"pos(1 2]"#, notice: "Expected a closing parenthesis ')'")
+        expectDiagnostic(line: #"pos: 1 2}"#, notice: "Unexpected closing brace, no opening brace found")
         print(lexer.diagnostics.map { $0.represent() }.joined(separator: "\n"))
     }
     
