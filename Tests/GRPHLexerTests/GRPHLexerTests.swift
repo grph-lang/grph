@@ -23,12 +23,16 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "i+-7", assert: [.indent, .identifier, .operator, .operator, .numberLiteral])
         parsing(line: "~i >> 2", assert: [.indent, .operator, .identifier, .operator, .numberLiteral])
         parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
+        
         parsing(line: "#compiler altBrackets true", assert: [.indent, .commandName, .identifier, .booleanLiteral])
         parsing(line: "\t\tlog: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])
+        lexer.alternativeBracketSet = false
         
         expectDiagnostic(line: "#compiler ayo true", notice: "Unknown compiler key 'ayo'")
         expectDiagnostic(line: "#compiler altBrackets 1", notice: "Expected value to be a boolean literal")
         expectDiagnostic(line: #"@echo "hey";"#, notice: "Unresolved token ';' in source")
+        expectDiagnostic(line: "createPos[1 2", notice: "Expected a closing bracket ']'")
+        expectDiagnostic(line: #""flower"#, notice: "Unclosed string literal")
         print(lexer.diagnostics.map { $0.represent() }.joined(separator: "\n"))
     }
     
@@ -73,6 +77,27 @@ final class GRPHLexerTests: XCTestCase {
         XCTAssertEqual(lexer.indentation, expectedResult)
         XCTAssertEqual(next.children[0].data, .integer(2))
         lineNumber += 2
+    }
+    
+    func testLiteralParsing() throws {
+        parseLiteral(string: "28", assert: .integer(28))
+        parseLiteral(string: "1.01", assert: .float(1.01))
+        parseLiteral(string: "42f", assert: .float(42))
+        parseLiteral(string: "18.0F", assert: .float(18))
+        
+        parseLiteral(string: #""Hello, World!\n""#, assert: .string("Hello, World!\n"))
+        parseLiteral(string: #""\they\0malicious\"string\"hehe\\""#, assert: .string("\they\0malicious\"string\"hehe\\"))
+        
+        expectDiagnostic(line: "1.2.3", notice: "Invalid float literal")
+        expectDiagnostic(line: #""flower\z""#, notice: "Invalid escape sequence in string literal")
+    }
+    
+    func parseLiteral(string: String, assert: Token.AssociatedData) {
+        var result = lexer.parseLine(lineNumber: lineNumber, content: string)
+        lexer.tokenDetectLine(line: &result)
+        print(result.represent())
+        XCTAssertEqual(result.children[1].data, assert)
+        lineNumber += 1
     }
 }
 

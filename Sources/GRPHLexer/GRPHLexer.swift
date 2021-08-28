@@ -76,6 +76,20 @@ public class GRPHLexer {
         while hierarchy.count > 1 {
             var last = hierarchy.popLast()!
             last.literal = content[last.lineOffset...]
+            switch last.tokenType {
+            case .stringLiteral, .fileLiteral:
+                diagnostics.append(Notice(token: last, severity: .error, source: .lexer, message: "Unclosed string literal"))
+            case .stringLiteralEscapeSequence:
+                diagnostics.append(Notice(token: last, severity: .error, source: .lexer, message: "Empty escape sequence"))
+            case .squareBrackets:
+                diagnostics.append(Notice(token: last, severity: .error, source: .lexer, message: "Expected a closing bracket ']'"))
+            case .parentheses:
+                diagnostics.append(Notice(token: last, severity: .error, source: .lexer, message: "Expected a closing parenthesis ')'"))
+            case .curlyBraces:
+                diagnostics.append(Notice(token: last, severity: .error, source: .lexer, message: "Expected a closing brace '}'"))
+            default:
+                break // ok
+            }
             hierarchy.head.children.append(last)
         }
         return hierarchy[0]
@@ -317,7 +331,7 @@ public class GRPHLexer {
     
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .posLiteral, .numberLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -343,6 +357,60 @@ public class GRPHLexer {
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator, children: []))
                 token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator, children: []))
             }
+        case .numberLiteral:
+            if token.literal.hasSuffix("f") || token.literal.hasSuffix("F") {
+                guard let parsed = Float(token.literal.dropLast()) else {
+                    diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid float literal"))
+                    break
+                }
+                token.data = .float(parsed)
+            } else if token.literal.contains(".") {
+                guard let parsed = Float(token.literal) else {
+                    diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid float literal"))
+                    break
+                }
+                token.data = .float(parsed)
+            } else {
+                guard let parsed = Int(token.literal) else {
+                    diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid integer literal"))
+                    break
+                }
+                token.data = .integer(parsed)
+            }
+        case .posLiteral:
+            guard let comma = token.literal.firstIndex(of: ",") else {
+                diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid pos literal"))
+                break
+            }
+            // those numberLiteral will be parsed recursively
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<comma], tokenType: .numberLiteral, children: []))
+            let afterComma = token.literal.index(after: comma)
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: comma, literal: token.literal[comma..<afterComma], tokenType: .comma, children: []))
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: afterComma, literal: token.literal[afterComma..<token.literal.endIndex], tokenType: .numberLiteral, children: []))
+        case .stringLiteral, .fileLiteral:
+            var str = ""
+            var i = token.literal.index(after: token.literal.startIndex)
+            for escape in token.children {
+                str += token.literal[i..<escape.literal.startIndex]
+                i = escape.literal.endIndex
+                var char: Character
+                switch escape.literal.last {
+                case "n": char = "\n"
+                case "t": char = "\t"
+                case "r": char = "\r"
+                case "0": char = "\0"
+                case "b": char = "\u{8}"
+                case "f": char = "\u{c}"
+                case "\"", "'", "\\":
+                    char = escape.literal.last!
+                default:
+                    diagnostics.append(Notice(token: escape, severity: .warning, source: .tokenDetector, message: "Invalid escape sequence in string literal"))
+                    continue
+                }
+                str.append(char)
+            }
+            str += token.literal[i..<token.literal.index(before: token.literal.endIndex)]
+            token.data = .string(str)
         case .squareBrackets:
             if alternativeBracketSet {
                 token.tokenType = .curlyBraces
