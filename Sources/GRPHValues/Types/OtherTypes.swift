@@ -7,33 +7,33 @@
 
 import Foundation
 
-struct OptionalType: GRPHType {
-    let wrapped: GRPHType
+public struct OptionalType: GRPHType {
+    public let wrapped: GRPHType
     
-    var string: String {
+    public var string: String {
         if wrapped is MultiOrType {
             return "<\(wrapped.string)>?"
         }
         return "\(wrapped.string)?"
     }
     
-    func isInstance(of other: GRPHType) -> Bool {
+    public func isInstance(of other: GRPHType) -> Bool {
         return other is OptionalType && wrapped.isInstance(of: (other as! OptionalType).wrapped)
     }
     
-    var constructor: Constructor? {
+    public var constructor: Constructor? {
         Constructor(parameters: [Parameter(name: "wrapped", type: wrapped, optional: true)], type: self, storage: .generic(signature: "T?(T wrapped?)"))
     }
 }
 
-struct MultiOrType: GRPHType {
-    let type1, type2: GRPHType
+public struct MultiOrType: GRPHType {
+    public let type1, type2: GRPHType
     
-    var string: String {
+    public var string: String {
         "\(type1.string)|\(type2.string)"
     }
     
-    func isInstance(of other: GRPHType) -> Bool {
+    public func isInstance(of other: GRPHType) -> Bool {
         if let option = other as? OptionalType {
             return isInstance(of: option.wrapped)
         }
@@ -41,21 +41,21 @@ struct MultiOrType: GRPHType {
     }
 }
 
-struct ArrayType: GRPHType {
-    let content: GRPHType
+public struct ArrayType: GRPHType {
+    public let content: GRPHType
     
-    var string: String {
+    public var string: String {
         "{\(content.string)}"
     }
     
-    var supertype: GRPHType {
+    public var supertype: GRPHType {
         if content.isTheMixed {
             return SimpleType.mixed
         }
         return ArrayType(content: content.supertype)
     }
     
-    func isInstance(of other: GRPHType) -> Bool {
+    public func isInstance(of other: GRPHType) -> Bool {
         if let option = other as? OptionalType {
             return isInstance(of: option.wrapped)
         }
@@ -65,15 +65,15 @@ struct ArrayType: GRPHType {
         return other.isTheMixed
     }
     
-    var fields: [Field] {
+    public var fields: [Field] {
         return [VirtualField<GRPHArray>(name: "length", type: SimpleType.integer, getter: { $0.count })]
     }
     
-    var constructor: Constructor? {
+    public var constructor: Constructor? {
         Constructor(parameters: [Parameter(name: "element", type: content, optional: true)], type: self, varargs: true, storage: .generic(signature: "{T}(T wrapped...)"))
     }
     
-    var includedMethods: [Method] {
+    public var includedMethods: [Method] {
         [
             Method(ns: RandomNameSpace(), name: "shuffled", inType: self, parameters: [], returnType: self, storage: .generic(signature: "{T} {T}.random>shuffled[]")),
             Method(ns: StandardNameSpace(), name: "copy", inType: self, parameters: [], returnType: self, storage: .generic(signature: "{T} {T}.copy[]"))
@@ -81,22 +81,22 @@ struct ArrayType: GRPHType {
     }
 }
 
-struct FuncRefType: GRPHType {
-    let returnType: GRPHType
-    let parameterTypes: [GRPHType]
+public struct FuncRefType: GRPHType {
+    public let returnType: GRPHType
+    public let parameterTypes: [GRPHType]
     
-    var string: String {
+    public var string: String {
         "funcref<\(returnType.string)><\(parameterTypes.map{ $0.string }.joined(separator: "+"))>"
     }
     
-    var supertype: GRPHType {
+    public var supertype: GRPHType {
         if returnType.isTheMixed {
             return SimpleType.funcref
         }
         return FuncRefType(returnType: returnType.supertype, parameterTypes: parameterTypes)
     }
     
-    func isInstance(of other: GRPHType) -> Bool {
+    public func isInstance(of other: GRPHType) -> Bool {
         if let option = other as? OptionalType {
             return isInstance(of: option.wrapped)
         }
@@ -113,21 +113,21 @@ struct FuncRefType: GRPHType {
         return false
     }
     
-    var fields: [Field] {
+    public var fields: [Field] {
         return [VirtualField<FuncRef>(name: "_funcName", type: SimpleType.string, getter: { $0.funcName })]
     }
     
-    var constructor: Constructor? {
+    public var constructor: Constructor? {
         Constructor(parameters: [Parameter(name: "constant", type: returnType, optional: returnType.isTheVoid)], type: self, storage: .generic(signature: "funcref<T><>(T wrapped)"))
     }
 }
 
 extension FuncRefType: Parametrable {
-    var parameters: [Parameter] {
+    public var parameters: [Parameter] {
         parameterTypes.enumerated().map { index, type in
             Parameter(name: "$\(index)", type: type)
         }
     }
     
-    var varargs: Bool { false }
+    public var varargs: Bool { false }
 }

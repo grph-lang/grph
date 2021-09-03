@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct TypeAlias: Importable {
-    let name: String
-    let type: GRPHType
+public struct TypeAlias: Importable {
+    public let name: String
+    public let type: GRPHType
     
-    var exportedTypeAliases: [TypeAlias] { [self] }
+    public var exportedTypeAliases: [TypeAlias] { [self] }
 }

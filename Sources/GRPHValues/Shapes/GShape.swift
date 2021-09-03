@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol GShape: GRPHValue, AnyObject {
+public protocol GShape: GRPHValue, AnyObject {
     var uuid: UUID { get }
     
     var positionZ: Int { get set }
@@ -23,21 +23,21 @@ protocol GShape: GRPHValue, AnyObject {
     func toSVG<T: TextOutputStream>(context: SVGExportContext, into out: inout T)
 }
 
-protocol PositionableShape: GShape {
+public protocol PositionableShape: GShape {
     var position: Pos { get set }
 }
 
-protocol PaintedShape: GShape {
+public protocol PaintedShape: GShape {
     var paint: AnyPaint { get set }
     var strokeStyle: StrokeWrapper? { get set }
 }
 
-protocol RotatableShape: GShape {
+public protocol RotatableShape: GShape {
     var rotation: Rotation { get set }
     var rotationCenter: Pos? { get set }
 }
 
-protocol AlignableShape: GShape {
+public protocol AlignableShape: GShape {
     func setHCentered(img: GImage)
     func setLeftAligned(img: GImage)
     func setRightAligned(img: GImage)
@@ -47,15 +47,15 @@ protocol AlignableShape: GShape {
     func setBottomAligned(img: GImage)
 }
 
-protocol ResizableShape: GShape {
+public protocol ResizableShape: GShape {
     var size: Pos { get set }
 }
 
-protocol RectangularShape: PositionableShape, AlignableShape, ResizableShape {}
+public protocol RectangularShape: PositionableShape, AlignableShape, ResizableShape {}
 
 // Extensions
 
-extension GShape {
+public extension GShape {
     var effectiveName: String {
         get {
             givenName ?? NSLocalizedString(typeKey, comment: "") // will not get localized on CLI version
@@ -75,7 +75,7 @@ extension GShape {
     func collectSVGDefinitions<T: TextOutputStream>(context: SVGExportContext, into out: inout T) {}
 }
 
-extension PaintedShape {
+public extension PaintedShape {
     func collectSVGDefinitions<T: TextOutputStream>(context: SVGExportContext, into out: inout T) {
         collectSVGPaintDefinitions(context: context, into: &out)
     }
@@ -105,13 +105,13 @@ extension PaintedShape {
     }
 }
 
-extension PositionableShape {
+public extension PositionableShape {
     func translate(by diff: Pos) {
         position += diff
     }
 }
 
-extension RectangularShape {
+public extension RectangularShape {
     var center: Pos {
         get {
             Pos(x: position.x + (size.x / 2), y: position.y + (size.y / 2))
@@ -146,7 +146,7 @@ extension RectangularShape {
     }
 }
 
-extension RectangularShape where Self: RotatableShape {
+public extension RectangularShape where Self: RotatableShape {
     var currentRotationCenter: Pos {
         rotationCenter ?? center
     }

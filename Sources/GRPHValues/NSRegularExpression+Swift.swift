@@ -9,7 +9,7 @@
 
 import Foundation
 
-extension NSRegularExpression {
+public extension NSRegularExpression {
     
     /// Executes the closure for every match, passing the range of the match. Use string[match] to get the substring matched. This method doesn't support capture groups.
     func allMatches(in string: String, using block: (_ match: Range<String.Index>) -> Void) {

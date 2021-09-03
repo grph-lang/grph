@@ -7,22 +7,22 @@
 
 import Foundation
 
-class GCircle: RectangularShape, PaintedShape, RotatableShape {
-    var givenName: String?
-    var typeKey: String { size.square ? "Circle" : "Ellipse" }
+public class GCircle: RectangularShape, PaintedShape, RotatableShape {
+    public var givenName: String?
+    public var typeKey: String { size.square ? "Circle" : "Ellipse" }
     
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var position: Pos
-    var positionZ: Int = 0
-    var size: Pos
-    var rotation: Rotation = 0
-    var rotationCenter: Pos?
+    public var position: Pos
+    public var positionZ: Int = 0
+    public var size: Pos
+    public var rotation: Rotation = 0
+    public var rotationCenter: Pos?
     
-    var paint: AnyPaint
-    var strokeStyle: StrokeWrapper?
+    public var paint: AnyPaint
+    public var strokeStyle: StrokeWrapper?
     
-    init(givenName: String? = nil, position: Pos, positionZ: Int = 0, size: Pos, rotation: Rotation = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
+    public init(givenName: String? = nil, position: Pos, positionZ: Int = 0, size: Pos, rotation: Rotation = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
         self.givenName = givenName
         self.position = position
         self.positionZ = positionZ
@@ -32,14 +32,14 @@ class GCircle: RectangularShape, PaintedShape, RotatableShape {
         self.strokeStyle = strokeStyle
     }
     
-    var stateDefinitions: String { "" }
-    var stateConstructor: String {
+    public var stateDefinitions: String { "" }
+    public var stateConstructor: String {
         "Ellipse(\(givenName?.asLiteral ?? "")\(position.state) \(positionZ) \(size.state) \(rotation.state) \(paint.state)\(strokeStyle?.stateConstructor ?? ""))"
     }
     
-    var type: GRPHType { SimpleType.Circle }
+    public var type: GRPHType { SimpleType.Circle }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<ellipse name="\#(effectiveName)" cx="\#(center.x)" cy="\#(center.y)" rx="\#(size.x / 2)" ry="\#(size.y / 2)" fill="\#(strokeStyle == nil ? svgPaint : "none")" stroke="\#(strokeStyle != nil ? svgPaint : "none")"\#(strokeStyle?.svgStroke ?? "") transform="rotate(\#(rotation) \#(currentRotationCenter.x) \#(currentRotationCenter.y))"/>"#)
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 /// The #block instruction, but also the base class for all other blocks
-protocol BlockInstruction: Instruction {
+public protocol BlockInstruction: Instruction {
     var children: [Instruction] { get set }
     var label: String? { get set }
     
@@ -17,7 +17,7 @@ protocol BlockInstruction: Instruction {
     var name: String { get }
 }
 
-extension BlockInstruction {
+public extension BlockInstruction {
     func toString(indent: String) -> String {
         var builder = "\(line):\(indent)#\(name)\n"
         if let label = label {
@@ -36,15 +36,15 @@ extension BlockInstruction {
     }
 }
 
-struct SimpleBlockInstruction: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
+public struct SimpleBlockInstruction: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
     
-    init(context: inout CompilingContext, lineNumber: Int) {
+    public init(context: inout CompilingContext, lineNumber: Int) {
         self.lineNumber = lineNumber
         createContext(&context)
     }
     
-    var name: String { "block" }
+    public var name: String { "block" }
 }

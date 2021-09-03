@@ -7,14 +7,14 @@
 
 import Foundation
 
-protocol Instruction {
+public protocol Instruction {
     var lineNumber: Int { get }
     
     /// Must end with a newline
     func toString(indent: String) -> String
 }
 
-extension Instruction {
+public extension Instruction {
     var line: Int {
         lineNumber + 1
     }

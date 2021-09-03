@@ -7,15 +7,15 @@
 
 import Foundation
 
-struct Function: Parametrable, Importable {
-    let ns: NameSpace
-    let name: String
-    let parameters: [Parameter]
-    let returnType: GRPHType
-    let varargs: Bool
-    let storage: Storage
+public struct Function: Parametrable, Importable {
+    public let ns: NameSpace
+    public let name: String
+    public let parameters: [Parameter]
+    public let returnType: GRPHType
+    public let varargs: Bool
+    public let storage: Storage
     
-    init(ns: NameSpace, name: String, parameters: [Parameter], returnType: GRPHType = SimpleType.void, varargs: Bool = false, storage: Storage = .native) {
+    public init(ns: NameSpace, name: String, parameters: [Parameter], returnType: GRPHType = SimpleType.void, varargs: Bool = false, storage: Storage = .native) {
         self.ns = ns
         self.name = name
         self.parameters = parameters
@@ -24,17 +24,17 @@ struct Function: Parametrable, Importable {
         self.storage = storage
     }
     
-    var exportedFunctions: [Function] { [self] }
+    public var exportedFunctions: [Function] { [self] }
 }
 
-extension Function {
+public extension Function {
     enum Storage {
         case native
         case block(FunctionDeclarationBlock)
     }
 }
 
-extension Function {
+public extension Function {
     init?(imports: [Importable], namespace: NameSpace, name: String) {
         if namespace.isEqual(to: NameSpaces.none) {
             for imp in imports {

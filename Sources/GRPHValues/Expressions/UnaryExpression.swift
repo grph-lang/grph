@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct UnaryExpression: Expression {
-    let exp: Expression
-    let op: UnaryOperator
+public struct UnaryExpression: Expression {
+    public let exp: Expression
+    public let op: UnaryOperator
     
-    init(context: CompilingContext, op: String, exp: Expression) throws {
+    public init(context: CompilingContext, op: String, exp: Expression) throws {
         self.op = UnaryOperator(rawValue: op)!
         self.exp = exp
         switch self.op {
@@ -30,7 +30,7 @@ struct UnaryExpression: Expression {
         }
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         switch op {
         case .bitwiseComplement:
             return SimpleType.integer
@@ -41,28 +41,28 @@ struct UnaryExpression: Expression {
         }
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
     
-    var string: String { "\(op.rawValue)\(exp.bracketized)" }
+    public var string: String { "\(op.rawValue)\(exp.bracketized)" }
 }
 
-enum UnaryOperator: String {
+public enum UnaryOperator: String {
     case bitwiseComplement = "~"
     case opposite = "-"
     case not = "!"
 }
 
-struct UnboxExpression: Expression {
-    let exp: Expression
+public struct UnboxExpression: Expression {
+    public let exp: Expression
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         guard let type = try exp.getType(context: context, infer: infer.optional) as? OptionalType else {
             throw GRPHCompileError(type: .typeMismatch, message: "Cannot unbox non optional")
         }
         return type.wrapped
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
     
-    var string: String { "\(exp.bracketized)!" }
+    public var string: String { "\(exp.bracketized)!" }
 }

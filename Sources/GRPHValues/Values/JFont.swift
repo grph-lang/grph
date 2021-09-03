@@ -7,21 +7,27 @@
 
 import Foundation
 
-struct JFont: StatefulValue, Equatable {
-    static let plain = 0
-    static let bold = 1
-    static let italic = 2
+public struct JFont: StatefulValue, Equatable {
+    static public let plain = 0
+    static public let bold = 1
+    static public let italic = 2
     
-    var type: GRPHType { SimpleType.font }
+    public var type: GRPHType { SimpleType.font }
     
-    var name: String?
-    var size: Int
-    var weight: Int = JFont.plain
+    public var name: String?
+    public var size: Int
+    public var weight: Int = JFont.plain
     
-    var bold: Bool { (weight & JFont.bold) == JFont.bold }
-    var italic: Bool { (weight & JFont.italic) == JFont.italic }
+    public init(name: String? = nil, size: Int, weight: Int = JFont.plain) {
+        self.name = name
+        self.size = size
+        self.weight = weight
+    }
     
-    var grphName: String {
+    public var bold: Bool { (weight & JFont.bold) == JFont.bold }
+    public var italic: Bool { (weight & JFont.italic) == JFont.italic }
+    
+    public var grphName: String {
         get {
             name ?? "San Francisco"
         }
@@ -30,7 +36,7 @@ struct JFont: StatefulValue, Equatable {
         }
     }
     
-    var state: String {
+    public var state: String {
         "font(\(name?.asLiteral ?? "")\(size) \(weight))"
     }
 }

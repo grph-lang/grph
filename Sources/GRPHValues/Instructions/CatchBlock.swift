@@ -8,15 +8,15 @@
 import Foundation
 
 // Reference type required because it is referenced in the corresponding #try block
-class CatchBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
+public class CatchBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
     
-    let varName: String
-    var def: String = ""
+    public let varName: String
+    public var def: String = ""
     
-    init(lineNumber: Int, context: inout CompilingContext, varName: String) throws {
+    public init(lineNumber: Int, context: inout CompilingContext, varName: String) throws {
         self.varName = varName
         self.lineNumber = lineNumber
         let ctx = createContext(&context)
@@ -28,7 +28,7 @@ class CatchBlock: BlockInstruction {
         ctx.variables.append(Variable(name: varName, type: SimpleType.string, final: true, compileTime: true))
     }
     
-    func addError(type: String) {
+    public func addError(type: String) {
         if def.isEmpty {
             def = type
         } else {
@@ -36,5 +36,5 @@ class CatchBlock: BlockInstruction {
         }
     }
     
-    var name: String { "catch \(varName) : \(def)" }
+    public var name: String { "catch \(varName) : \(def)" }
 }

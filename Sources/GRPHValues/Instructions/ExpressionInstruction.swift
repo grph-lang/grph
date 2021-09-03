@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct ExpressionInstruction: Instruction {
-    let lineNumber: Int
-    let expression: Expression
+public struct ExpressionInstruction: Instruction {
+    public let lineNumber: Int
+    public let expression: Expression
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         "\(line):\(indent)\(expression)\n"
     }
 }

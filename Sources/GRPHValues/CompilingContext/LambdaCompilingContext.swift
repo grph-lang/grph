@@ -8,11 +8,11 @@
 import Foundation
 
 /// This 'lambda' context is used for parsing lambdas. It captures used variables when they are looked up
-class LambdaCompilingContext: VariableOwningCompilingContext {
+public class LambdaCompilingContext: VariableOwningCompilingContext {
     
-    var capturedVarNames: Set<String> = []
+    public var capturedVarNames: Set<String> = []
     
-    override func accepts(instruction: Instruction) throws {
+    public override func accepts(instruction: Instruction) throws {
         switch instruction {
         case is BlockInstruction:
             throw GRPHCompileError(type: .unsupported, message: "You cannot use a block instruction inside a lambda")
@@ -28,7 +28,7 @@ class LambdaCompilingContext: VariableOwningCompilingContext {
     }
     
     /// We capture variables that break out.
-    override func findVariable(named name: String) -> Variable? {
+    public override func findVariable(named name: String) -> Variable? {
         if let found = variables.first(where: { $0.name == name }) {
             return found
         }

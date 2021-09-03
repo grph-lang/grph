@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct FuncRefCallExpression: Expression {
-    let varName: String
-    let values: [Expression?]
+public struct FuncRefCallExpression: Expression {
+    public let varName: String
+    public let values: [Expression?]
     
-    init(ctx: CompilingContext, varName: String, values: [Expression], asInstruction: Bool = false) throws {
+    public init(ctx: CompilingContext, varName: String, values: [Expression], asInstruction: Bool = false) throws {
         self.varName = varName
         
         guard let variable = ctx.findVariable(named: varName) else {
@@ -55,7 +55,7 @@ struct FuncRefCallExpression: Expression {
         self.values = ourvalues
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         guard let variable = context.findVariable(named: varName),
               let funcref = variable.type as? FuncRefType else {
             throw GRPHCompileError(type: .undeclared, message: "Unknown funcref '\(varName)'")
@@ -63,9 +63,9 @@ struct FuncRefCallExpression: Expression {
         return funcref.returnType
     }
     
-    var string: String {
+    public var string: String {
         "\(varName)^[\(FuncRefType(returnType: SimpleType.void, parameterTypes: []).formattedParameterList(values: values.compactMap {$0}))]"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

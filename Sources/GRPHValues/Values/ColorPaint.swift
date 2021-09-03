@@ -7,13 +7,13 @@
 
 import Foundation
 
-enum ColorPaint: Paint, Equatable {
+public enum ColorPaint: Paint, Equatable {
     // sys
     case white, gray, black, red, green, blue, orange, yellow, pink, purple, primary, secondary
     
     case components(red: Float, green: Float, blue: Float, alpha: Float = 1)
     
-    var state: String {
+    public var state: String {
         switch self {
         case .components(red: _, green: _, blue: _, alpha: let alpha):
             return "color(\(grphRed) \(grphGreen) \(grphBlue) \(alpha))"
@@ -44,7 +44,7 @@ enum ColorPaint: Paint, Equatable {
         }
     }
     
-    var rgba: (red: Float, green: Float, blue: Float, alpha: Float)? {
+    public var rgba: (red: Float, green: Float, blue: Float, alpha: Float)? {
         switch self {
         case let .components(red: r, green: g, blue: b, alpha: a):
             return (red: r, green: g, blue: b, alpha: a)
@@ -53,10 +53,10 @@ enum ColorPaint: Paint, Equatable {
         }
     }
     
-    var type: GRPHType { SimpleType.color }
+    public var type: GRPHType { SimpleType.color }
 }
 
-extension ColorPaint {
+public extension ColorPaint {
     var grphRed: Int {
         get {
             Int((rgba?.red ?? -1) * 255)

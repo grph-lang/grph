@@ -7,17 +7,17 @@
 
 import Foundation
 
-struct Lambda: Parametrable {
+public struct Lambda: Parametrable {
     
-    var currentType: FuncRefType
-    var instruction: Instruction // will always be an ExpressionInstruction if returnType ≠ void
+    public var currentType: FuncRefType
+    public var instruction: Instruction // will always be an ExpressionInstruction if returnType ≠ void
     
-    var parameters: [Parameter] { currentType.parameters }
+    public var parameters: [Parameter] { currentType.parameters }
     
-    var returnType: GRPHType { currentType.returnType }
+    public var returnType: GRPHType { currentType.returnType }
     
-    var varargs: Bool { false }
+    public var varargs: Bool { false }
     
-    var line: Int { instruction.line }
+    public var line: Int { instruction.line }
     
 }

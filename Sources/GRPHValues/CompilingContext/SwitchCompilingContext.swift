@@ -7,16 +7,16 @@
 
 import Foundation
 
-class SwitchCompilingContext: CompilingContext {
-    let compare: VariableExpression
-    var state: SwitchState = .first
+public class SwitchCompilingContext: CompilingContext {
+    public let compare: VariableExpression
+    public var state: SwitchState = .first
     
-    init(parent: CompilingContext, compare: VariableExpression) {
+    public init(parent: CompilingContext, compare: VariableExpression) {
         self.compare = compare
         super.init(compiler: parent.compiler, parent: parent)
     }
     
-    override func accepts(instruction: Instruction) throws {
+    public override func accepts(instruction: Instruction) throws {
         guard instruction is IfBlock
            || instruction is ElseIfBlock
            || instruction is ElseBlock else {
@@ -24,7 +24,7 @@ class SwitchCompilingContext: CompilingContext {
         }
     }
     
-    enum SwitchState {
+    public enum SwitchState {
         /// Put an #if
         case first
         /// Put an #elseif or an #else

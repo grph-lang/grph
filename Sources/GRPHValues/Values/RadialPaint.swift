@@ -7,16 +7,23 @@
 
 import Foundation
 
-struct RadialPaint: Paint, Equatable {
-    var centerColor: ColorPaint
-    var center: Pos = Pos(x: 0.5, y: 0.5)// Unit coordinates (0-1)
-    var externalColor: ColorPaint
-    var radius: Float
+public struct RadialPaint: Paint, Equatable {
+    public var centerColor: ColorPaint
+    public var center: Pos = Pos(x: 0.5, y: 0.5) // Unit coordinates (0-1)
+    public var externalColor: ColorPaint
+    public var radius: Float
     // Does not support focus :(
     
-    var state: String {
+    public init(centerColor: ColorPaint, center: Pos = Pos(x: 0.5, y: 0.5), externalColor: ColorPaint, radius: Float) {
+        self.centerColor = centerColor
+        self.center = center
+        self.externalColor = externalColor
+        self.radius = radius
+    }
+    
+    public var state: String {
         "radial(\(centerColor.state) \(center.state) \(externalColor.state) \(radius))"
     }
     
-    var type: GRPHType { SimpleType.radial }
+    public var type: GRPHType { SimpleType.radial }
 }

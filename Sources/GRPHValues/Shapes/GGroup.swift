@@ -7,49 +7,49 @@
 
 import Foundation
 
-class GGroup: GShape, RotatableShape {
+public class GGroup: GShape, RotatableShape {
     // rotation
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var typeKey: String {
+    public var typeKey: String {
         "Group"
     }
     
-    var givenName: String?
-    var positionZ: Int = 0
-    var shapes: [GShape] = []
+    public var givenName: String?
+    public var positionZ: Int = 0
+    public var shapes: [GShape] = []
     
-    var rotation: Rotation = 0
-    var rotationCenter: Pos?
+    public var rotation: Rotation = 0
+    public var rotationCenter: Pos?
     
-    init(givenName: String?, positionZ: Int = 0, rotation: Rotation = 0, shapes: [GShape] = []) {
+    public init(givenName: String?, positionZ: Int = 0, rotation: Rotation = 0, shapes: [GShape] = []) {
         self.givenName = givenName
         self.positionZ = positionZ
         self.shapes = shapes
         self.rotation = rotation
     }
     
-    var stateDefinitions: String {
+    public var stateDefinitions: String {
         shapes.map { $0.stateDefinitions }.joined()
     }
     
-    var stateConstructor: String {
+    public var stateConstructor: String {
         "Group(\(givenName?.asLiteral ?? "")\(positionZ) \(shapes.map { $0.stateConstructor }.joined(separator: " ")))"
     }
     
-    var type: GRPHType {
+    public var type: GRPHType {
         SimpleType.Group
     }
     
-    func translate(by diff: Pos) {
+    public func translate(by diff: Pos) {
         shapes.forEach { $0.translate(by: diff) }
     }
     
-    func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         shapes.forEach { $0.collectSVGDefinitions(context: context, into: &out) }
     }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<g name="\#(effectiveName)" transform="rotate(\#(rotation) \#(rotationCenter?.x.description ?? "") \#(rotationCenter?.y.description ?? ""))">"#)
         shapes.sorted { $0.positionZ < $1.positionZ }.forEach { $0.toSVG(context: context, into: &out) }
         out.writeln("</g>")

@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct Rotation: StatefulValue, ExpressibleByIntegerLiteral, Equatable, CustomStringConvertible {
+public struct Rotation: StatefulValue, ExpressibleByIntegerLiteral, Equatable, CustomStringConvertible {
     private var _value: Int
     
-    var value: Int {
+    public var value: Int {
         get {
             _value
         }
@@ -27,22 +27,22 @@ struct Rotation: StatefulValue, ExpressibleByIntegerLiteral, Equatable, CustomSt
         }
     }
     
-    var state: String {
+    public var state: String {
         "\(value)°"
     }
     
-    var description: String { value.description }
+    public var description: String { value.description }
     
-    init(integerLiteral value: Int) {
+    public init(integerLiteral value: Int) {
         self.init(value: value)
     }
     
-    init(value: Int) {
+    public init(value: Int) {
         self._value = value
         self.value = value // normalize
     }
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let value = value as? Int {
             self.init(value: value)
             return
@@ -63,13 +63,13 @@ struct Rotation: StatefulValue, ExpressibleByIntegerLiteral, Equatable, CustomSt
         return nil
     }
     
-    var type: GRPHType { SimpleType.rotation }
+    public var type: GRPHType { SimpleType.rotation }
     
-    static func + (lhs: Rotation, rhs: Rotation) -> Rotation {
+    static public func + (lhs: Rotation, rhs: Rotation) -> Rotation {
         Rotation(value: lhs.value + rhs.value)
     }
     
-    static func - (lhs: Rotation, rhs: Rotation) -> Rotation {
+    static public func - (lhs: Rotation, rhs: Rotation) -> Rotation {
         Rotation(value: lhs.value - rhs.value)
     }
 }

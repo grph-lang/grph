@@ -7,42 +7,42 @@
 
 import Foundation
 
-struct ConstantExpression: Expression {
-    let value: StatefulValue
+public struct ConstantExpression: Expression {
+    public let value: StatefulValue
     
-    init(boolean: Bool) {
+    public init(boolean: Bool) {
         self.value = boolean
     }
     
-    init(stroke: Stroke) {
+    public init(stroke: Stroke) {
         self.value = stroke
     }
     
-    init(direction: Direction) {
+    public init(direction: Direction) {
         self.value = direction
     }
     
-    init(pos: Pos) {
+    public init(pos: Pos) {
         self.value = pos
     }
     
-    init(int: Int) {
+    public init(int: Int) {
         self.value = int
     }
     
-    init(float: Float) {
+    public init(float: Float) {
         self.value = float
     }
     
-    init(rot: Rotation) {
+    public init(rot: Rotation) {
         self.value = rot
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         value.type // The value is always known at compile time, so this is fine
     }
     
-    var string: String { value.state }
+    public var string: String { value.state }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

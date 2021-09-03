@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct BinaryExpression: Expression {
-    let left, right: Expression
-    var op: BinaryOperator
-    var operands: SimpleType
-    let unbox: Bool
+public struct BinaryExpression: Expression {
+    public let left, right: Expression
+    public var op: BinaryOperator
+    public var operands: SimpleType
+    public let unbox: Bool
     
-    init(context: CompilingContext, left: Expression, op: String, right: Expression) throws {
+    public init(context: CompilingContext, left: Expression, op: String, right: Expression) throws {
         self.left = left
         self.right = right
         self.op = BinaryOperator(string: op)!
@@ -93,7 +93,7 @@ struct BinaryExpression: Expression {
         self.unbox = try left.getType(context: context, infer: operands) is OptionalType ? true : right.getType(context: context, infer: operands) is OptionalType
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         switch op {
         case .logicalAnd, .logicalOr, .greaterThan, .greaterOrEqualTo, .lessThan, .lessOrEqualTo, .equal, .notEqual:
             return SimpleType.boolean
@@ -102,7 +102,7 @@ struct BinaryExpression: Expression {
         }
     }
     
-    var string: String {
+    public var string: String {
         "\(leftString) \(op.string) \(right.bracketized)"
     }
     
@@ -115,10 +115,10 @@ struct BinaryExpression: Expression {
         return left.bracketized
     }
     
-    var needsBrackets: Bool { true }
+    public var needsBrackets: Bool { true }
 }
 
-enum BinaryOperator: String {
+public enum BinaryOperator: String {
     case logicalAnd = "&&"
     case logicalOr = "||"
     case greaterOrEqualTo = "≥"
@@ -140,7 +140,7 @@ enum BinaryOperator: String {
     case modulo = "%"
     case concat = "<+>" // Sign not actually used
     
-    init?(string: String) {
+    public init?(string: String) {
         if string == ">=" {
             self = .greaterOrEqualTo
         } else if string == "<=" {
@@ -152,7 +152,7 @@ enum BinaryOperator: String {
         }
     }
     
-    var string: String {
+    public var string: String {
         switch self {
         case .concat:
             return "+"

@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct RequiresInstruction: Instruction {
-    let lineNumber: Int
-    let plugin: String
-    let version: Version
+public struct RequiresInstruction: Instruction {
+    public let lineNumber: Int
+    public let plugin: String
+    public let version: Version
     
-    init(lineNumber: Int, plugin: String, version: Version) {
+    public init(lineNumber: Int, plugin: String, version: Version) {
         self.lineNumber = lineNumber
         self.plugin = plugin
         self.version = version
     }
     
-    func run(context: GRPHContextProtocol) throws {
+    public func run(context: GRPHContextProtocol) throws {
         guard let current = RequiresInstruction.currentVersion(plugin: plugin) else {
             try throwUnsupported(context: context, message: "This script requires '\(plugin)'")
         }
@@ -35,11 +35,11 @@ struct RequiresInstruction: Instruction {
         }
     }
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         "\(line):\(indent)#requires \(plugin) \(version)"
     }
     
-    static func currentVersion(plugin: String) -> Version? {
+    public static func currentVersion(plugin: String) -> Version? {
         switch plugin {
         case "GRPH", "GRPHSwift":
             return Version(1, 11)
@@ -62,14 +62,14 @@ struct RequiresInstruction: Instruction {
     }
 }
 
-struct Version: Comparable {
-    let components: [Int]
+public struct Version: Comparable {
+    public let components: [Int]
     
-    init(_ components: Int...) {
+    public init(_ components: Int...) {
         self.components = components
     }
     
-    static func < (lhs: Version, rhs: Version) -> Bool {
+    public static func < (lhs: Version, rhs: Version) -> Bool {
         for i in 0..<min(lhs.components.count, rhs.components.count) {
             if lhs.components[i] < rhs.components[i] {
                 return true
@@ -82,11 +82,11 @@ struct Version: Comparable {
 }
 
 extension Version: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         components.map(String.init).joined(separator: ".")
     }
     
-    init?(description: String) {
+    public init?(description: String) {
         var success = true
         components = description.components(separatedBy: ".").map { str in
             if let i = Int(str) {

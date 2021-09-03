@@ -7,15 +7,15 @@
 
 import Foundation
 
-struct NullExpression: Expression {
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+public struct NullExpression: Expression {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         if infer is OptionalType {
             return infer
         }
         return OptionalType(wrapped: SimpleType.mixed)
     }
     
-    var string: String { "null" }
+    public var string: String { "null" }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

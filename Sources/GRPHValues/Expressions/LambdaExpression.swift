@@ -7,19 +7,19 @@
 
 import Foundation
 
-struct LambdaExpression: Expression {
-    let lambda: Lambda
-    let capturedVarNames: [String]
+public struct LambdaExpression: Expression {
+    public let lambda: Lambda
+    public let capturedVarNames: [String]
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         lambda.currentType
     }
     
-    var string: String {
+    public var string: String {
         let instr = lambda.instruction.toString(indent: "").dropLast()
         let colon = instr.firstIndex(of: ":")!
         return "^[\(instr[instr.index(after: colon)...])]"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

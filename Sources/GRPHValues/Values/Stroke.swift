@@ -7,14 +7,14 @@
 
 import Foundation
 
-enum Stroke: String, StatefulValue {
+public enum Stroke: String, StatefulValue {
     case elongated, cut, rounded
     
-    var state: String { rawValue }
+    public var state: String { rawValue }
     
-    var type: GRPHType { SimpleType.stroke }
+    public var type: GRPHType { SimpleType.stroke }
     
-    var svgLinecap: String {
+    public var svgLinecap: String {
         switch self {
         case .elongated:
             return "square"
@@ -27,16 +27,22 @@ enum Stroke: String, StatefulValue {
 }
 
 
-struct StrokeWrapper {
-    var strokeWidth: Float = 5
-    var strokeType: Stroke = .cut
-    var strokeDashArray: GRPHArray = GRPHArray(of: SimpleType.float)
+public struct StrokeWrapper {
+    public var strokeWidth: Float = 5
+    public var strokeType: Stroke = .cut
+    public var strokeDashArray: GRPHArray = GRPHArray(of: SimpleType.float)
     
-    var stateConstructor: String {
+    public init(strokeWidth: Float = 5, strokeType: Stroke = .cut, strokeDashArray: GRPHArray = GRPHArray(of: SimpleType.float)) {
+        self.strokeWidth = strokeWidth
+        self.strokeType = strokeType
+        self.strokeDashArray = strokeDashArray
+    }
+    
+    public var stateConstructor: String {
         " \(strokeWidth) \(strokeType.rawValue) \(strokeDashArray.state)"
     }
     
-    var svgStroke: String {
+    public var svgStroke: String {
         #" stroke-width="\#(strokeWidth)" stroke-dasharray="\#(strokeDashArray.wrapped.map { String(describing: $0 as! Float) }.joined(separator: ","))" stroke-linecap="\#(strokeType.svgLinecap)""#
     }
 }

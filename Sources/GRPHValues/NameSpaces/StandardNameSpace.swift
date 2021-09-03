@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct StandardNameSpace: NameSpace {
-    var name: String { "standard" }
+public struct StandardNameSpace: NameSpace {
+    public var name: String { "standard" }
     
-    var exportedTypes: [GRPHType] {
+    public var exportedTypes: [GRPHType] {
         SimpleType.allCases
     }
     
-    var exportedTypeAliases: [TypeAlias] {
+    public var exportedTypeAliases: [TypeAlias] {
         [
             TypeAlias(name: "farray", type: SimpleType.float.inArray),
             TypeAlias(name: "array", type: SimpleType.mixed.inArray),
@@ -34,7 +34,7 @@ struct StandardNameSpace: NameSpace {
         ]
     }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         return [
             constructorLegacyFunction(type: SimpleType.color),
             constructorLegacyFunction(type: SimpleType.linear),
@@ -92,7 +92,7 @@ struct StandardNameSpace: NameSpace {
         ]
     }
     
-    var exportedMethods: [Method] {
+    public var exportedMethods: [Method] {
         [
             Method(ns: self, name: "rotate", inType: SimpleType.shape, parameters: [Parameter(name: "addRotation", type: SimpleType.rotation)]),
             Method(ns: self, name: "setRotation", inType: SimpleType.shape, parameters: [Parameter(name: "newRotation", type: SimpleType.rotation)]),

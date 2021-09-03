@@ -7,22 +7,22 @@
 
 import Foundation
 
-class GPolygon: PaintedShape, RotatableShape {
-    var givenName: String?
-    var typeKey: String { "Polygon" }
+public class GPolygon: PaintedShape, RotatableShape {
+    public var givenName: String?
+    public var typeKey: String { "Polygon" }
     
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var points: [Pos] = []
-    var positionZ: Int = 0
+    public var points: [Pos] = []
+    public var positionZ: Int = 0
     
-    var paint: AnyPaint
-    var strokeStyle: StrokeWrapper?
+    public var paint: AnyPaint
+    public var strokeStyle: StrokeWrapper?
     
-    var rotation: Rotation = 0
-    var rotationCenter: Pos?
+    public var rotation: Rotation = 0
+    public var rotationCenter: Pos?
     
-    init(givenName: String? = nil, points: [Pos] = [], positionZ: Int = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
+    public init(givenName: String? = nil, points: [Pos] = [], positionZ: Int = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
         self.givenName = givenName
         self.points = points
         self.positionZ = positionZ
@@ -30,9 +30,9 @@ class GPolygon: PaintedShape, RotatableShape {
         self.strokeStyle = strokeStyle
     }
     
-    var stateDefinitions: String { "" }
+    public var stateDefinitions: String { "" }
     
-    var stateConstructor: String {
+    public var stateConstructor: String {
         var state = "Polygon(\(givenName?.asLiteral ?? "")\(positionZ) \(paint.state)\(strokeStyle?.stateConstructor ?? "")"
         for point in points {
             state += " \(point.state)"
@@ -40,51 +40,51 @@ class GPolygon: PaintedShape, RotatableShape {
         return state + ")"
     }
     
-    var type: GRPHType { SimpleType.Polygon }
+    public var type: GRPHType { SimpleType.Polygon }
     
-    func translate(by diff: Pos) {
+    public func translate(by diff: Pos) {
         points = points.map { $0 + diff }
     }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<polygon name="\#(effectiveName)" points="\#(points.map { $0.state }.joined(separator: " "))" fill="\#(strokeStyle == nil ? svgPaint : "none")" stroke="\#(strokeStyle != nil ? svgPaint : "none")"\#(strokeStyle?.svgStroke ?? "") transform="rotate(\#(rotation) \#(currentRotationCenter.x) \#(currentRotationCenter.y))"/>"#)
     }
 }
 
 extension GPolygon: AlignableShape {
-    func setHCentered(img: GImage) {
+    public func setHCentered(img: GImage) {
         if let min = points.min(by: { $0.x < $1.x }),
            let max = points.max(by: { $0.x < $1.x }) {
             translate(by: Pos(x: (img.size.x - max.x - min.x) / 2, y: 0))
         }
     }
     
-    func setLeftAligned(img: GImage) {
+    public func setLeftAligned(img: GImage) {
         if let min = points.min(by: { $0.x < $1.x }) {
             translate(by: Pos(x: -min.x, y: 0))
         }
     }
     
-    func setRightAligned(img: GImage) {
+    public func setRightAligned(img: GImage) {
         if let max = points.max(by: { $0.x < $1.x }) {
             translate(by: Pos(x: img.size.x - max.x, y: 0))
         }
     }
     
-    func setVCentered(img: GImage) {
+    public func setVCentered(img: GImage) {
         if let min = points.min(by: { $0.y < $1.y }),
            let max = points.max(by: { $0.y < $1.y }) {
             translate(by: Pos(x: 0, y: (img.size.y - max.y - min.y) / 2))
         }
     }
     
-    func setTopAligned(img: GImage) {
+    public func setTopAligned(img: GImage) {
         if let min = points.min(by: { $0.y < $1.y }) {
             translate(by: Pos(x: 0, y: -min.y))
         }
     }
     
-    func setBottomAligned(img: GImage) {
+    public func setBottomAligned(img: GImage) {
         if let max = points.max(by: { $0.y < $1.y }) {
             translate(by: Pos(x: 0, y: img.size.y - max.y))
         }

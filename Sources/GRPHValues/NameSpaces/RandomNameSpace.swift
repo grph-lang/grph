@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct RandomNameSpace: NameSpace {
-    var name: String { "random" }
+public struct RandomNameSpace: NameSpace {
+    public var name: String { "random" }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         [
             Function(ns: self, name: "randomInteger", parameters: [Parameter(name: "max", type: SimpleType.integer)], returnType: SimpleType.integer),
             Function(ns: self, name: "randomFloat", parameters: [], returnType: SimpleType.float),
@@ -20,7 +20,7 @@ struct RandomNameSpace: NameSpace {
         ]
     }
     
-    var exportedMethods: [Method] {
+    public var exportedMethods: [Method] {
         [
             Method(ns: self, name: "shuffled", inType: SimpleType.string, parameters: [], returnType: SimpleType.string),
             Method(ns: self, name: "shuffleArray", inType: SimpleType.mixed.inArray, parameters: [])

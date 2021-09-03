@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct CastExpression: Expression {
-    let from: Expression
-    let cast: CastType
-    let to: GRPHType
+public struct CastExpression: Expression {
+    public let from: Expression
+    public let cast: CastType
+    public let to: GRPHType
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         if case .typeCheck = cast {
             return SimpleType.boolean
         } else if cast.optional {
@@ -22,17 +22,17 @@ struct CastExpression: Expression {
         }
     }
     
-    var string: String { "\(from.string) \(cast.string) \(to.string)" }
+    public var string: String { "\(from.string) \(cast.string) \(to.string)" }
     
-    var needsBrackets: Bool { true }
+    public var needsBrackets: Bool { true }
 }
 
-enum CastType {
+public enum CastType {
     case typeCheck
     case conversion(optional: Bool)
     case strict(optional: Bool)
     
-    var string: String {
+    public var string: String {
         switch self {
         case .typeCheck:
             return "is"
@@ -43,7 +43,7 @@ enum CastType {
         }
     }
     
-    init?(_ str: String) {
+    public init?(_ str: String) {
         if str == "is" {
             self = .typeCheck
         } else if str.hasPrefix("as") {
@@ -58,7 +58,7 @@ enum CastType {
         }
     }
     
-    var optional: Bool {
+    public var optional: Bool {
         switch self {
         case .typeCheck:
             return false

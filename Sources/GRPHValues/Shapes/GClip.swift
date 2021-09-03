@@ -7,46 +7,46 @@
 
 import Foundation
 
-class GClip: GShape {
+public class GClip: GShape {
     
-    var givenName: String?
-    var typeKey: String { "Clip" }
+    public var givenName: String?
+    public var typeKey: String { "Clip" }
     
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var positionZ: Int = 0
+    public var positionZ: Int = 0
     
-    var shape: GShape
-    var clip: GShape
+    public var shape: GShape
+    public var clip: GShape
     
-    init(shape: GShape, clip: GShape) {
+    public init(shape: GShape, clip: GShape) {
         self.shape = shape
         self.clip = clip
     }
     
-    var stateDefinitions: String {
+    public var stateDefinitions: String {
         shape.stateDefinitions + clip.stateDefinitions
     }
     
-    var stateConstructor: String {
+    public var stateConstructor: String {
         "clippedShape[\(shape.stateConstructor) \(clip.stateConstructor)]"
     }
     
-    var type: GRPHType { SimpleType.shape }
+    public var type: GRPHType { SimpleType.shape }
     
-    func translate(by diff: Pos) {
+    public func translate(by diff: Pos) {
         shape.translate(by: diff)
         clip.translate(by: diff)
     }
     
-    func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         shape.collectSVGDefinitions(context: context, into: &out)
         out.writeln("<clipPath id=\"clip\(uuid)\">")
         clip.toSVG(context: context, into: &out)
         out.writeln("</clipPath>")
     }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<g name="\#(effectiveName)" clip-path="url(#clip\#(uuid))">"#)
         shape.toSVG(context: context, into: &out)
         out.writeln("</g>")

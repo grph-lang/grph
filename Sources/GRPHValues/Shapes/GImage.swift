@@ -7,18 +7,18 @@
 
 import Foundation
 
-class GImage: GGroup, PaintedShape, ResizableShape {
-    var size: Pos
-    var paint: AnyPaint
+public class GImage: GGroup, PaintedShape, ResizableShape {
+    public var size: Pos
+    public var paint: AnyPaint
     
-    var strokeStyle: StrokeWrapper? // unused
+    public var strokeStyle: StrokeWrapper? // unused
     
-    var destroySemaphore = DispatchSemaphore(value: 0)
-    private(set) var destroyed = false
+    public var destroySemaphore = DispatchSemaphore(value: 0)
+    private(set) public var destroyed = false
     
-    var delegate: () -> Void
+    public var delegate: () -> Void
     
-    init(size: Pos = Pos(x: 640, y: 480),
+    public init(size: Pos = Pos(x: 640, y: 480),
          background: AnyPaint = AnyPaint.color(ColorPaint.components(red: 0, green: 0, blue: 0, alpha: 0)),
          delegate: @escaping () -> Void) {
         self.size = size
@@ -27,38 +27,38 @@ class GImage: GGroup, PaintedShape, ResizableShape {
         super.init(givenName: nil)
     }
     
-    override var typeKey: String {
+    override public var typeKey: String {
         "Background"
     }
     
-    override var type: GRPHType {
+    override public var type: GRPHType {
         SimpleType.Background
     }
     
-    override var stateDefinitions: String {
+    override public var stateDefinitions: String {
         "" // never called
     }
     
-    override var stateConstructor: String {
+    override public var stateConstructor: String {
         "Background(\(size.state) \(paint.state))"
     }
     
-    func willNeedRepaint() {
+    public func willNeedRepaint() {
         delegate()
     }
     
     /// Called by the view when the document is closed
-    func destroy() {
+    public func destroy() {
         destroyed = true
         destroySemaphore.signal()
     }
     
-    override func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    override public func collectSVGDefinitions<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         self.collectSVGPaintDefinitions(context: context, into: &out)
         super.collectSVGDefinitions(context: context, into: &out)
     }
     
-    override func toSVG<T: TextOutputStream>(context: SVGExportContext, into out: inout T) {
+    override public func toSVG<T: TextOutputStream>(context: SVGExportContext, into out: inout T) {
         out.writeln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>")
         out.writeln("<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\" width=\"\(size.x)\" height=\"\(size.y)\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">")
         

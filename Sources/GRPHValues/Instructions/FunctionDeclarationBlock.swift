@@ -7,16 +7,16 @@
 
 import Foundation
 
-class FunctionDeclarationBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
+public class FunctionDeclarationBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
     
-    var generated: Function!
-    var defaults: [Expression?] = []
-    var returnDefault: Expression?
+    public var generated: Function!
+    public var defaults: [Expression?] = []
+    public var returnDefault: Expression?
     
-    init(lineNumber: Int, children: [Instruction] = [], label: String? = nil, generated: Function? = nil, defaults: [Expression?] = [], returnDefault: Expression? = nil) {
+    public init(lineNumber: Int, children: [Instruction] = [], label: String? = nil, generated: Function? = nil, defaults: [Expression?] = [], returnDefault: Expression? = nil) {
         self.lineNumber = lineNumber
         self.children = children
         self.label = label
@@ -25,13 +25,13 @@ class FunctionDeclarationBlock: BlockInstruction {
         self.returnDefault = returnDefault
     }
     
-    func createContext(_ context: inout CompilingContext) -> BlockCompilingContext {
+    public func createContext(_ context: inout CompilingContext) -> BlockCompilingContext {
         let ctx = FunctionCompilingContext(parent: context, function: self)
         context = ctx
         return ctx
     }
     
-    var name: String {
+    public var name: String {
         var str = "function \(generated.returnType.string) \(generated.name)["
         var i = 0
         generated.parameters.forEach { p in

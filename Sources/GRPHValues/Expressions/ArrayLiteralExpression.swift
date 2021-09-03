@@ -7,15 +7,15 @@
 
 import Foundation
 
-struct ArrayLiteralExpression: Expression {
-    let wrapped: GRPHType
-    let values: [Expression]
+public struct ArrayLiteralExpression: Expression {
+    public let wrapped: GRPHType
+    public let values: [Expression]
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         ArrayType(content: wrapped)
     }
     
-    var string: String {
+    public var string: String {
         var str = "<\(wrapped.string)>{"
         if values.isEmpty {
             return "\(str)}"
@@ -31,5 +31,5 @@ struct ArrayLiteralExpression: Expression {
         return "\(str.dropLast(2))}"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct ArrayValueExpression: Expression {
-    let varName: String
-    let index: Expression?
-    let removing: Bool
+public struct ArrayValueExpression: Expression {
+    public let varName: String
+    public let index: Expression?
+    public let removing: Bool
     
-    internal init(context: CompilingContext, varName: String, index: Expression?, removing: Bool) throws {
+    public init(context: CompilingContext, varName: String, index: Expression?, removing: Bool) throws {
         self.varName = varName
         self.index = index == nil ? nil : try GRPHTypes.autobox(context: context, expression: index!, expected: SimpleType.integer)
         self.removing = removing
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         guard let v = context.findVariable(named: varName) else {
             throw GRPHCompileError(type: .undeclared, message: "Unknown variable '\(varName)'")
         }
@@ -28,7 +28,7 @@ struct ArrayValueExpression: Expression {
         return type.content
     }
     
-    var string: String { "\(varName){\(index?.string ?? "")\(removing ? "-" : "")}" }
+    public var string: String { "\(varName){\(index?.string ?? "")\(removing ? "-" : "")}" }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

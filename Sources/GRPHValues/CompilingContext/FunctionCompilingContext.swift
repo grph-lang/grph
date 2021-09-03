@@ -7,21 +7,21 @@
 
 import Foundation
 
-class FunctionCompilingContext: VariableOwningCompilingContext {
-    let block: FunctionDeclarationBlock
+public class FunctionCompilingContext: VariableOwningCompilingContext {
+    public let block: FunctionDeclarationBlock
     
-    init(parent: CompilingContext, function: FunctionDeclarationBlock) {
+    public init(parent: CompilingContext, function: FunctionDeclarationBlock) {
         self.block = function
         super.init(compiler: parent.compiler, parent: parent)
     }
     
-    override var allVariables: [Variable] {
+    public override var allVariables: [Variable] {
         var vars = parent!.allVariables.filter { $0.final }
         vars.append(contentsOf: variables)
         return vars
     }
     
-    override func findVariable(named name: String) -> Variable? {
+    public override func findVariable(named name: String) -> Variable? {
         if let found = variables.first(where: { $0.name == name }) {
             return found
         }
@@ -31,5 +31,5 @@ class FunctionCompilingContext: VariableOwningCompilingContext {
         return nil
     }
     
-    override var inFunction: FunctionDeclarationBlock? { block }
+    public override var inFunction: FunctionDeclarationBlock? { block }
 }

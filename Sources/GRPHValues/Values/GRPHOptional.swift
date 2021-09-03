@@ -8,12 +8,12 @@
 import Foundation
 
 // A type-erased Optional, used in GRPH
-enum GRPHOptional: GRPHValue {
+public enum GRPHOptional: GRPHValue {
     
     case null
     case some(GRPHValue)
     
-    var type: GRPHType {
+    public var type: GRPHType {
         switch self {
         case .null:
             return OptionalType(wrapped: SimpleType.mixed) // Type inference is done in GRPHType.realType(of:expected:)
@@ -22,7 +22,7 @@ enum GRPHOptional: GRPHValue {
         }
     }
     
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         switch self {
         case .null:
             return true
@@ -31,7 +31,7 @@ enum GRPHOptional: GRPHValue {
         }
     }
     
-    func isEqual(to other: GRPHValue) -> Bool {
+    public func isEqual(to other: GRPHValue) -> Bool {
         if let other = other as? GRPHOptional {
             if case .some(let value) = other {
                 if case .some(let mine) = self {
@@ -44,7 +44,7 @@ enum GRPHOptional: GRPHValue {
         return false
     }
     
-    init(_ value: GRPHValue?) {
+    public init(_ value: GRPHValue?) {
         if let value = value {
             self = .some(value)
         } else {
@@ -52,7 +52,7 @@ enum GRPHOptional: GRPHValue {
         }
     }
     
-    var content: GRPHValue? {
+    public var content: GRPHValue? {
         switch self {
         case .null:
             return nil
@@ -63,7 +63,7 @@ enum GRPHOptional: GRPHValue {
 }
 
 extension GRPHOptional: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         switch self {
         case .null:
             return "null"

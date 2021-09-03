@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct ThrowInstruction: Instruction {
-    let lineNumber: Int
-    let type: GRPHRuntimeError.RuntimeExceptionType
-    let message: Expression
+public struct ThrowInstruction: Instruction {
+    public let lineNumber: Int
+    public let type: GRPHRuntimeError.RuntimeExceptionType
+    public let message: Expression
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         "\(line):\(indent)#throw \(type.rawValue)Exception(\(message))\n"
     }
 }

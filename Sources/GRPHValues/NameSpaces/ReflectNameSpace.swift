@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct ReflectNameSpace: NameSpace {
-    var name: String { "reflect" }
+public struct ReflectNameSpace: NameSpace {
+    public var name: String { "reflect" }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         [
             Function(ns: self, name: "callFunction", parameters: [Parameter(name: "funcName", type: SimpleType.string), Parameter(name: "namespace", type: SimpleType.string, optional: true), Parameter(name: "params...", type: SimpleType.mixed)], returnType: SimpleType.mixed, varargs: true),
             Function(ns: self, name: "callFunctionAsync", parameters: [Parameter(name: "funcName", type: MultiOrType(type1: SimpleType.string, type2: SimpleType.funcref)), Parameter(name: "params...", type: SimpleType.mixed)], returnType: SimpleType.void, varargs: true),

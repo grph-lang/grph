@@ -7,25 +7,25 @@
 
 import Foundation
 
-struct Method: Parametrable, Importable {
-    let ns: NameSpace
-    let name: String
+public struct Method: Parametrable, Importable {
+    public let ns: NameSpace
+    public let name: String
     /// In this version, inType cannot be a MultiOrType. Create two methods with the same name in the respective types.
-    let inType: GRPHType
-    let final: Bool
-    let parameters: [Parameter]
-    let returnType: GRPHType // new in GRPH 1.11, methods can be called with on.name[] syntax
-    let varargs: Bool
-    let storage: Storage
+    public let inType: GRPHType
+    public let final: Bool
+    public let parameters: [Parameter]
+    public let returnType: GRPHType // new in GRPH 1.11, methods can be called with on.name[] syntax
+    public let varargs: Bool
+    public let storage: Storage
     
     /// If true, runtime type checks are skipped
-    var effectivelyFinal: Bool {
+    public var effectivelyFinal: Bool {
         final || inType.final
     }
     
-    var exportedMethods: [Method] { [self] }
+    public var exportedMethods: [Method] { [self] }
     
-    init(ns: NameSpace, name: String, inType: GRPHType, final: Bool = false, parameters: [Parameter], returnType: GRPHType = SimpleType.void, varargs: Bool = false, storage: Storage = .native) {
+    public init(ns: NameSpace, name: String, inType: GRPHType, final: Bool = false, parameters: [Parameter], returnType: GRPHType = SimpleType.void, varargs: Bool = false, storage: Storage = .native) {
         self.ns = ns
         self.name = name
         self.inType = inType
@@ -37,14 +37,14 @@ struct Method: Parametrable, Importable {
     }
 }
 
-extension Method {
+public extension Method {
     enum Storage {
         case native
         case generic(signature: String)
     }
 }
 
-extension Method {
+public extension Method {
     init?(imports: [Importable], namespace: NameSpace, name: String, inType: GRPHType) {
         if namespace.isEqual(to: NameSpaces.none) {
             // when using. either directly imported, either in the namespace, either in the type with an imported namespace

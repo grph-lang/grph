@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SVGExportContext {
+public struct SVGExportContext {
     
 }
 

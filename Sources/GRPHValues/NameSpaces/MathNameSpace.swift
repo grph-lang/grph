@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct MathNameSpace: NameSpace {
-    var name: String { "math" }
+public struct MathNameSpace: NameSpace {
+    public var name: String { "math" }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         [
             Function(ns: self, name: "sum", parameters: [Parameter(name: "numbers...", type: SimpleType.num)], returnType: SimpleType.float, varargs: true),
             Function(ns: self, name: "difference", parameters: [Parameter(name: "numbers...", type: SimpleType.num)], returnType: SimpleType.float, varargs: true),

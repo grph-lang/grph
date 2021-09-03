@@ -7,16 +7,16 @@
 
 import Foundation
 
-struct ForEachBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
+public struct ForEachBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
     
-    let varName: String
-    let array: Expression
-    let inOut: Bool
+    public let varName: String
+    public let array: Expression
+    public let inOut: Bool
     
-    init(lineNumber: Int, context: inout CompilingContext, varName: String, array: Expression) throws {
+    public init(lineNumber: Int, context: inout CompilingContext, varName: String, array: Expression) throws {
         self.inOut = varName.hasPrefix("&") // new in Swift Edition
         self.varName = inOut ? String(varName.dropFirst()) : varName
         self.array = try GRPHTypes.autobox(context: context, expression: array, expected: SimpleType.mixed.inArray)
@@ -35,5 +35,5 @@ struct ForEachBlock: BlockInstruction {
         ctx.variables.append(Variable(name: self.varName, type: arrtype.content, final: !inOut, compileTime: true))
     }
     
-    var name: String { "foreach \(inOut ? "&" : "")\(varName) : \(array.string)" }
+    public var name: String { "foreach \(inOut ? "&" : "")\(varName) : \(array.string)" }
 }

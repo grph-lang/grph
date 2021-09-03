@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct ConstructorExpression: Expression {
-    let constructor: Constructor
-    let values: [Expression?]
+public struct ConstructorExpression: Expression {
+    public let constructor: Constructor
+    public let values: [Expression?]
     
-    init(ctx: CompilingContext, type: GRPHType, values: [Expression]) throws {
+    public init(ctx: CompilingContext, type: GRPHType, values: [Expression]) throws {
         guard let constructor = type.constructor else {
             throw GRPHCompileError(type: .typeMismatch, message: "No constructor found in '\(type)'");
         }
@@ -39,18 +39,18 @@ struct ConstructorExpression: Expression {
         self.values = ourvalues
     }
     
-    init(ctx: CompilingContext, boxing: Expression, infer: GRPHType) throws {
+    public init(ctx: CompilingContext, boxing: Expression, infer: GRPHType) throws {
         self.constructor = try boxing.getType(context: ctx, infer: infer).optional.constructor!
         self.values = [boxing]
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         constructor.type
     }
     
-    var string: String {
+    public var string: String {
         "\(constructor.type.string)(\(constructor.formattedParameterList(values: values.compactMap {$0})))"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

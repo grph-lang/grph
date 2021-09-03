@@ -8,20 +8,20 @@
 import Foundation
 
 /* Immutable types should be structs, mutable types should be classes */
-protocol GRPHValue {
+public protocol GRPHValue {
     var type: GRPHType { get }
     func isEqual(to other: GRPHValue) -> Bool
 }
 
-protocol StatefulValue: GRPHValue {
+public protocol StatefulValue: GRPHValue {
     var state: String { get }
 }
 
-protocol GRPHNumber: GRPHValue {
+public protocol GRPHNumber: GRPHValue {
     init(grph: GRPHNumber)
 }
 
-extension GRPHValue where Self: Equatable {
+public extension GRPHValue where Self: Equatable {
     /// Note that this default implementation doesn't work with multi-inheritence (subclasses) !!!
     func isEqual(to other: GRPHValue) -> Bool {
         if let value = other as? Self {
@@ -33,7 +33,7 @@ extension GRPHValue where Self: Equatable {
 
 extension Int: StatefulValue, GRPHNumber {
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let num = value as? Float {
             self.init(num)
         } else if let rot = value as? Rotation {
@@ -45,7 +45,7 @@ extension Int: StatefulValue, GRPHNumber {
         }
     }
     
-    init?<S: StringProtocol>(decoding string: S) {
+    public init?<S: StringProtocol>(decoding string: S) {
         if string.hasPrefix("0x") || string.hasPrefix("0X") {
             self.init(string.dropFirst(2), radix: 16)
         } else if string.hasPrefix("0o") {
@@ -66,7 +66,7 @@ extension Int: StatefulValue, GRPHNumber {
         }
     }
     
-    init(grph: GRPHNumber) {
+    public init(grph: GRPHNumber) {
         if let int = grph as? Int {
             self.init(int)
         } else if let num = grph as? Float {
@@ -76,13 +76,13 @@ extension Int: StatefulValue, GRPHNumber {
         }
     }
     
-    var type: GRPHType { SimpleType.integer }
-    var state: String { String(self) }
+    public var type: GRPHType { SimpleType.integer }
+    public var state: String { String(self) }
 }
 
 extension String: StatefulValue {
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let str = value as? String {
             self.init(str) // Not a literal
         } else if let val = value as? StatefulValue {
@@ -94,9 +94,9 @@ extension String: StatefulValue {
         }
     }
     
-    var type: GRPHType { SimpleType.string }
+    public var type: GRPHType { SimpleType.string }
     
-    var state: String {
+    public var state: String {
         "\"\(self.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"").replacingOccurrences(of: "\t", with: "\\t").replacingOccurrences(of: "\n", with: "\\n"))\""
     }
     
@@ -107,7 +107,7 @@ extension String: StatefulValue {
 
 extension Float: StatefulValue, GRPHNumber {
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let int = value as? Int {
             self.init(int)
         } else if let rot = value as? Rotation {
@@ -119,7 +119,7 @@ extension Float: StatefulValue, GRPHNumber {
         }
     }
     
-    init(grph: GRPHNumber) {
+    public init(grph: GRPHNumber) {
         if let int = grph as? Int {
             self.init(int)
         } else if let num = grph as? Float {
@@ -129,13 +129,13 @@ extension Float: StatefulValue, GRPHNumber {
         }
     }
     
-    var type: GRPHType { SimpleType.float }
-    var state: String { "\(self)F" }
+    public var type: GRPHType { SimpleType.float }
+    public var state: String { "\(self)F" }
 }
 
 extension Bool: StatefulValue {
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let int = value as? Int {
             self.init(int != 0)
         } else if let num = value as? Float {
@@ -155,36 +155,36 @@ extension Bool: StatefulValue {
         }
     }
     
-    var type: GRPHType { SimpleType.boolean }
-    var state: String { self ? "true" : "false" }
+    public var type: GRPHType { SimpleType.boolean }
+    public var state: String { self ? "true" : "false" }
 }
 
-extension Collection {
+public extension Collection {
     /// Returns the element at the specified index if it is within bounds, otherwise nil.
     subscript (safeExact index: Index) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
 }
 
-extension Collection {
+public extension Collection {
     /// Returns the element at the specified index if it is within bounds, otherwise nil.
     subscript<T>(safe index: Index) -> T? where Element == Optional<T> {
         return indices.contains(index) ? self[index] : nil
     }
 }
 
-enum GRPHVoid: StatefulValue {
+public enum GRPHVoid: StatefulValue {
     case void
     
-    var type: GRPHType {
+    public var type: GRPHType {
         SimpleType.void
     }
     
-    var state: String {
+    public var state: String {
         "void.VOID"
     }
     
-    func isEqual(to other: GRPHValue) -> Bool {
+    public func isEqual(to other: GRPHValue) -> Bool {
         other is GRPHVoid
     }
 }

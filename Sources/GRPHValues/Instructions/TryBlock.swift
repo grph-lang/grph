@@ -7,16 +7,16 @@
 
 import Foundation
 
-struct TryBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
-    var catches: [GRPHRuntimeError.RuntimeExceptionType?: CatchBlock] = [:]
+public struct TryBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
+    public var catches: [GRPHRuntimeError.RuntimeExceptionType?: CatchBlock] = [:]
     
-    init(context: inout CompilingContext, lineNumber: Int) {
+    public init(context: inout CompilingContext, lineNumber: Int) {
         self.lineNumber = lineNumber
         createContext(&context)
     }
     
-    var name: String { "try" }
+    public var name: String { "try" }
 }

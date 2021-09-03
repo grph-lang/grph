@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Importable {
+public protocol Importable {
     var exportedFunctions: [Function] { get }
     var exportedMethods: [Method] { get }
     
@@ -17,7 +17,7 @@ protocol Importable {
     var exportedTypeAliases: [TypeAlias] { get }
 }
 
-extension Importable {
+public extension Importable {
     var exportedFunctions: [Function] { [] }
     var exportedMethods: [Method] { [] }
     var exportedTypes: [GRPHType] { [] }

@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct InputOutputNameSpace: NameSpace {
-    var name: String { "stdio" }
+public struct InputOutputNameSpace: NameSpace {
+    public var name: String { "stdio" }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         [
             Function(ns: self, name: "getLineInString", parameters: [Parameter(name: "string", type: SimpleType.string), Parameter(name: "line", type: SimpleType.integer)], returnType: SimpleType.string),
             Function(ns: self, name: "getLinesInString", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.string.inArray),

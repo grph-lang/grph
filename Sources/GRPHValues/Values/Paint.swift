@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 #endif
 
-protocol Paint: StatefulValue {
+public protocol Paint: StatefulValue {
     #if GRAPHICAL
     associatedtype Style: ShapeStyle
     
@@ -18,12 +18,12 @@ protocol Paint: StatefulValue {
     #endif
 }
 
-enum AnyPaint {
+public enum AnyPaint {
     case color(ColorPaint)
     case linear(LinearPaint)
     case radial(RadialPaint)
     
-    var state: String {
+    public var state: String {
         switch self {
         case .color(let color):
             return color.state
@@ -34,7 +34,7 @@ enum AnyPaint {
         }
     }
     
-    static func auto(_ value: GRPHValue) -> AnyPaint {
+    static public func auto(_ value: GRPHValue) -> AnyPaint {
         if let value = value as? ColorPaint {
             return .color(value)
         } else if let value = value as? LinearPaint {
@@ -45,7 +45,7 @@ enum AnyPaint {
         fatalError()
     }
     
-    var unwrapped: GRPHValue {
+    public var unwrapped: GRPHValue {
         switch self {
         case .color(let color):
             return color

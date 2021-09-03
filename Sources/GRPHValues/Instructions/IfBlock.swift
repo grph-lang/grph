@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct IfBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
-    let condition: Expression
+public struct IfBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
+    public let condition: Expression
     
-    init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
+    public init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
         self.lineNumber = lineNumber
         self.condition = try GRPHTypes.autobox(context: context, expression: condition, expected: SimpleType.boolean)
         createContext(&context)
@@ -22,16 +22,16 @@ struct IfBlock: BlockInstruction {
         }
     }
     
-    var name: String { "if \(condition.string)" }
+    public var name: String { "if \(condition.string)" }
 }
 
-struct ElseIfBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
-    let condition: Expression
+public struct ElseIfBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
+    public let condition: Expression
     
-    init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
+    public init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
         self.lineNumber = lineNumber
         self.condition = try GRPHTypes.autobox(context: context, expression: condition, expected: SimpleType.boolean)
         createContext(&context)
@@ -40,18 +40,18 @@ struct ElseIfBlock: BlockInstruction {
         }
     }
     
-    var name: String { "elseif \(condition.string)" }
+    public var name: String { "elseif \(condition.string)" }
 }
 
-struct ElseBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
+public struct ElseBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
     
-    init(context: inout CompilingContext, lineNumber: Int) {
+    public init(context: inout CompilingContext, lineNumber: Int) {
         self.lineNumber = lineNumber
         createContext(&context)
     }
     
-    var name: String { "else" }
+    public var name: String { "else" }
 }

@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct StringUtilsNameSpace: NameSpace {
-    var name: String { "strutils" }
+public struct StringUtilsNameSpace: NameSpace {
+    public var name: String { "strutils" }
     
-    var exportedFunctions: [Function] {
+    public var exportedFunctions: [Function] {
         [
             Function(ns: self, name: "getStringLength", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.integer),
             Function(ns: self, name: "substring", parameters: [Parameter(name: "string", type: SimpleType.string), Parameter(name: "start", type: SimpleType.integer), Parameter(name: "end", type: SimpleType.integer, optional: true)], returnType: SimpleType.string),

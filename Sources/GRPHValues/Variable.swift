@@ -7,18 +7,18 @@
 
 import Foundation
 
-class Variable {
-    let name: String
+public class Variable {
+    public let name: String
     
-    let type: GRPHType
+    public let type: GRPHType
     
-    private(set) var content: GRPHValue?
+    private(set) public var content: GRPHValue?
     
-    let compileTime: Bool
+    public let compileTime: Bool
     
-    let final: Bool
+    public let final: Bool
     
-    init(name: String, type: GRPHType, content: GRPHValue? = nil, final: Bool, compileTime: Bool = false) {
+    public init(name: String, type: GRPHType, content: GRPHValue? = nil, final: Bool, compileTime: Bool = false) {
         self.name = name
         self.type = type
         self.content = content
@@ -26,7 +26,7 @@ class Variable {
         self.compileTime = compileTime
     }
     
-    func setContent(_ content: GRPHValue) throws {
+    public func setContent(_ content: GRPHValue) throws {
         if final {
             throw GRPHRuntimeError(type: .unexpected, message: "Variable '\(name)' is final")
         }

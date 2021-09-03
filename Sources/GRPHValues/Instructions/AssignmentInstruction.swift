@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct AssignmentInstruction: Instruction {
-    let lineNumber: Int
-    let assigned: AssignableExpression
-    let value: Expression
-    let virtualized: Bool
+public struct AssignmentInstruction: Instruction {
+    public let lineNumber: Int
+    public let assigned: AssignableExpression
+    public let value: Expression
+    public let virtualized: Bool
     
-    init(lineNumber: Int, context: CompilingContext, assigned: AssignableExpression, op: String?, value: Expression) throws {
+    public init(lineNumber: Int, context: CompilingContext, assigned: AssignableExpression, op: String?, value: Expression) throws {
         self.lineNumber = lineNumber
         self.assigned = assigned
         
@@ -34,7 +34,7 @@ struct AssignmentInstruction: Instruction {
         try assigned.checkCanAssign(context: context)
     }
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         var op = ""
         var right = value
         if virtualized, let infix = value as? BinaryExpression {
@@ -44,19 +44,19 @@ struct AssignmentInstruction: Instruction {
         return "\(line):\(indent)\(assigned) \(op)= \(right)\n"
     }
     
-    struct VirtualExpression: Expression {
-        let type: GRPHType
+    public struct VirtualExpression: Expression {
+        public let type: GRPHType
         
-        func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+        public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
             type
         }
         
-        var string: String { "$_virtual$" } // never called
+        public var string: String { "$_virtual$" } // never called
         
-        var needsBrackets: Bool { false } // never called
+        public var needsBrackets: Bool { false } // never called
     }
 }
 
-protocol AssignableExpression: Expression {
+public protocol AssignableExpression: Expression {
     func checkCanAssign(context: CompilingContext) throws
 }

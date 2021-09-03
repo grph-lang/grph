@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol GRPHType: CustomStringConvertible, Importable {
+public protocol GRPHType: CustomStringConvertible, Importable {
     var string: String { get }
     
     func isInstance(of other: GRPHType) -> Bool
@@ -21,7 +21,7 @@ protocol GRPHType: CustomStringConvertible, Importable {
     var final: Bool { get }
 }
 
-extension GRPHType {
+public extension GRPHType {
     var isTheMixed: Bool {
         self as? SimpleType == SimpleType.mixed
     }
@@ -57,24 +57,27 @@ extension GRPHType {
     var exportedTypes: [GRPHType] { [self] }
 }
 
-func | (lhs: GRPHType, rhs: GRPHType) -> MultiOrType {
+public func | (lhs: GRPHType, rhs: GRPHType) -> MultiOrType {
     MultiOrType(type1: lhs, type2: rhs)
 }
 
-func == (lhs: GRPHType, rhs: GRPHType) -> Bool {
+public func == (lhs: GRPHType, rhs: GRPHType) -> Bool {
     lhs.string == rhs.string
 }
 
-func != (lhs: GRPHType, rhs: GRPHType) -> Bool {
+public func != (lhs: GRPHType, rhs: GRPHType) -> Bool {
     lhs.string != rhs.string
 }
 
-struct GRPHTypes {
+public struct GRPHTypes {
     static let funcrefPattern = try! NSRegularExpression(pattern: "funcref<>")
     static let plus = try! NSRegularExpression(pattern: "\\+")
     
     private init() {}
     
+}
+
+public extension GRPHTypes {
     static func parse(context: GRPHContextProtocol, literal: String) -> GRPHType? {
         if literal.isSurrounded(left: "<", right: ">") {
             return parse(context: context, literal: "\(literal.dropLast().dropFirst())")
@@ -175,7 +178,7 @@ struct GRPHTypes {
     }
 }
 
-extension String {
+fileprivate extension String {
     func isSurrounded(left: Character, right: Character) -> Bool {
         if last == right && first == left {
             let inner = dropLast().dropFirst()
@@ -198,7 +201,7 @@ extension String {
     }
 }
 
-extension GRPHTypes {
+fileprivate extension GRPHTypes {
     
     /// Parses generics in the format `<a11+a12><a21+a22>`
     /// The input string must start and end with `<` and `>` respectively.

@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct FunctionReferenceExpression: Expression {
-    var function: Function
-    var argumentGrid: [Bool]
-    var inferredType: FuncRefType
+public struct FunctionReferenceExpression: Expression {
+    public var function: Function
+    public var argumentGrid: [Bool]
+    public var inferredType: FuncRefType
     
-    init(function: Function, infer: GRPHType?) throws {
+    public init(function: Function, infer: GRPHType?) throws {
         self.function = function
         if let infer = infer as? FuncRefType {
             // type check return type
@@ -50,11 +50,11 @@ struct FunctionReferenceExpression: Expression {
         }
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         inferredType
     }
     
-    var string: String { "^\(function.fullyQualifiedName)" }
+    public var string: String { "^\(function.fullyQualifiedName)" }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

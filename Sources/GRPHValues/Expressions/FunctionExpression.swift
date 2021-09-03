@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct FunctionExpression: Expression {
-    let function: Function
-    let values: [Expression?]
+public struct FunctionExpression: Expression {
+    public let function: Function
+    public let values: [Expression?]
     
-    init(ctx: CompilingContext, function: Function, values: [Expression], asInstruction: Bool = false) throws {
+    public init(ctx: CompilingContext, function: Function, values: [Expression], asInstruction: Bool = false) throws {
         self.function = function
         var ourvalues: [Expression?] = []
         guard asInstruction || !function.returnType.isTheVoid else {
@@ -38,13 +38,13 @@ struct FunctionExpression: Expression {
         self.values = ourvalues
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         return function.returnType
     }
     
-    var string: String {
+    public var string: String {
         "\(function.fullyQualifiedName)[\(function.formattedParameterList(values: values.compactMap {$0}))]"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

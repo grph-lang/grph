@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol GRPHContextProtocol: AnyObject {
+public protocol GRPHContextProtocol: AnyObject {
     var imports: [Importable] { get }
 }
 
-protocol GRPHCompilerProtocol: AnyObject {
+public protocol GRPHCompilerProtocol: AnyObject {
     var imports: [Importable] { get set }
     var hasStrictUnboxing: Bool { get }
     var hasStrictBoxing: Bool { get }
@@ -20,11 +20,11 @@ protocol GRPHCompilerProtocol: AnyObject {
     var context: CompilingContext! { get set }
 }
 
-struct GRPHCompileError: Error {
-    var type: CompileErrorType
-    var message: String
+public struct GRPHCompileError: Error {
+    public var type: CompileErrorType
+    public var message: String
     
-    enum CompileErrorType: String {
+    public enum CompileErrorType: String {
         case parse = "Parse"
         case typeMismatch = "Type"
         case undeclared = "Undeclared"
@@ -34,12 +34,12 @@ struct GRPHCompileError: Error {
     }
 }
 
-struct GRPHRuntimeError: Error {
-    var type: RuntimeExceptionType
-    var message: String
-    var stack: [String] = []
+public struct GRPHRuntimeError: Error {
+    public var type: RuntimeExceptionType
+    public var message: String
+    public var stack: [String] = []
     
-    enum RuntimeExceptionType: String {
+    public enum RuntimeExceptionType: String {
         case typeMismatch = "InvalidType"
         case cast = "Cast"
         case inputOutput = "IO"

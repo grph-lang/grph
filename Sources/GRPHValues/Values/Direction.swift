@@ -7,10 +7,10 @@
 
 import Foundation
 
-enum Direction: String, StatefulValue {
+public enum Direction: String, StatefulValue {
     case right, downRight, down, downLeft, left, upLeft, up, upRight
     
-    var reverse: Direction {
+    public var reverse: Direction {
         switch self {
         case .right:
             return .left
@@ -31,12 +31,12 @@ enum Direction: String, StatefulValue {
         }
     }
     
-    var state: String { rawValue }
+    public var state: String { rawValue }
     
-    var type: GRPHType { SimpleType.direction }
+    public var type: GRPHType { SimpleType.direction }
 }
 
-extension Direction {
+public extension Direction {
     var pointingTowards: (x: Double, y: Double) {
         switch self {
         case .right:

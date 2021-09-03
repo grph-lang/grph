@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol Expression: CustomStringConvertible {
+public protocol Expression: CustomStringConvertible {
     
     func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType
     
@@ -16,7 +16,7 @@ protocol Expression: CustomStringConvertible {
     var needsBrackets: Bool { get }
 }
 
-extension Expression {
+public extension Expression {
     var bracketized: String {
         needsBrackets ? "[\(string)]" : string
     }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Parameter {
+public struct Parameter {
     
     static let shapeName = Parameter(name: "name", type: SimpleType.string, optional: true)
     static let pos = Parameter(name: "location", type: SimpleType.pos)
@@ -21,17 +21,17 @@ struct Parameter {
     static let strokeType = Parameter(name: "strokeType", type: SimpleType.stroke, optional: true)
     static let strokeDashArray = Parameter(name: "strokeDashArray", type: ArrayType(content: SimpleType.float), optional: true)
 
-    let name: String
-    let type: GRPHType
-    let optional: Bool
+    public let name: String
+    public let type: GRPHType
+    public let optional: Bool
     
-    init(name: String, type: GRPHType, optional: Bool = false) {
+    public init(name: String, type: GRPHType, optional: Bool = false) {
         self.name = name
         self.type = type
         self.optional = optional
     }
     
-    var string: String {
+    public var string: String {
         "\(type.string) \(name)\(optional ? "?" : "")"
     }
 }

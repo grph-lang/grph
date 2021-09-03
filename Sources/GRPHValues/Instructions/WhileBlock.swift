@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct WhileBlock: BlockInstruction {
-    let lineNumber: Int
-    var children: [Instruction] = []
-    var label: String?
-    let condition: Expression
+public struct WhileBlock: BlockInstruction {
+    public let lineNumber: Int
+    public var children: [Instruction] = []
+    public var label: String?
+    public let condition: Expression
     
-    init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
+    public init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
         self.lineNumber = lineNumber
         self.condition = try GRPHTypes.autobox(context: context, expression: condition, expected: SimpleType.boolean)
         createContext(&context)
@@ -22,5 +22,5 @@ struct WhileBlock: BlockInstruction {
         }
     }
     
-    var name: String { "while \(condition.string)" }
+    public var name: String { "while \(condition.string)" }
 }

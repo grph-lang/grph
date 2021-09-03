@@ -7,25 +7,25 @@
 
 import Foundation
 
-class GText: PaintedShape, PositionableShape, RotatableShape {
+public class GText: PaintedShape, PositionableShape, RotatableShape {
     
-    var givenName: String?
-    var typeKey: String { "Text" }
+    public var givenName: String?
+    public var typeKey: String { "Text" }
     
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var paint: AnyPaint
-    var strokeStyle: StrokeWrapper? = nil
+    public var paint: AnyPaint
+    public var strokeStyle: StrokeWrapper? = nil
     
-    var font: JFont
+    public var font: JFont
     
-    var position: Pos
-    var positionZ: Int
+    public var position: Pos
+    public var positionZ: Int
     
-    var rotation: Rotation
-    var rotationCenter: Pos?
+    public var rotation: Rotation
+    public var rotationCenter: Pos?
     
-    init(givenName: String? = nil, position: Pos, positionZ: Int = 0, font: JFont, rotation: Rotation = 0, paint: AnyPaint) {
+    public init(givenName: String? = nil, position: Pos, positionZ: Int = 0, font: JFont, rotation: Rotation = 0, paint: AnyPaint) {
         self.givenName = givenName
         self.position = position
         self.positionZ = positionZ
@@ -34,14 +34,14 @@ class GText: PaintedShape, PositionableShape, RotatableShape {
         self.paint = paint
     }
     
-    var stateDefinitions: String { "" }
-    var stateConstructor: String {
+    public var stateDefinitions: String { "" }
+    public var stateConstructor: String {
         "Text(\(effectiveName.asLiteral)\(position.state) \(positionZ) \(font.state) \(paint.state))"
     }
     
-    var type: GRPHType { SimpleType.Text }
+    public var type: GRPHType { SimpleType.Text }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<text x="\#(position.x)" y="\#(position.y)" fill="\#(svgPaint)" transform="rotate(\#(rotation) \#(rotationCenter?.x.description ?? "") \#(rotationCenter?.y.description ?? ""))" font-family="\#(font.name ?? "")" font-size="\#(font.size)" font-style="\#(font.italic ? "italic" : "normal")" font-weight="\#(font.bold ? "bold" : "normal")">\#(effectiveName)</text>"#)
     }
 }

@@ -7,12 +7,16 @@
 
 import Foundation
 
-struct FuncRef: GRPHValue {
+public struct FuncRef: GRPHValue {
+    public var currentType: FuncRefType
+    public var storage: Storage
     
-    var currentType: FuncRefType
-    var storage: Storage
+    public init(currentType: FuncRefType, storage: FuncRef.Storage) {
+        self.currentType = currentType
+        self.storage = storage
+    }
     
-    var funcName: String {
+    public var funcName: String {
         switch storage {
         case .function(let function, _):
             return "function \(function.fullyQualifiedName)"
@@ -23,14 +27,14 @@ struct FuncRef: GRPHValue {
         }
     }
     
-    var type: GRPHType { currentType }
+    public var type: GRPHType { currentType }
     
-    func isEqual(to other: GRPHValue) -> Bool {
+    public func isEqual(to other: GRPHValue) -> Bool {
         false // not even equal to itself, it makes no sense to compare function references
     }
 }
 
-extension FuncRef {
+public extension FuncRef {
     enum Storage {
         case function(Function, argumentGrid: [Bool])
         case lambda(Lambda, capture: [Variable])

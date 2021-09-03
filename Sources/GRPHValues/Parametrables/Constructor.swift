@@ -7,24 +7,24 @@
 
 import Foundation
 
-struct Constructor: Parametrable {
-    let parameters: [Parameter]
-    let type: GRPHType
-    let varargs: Bool
-    let storage: Storage
+public struct Constructor: Parametrable {
+    public let parameters: [Parameter]
+    public let type: GRPHType
+    public let varargs: Bool
+    public let storage: Storage
     
-    init(parameters: [Parameter], type: GRPHType, varargs: Bool = false, storage: Storage) {
+    public init(parameters: [Parameter], type: GRPHType, varargs: Bool = false, storage: Storage) {
         self.parameters = parameters
         self.type = type
         self.varargs = varargs
         self.storage = storage
     }
     
-    var name: String { type.string }
-    var returnType: GRPHType { type }
+    public var name: String { type.string }
+    public var returnType: GRPHType { type }
 }
 
-extension Constructor {
+public extension Constructor {
     enum Storage {
         /// The constructor is defined, natively. Ex: SimpleType constructors
         case native
@@ -33,7 +33,7 @@ extension Constructor {
     }
 }
 
-extension Constructor {
+public extension Constructor {
     var signature: String {
         "\(type)(\(parameters.map { $0.string }.joined(separator: ", "))\(varargs ? "..." : ""))"
     }

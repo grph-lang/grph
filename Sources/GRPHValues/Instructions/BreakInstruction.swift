@@ -7,27 +7,27 @@
 
 import Foundation
 
-struct BreakInstruction: Instruction {
-    let lineNumber: Int
-    let type: BreakType
-    let scope: BreakScope
+public struct BreakInstruction: Instruction {
+    public let lineNumber: Int
+    public let type: BreakType
+    public let scope: BreakScope
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         return "\(line):\(indent)#\(type.rawValue) \(scope)\n"
     }
     
-    enum BreakType: String {
+    public enum BreakType: String {
         case `break` = "break"
         case `continue` = "continue"
         case fall = "fall"
         case `fallthrough` = "fallthrough"
     }
     
-    enum BreakScope: CustomStringConvertible {
+    public enum BreakScope: CustomStringConvertible {
         case scopes(Int)
         case label(String)
         
-        static func parse(params: String) throws -> BreakScope {
+        public static func parse(params: String) throws -> BreakScope {
             if params.hasPrefix("::") {
                 return .label(String(params.dropFirst(2)))
             } else if let i = Int(params) {
@@ -39,7 +39,7 @@ struct BreakInstruction: Instruction {
             }
         }
         
-        var description: String {
+        public var description: String {
             switch self {
             case .scopes(let n):
                 return "\(n)"
@@ -50,11 +50,11 @@ struct BreakInstruction: Instruction {
     }
 }
 
-struct ReturnInstruction: Instruction {
-    let lineNumber: Int
-    var value: Expression? = nil
+public struct ReturnInstruction: Instruction {
+    public let lineNumber: Int
+    public var value: Expression? = nil
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         return "\(line):\(indent)#return \(value?.string ?? "")\n"
     }
 }

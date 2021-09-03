@@ -7,22 +7,22 @@
 
 import Foundation
 
-protocol NameSpace: Importable {
+public protocol NameSpace: Importable {
     /// Must be lowercase !!!
     var name: String { get }
     
 }
 
-extension NameSpace {
+public extension NameSpace {
     func isEqual(to: NameSpace) -> Bool {
         return name == to.name
     }
 }
 
-struct NameSpaces {
+public struct NameSpaces {
     private init() {}
     
-    static let instances: [NameSpace] =
+    public static let instances: [NameSpace] =
         [
             StandardNameSpace(),
             InputOutputNameSpace(),
@@ -32,13 +32,13 @@ struct NameSpaces {
             ReflectNameSpace(),
         ]
     
-    static let none: NameSpace = NoNameSpace()
+    public static let none: NameSpace = NoNameSpace()
     
-    static func namespace(named name: String) -> NameSpace? {
+    public static func namespace(named name: String) -> NameSpace? {
         return instances.first { $0.name == name.lowercased() }
     }
     
-    static func namespacedMember(from literal: String) -> (namespace: NameSpace?, member: String) {
+    public static func namespacedMember(from literal: String) -> (namespace: NameSpace?, member: String) {
         if literal.contains(">") {
             let split = literal.split(separator: ">", maxSplits: 1)
             if split.count == 2 {

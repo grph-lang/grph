@@ -7,12 +7,12 @@
 
 import Foundation
 
-typealias BlockCompilingContext = VariableOwningCompilingContext
+public typealias BlockCompilingContext = VariableOwningCompilingContext
 
-class VariableOwningCompilingContext: CompilingContext {
-    var variables: [Variable] = []
+open class VariableOwningCompilingContext: CompilingContext {
+    public var variables: [Variable] = []
     
-    override var allVariables: [Variable] {
+    open override var allVariables: [Variable] {
         var vars = super.allVariables
         vars.append(contentsOf: variables)
         return vars
@@ -20,7 +20,7 @@ class VariableOwningCompilingContext: CompilingContext {
     
     /// Returns in the correct priority. Current scope first, then next scope etc. until global scope
     /// Java version doesn't support multiple variables with the same name even in a different scope. We support it here.
-    override func findVariable(named name: String) -> Variable? {
+    open override func findVariable(named name: String) -> Variable? {
         if let found = findVariableInScope(named: name) {
             return found
         }
@@ -28,11 +28,11 @@ class VariableOwningCompilingContext: CompilingContext {
     }
     
     /// Used in Variable Declaration Instruction to know if defining the variable is allowed
-    override func findVariableInScope(named name: String) -> Variable? {
+    open override func findVariableInScope(named name: String) -> Variable? {
         return variables.first(where: { $0.name == name })
     }
     
-    override func addVariable(_ variable: Variable, global: Bool) {
+    open override func addVariable(_ variable: Variable, global: Bool) {
         if global {
             super.addVariable(variable, global: global)
         } else {

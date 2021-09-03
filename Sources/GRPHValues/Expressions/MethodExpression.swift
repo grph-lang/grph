@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct MethodExpression: Expression {
-    let method: Method
-    let on: Expression
-    let values: [Expression?]
+public struct MethodExpression: Expression {
+    public let method: Method
+    public let on: Expression
+    public let values: [Expression?]
     
-    init(ctx: CompilingContext, method: Method, on: Expression, values: [Expression], asInstruction: Bool = false) throws {
+    public init(ctx: CompilingContext, method: Method, on: Expression, values: [Expression], asInstruction: Bool = false) throws {
         var nextParam = 0
         self.method = method
         self.on = on
@@ -40,17 +40,17 @@ struct MethodExpression: Expression {
         self.values = ourvalues
     }
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         return method.returnType
     }
     
-    var fullyQualified: String {
-        "\(method.ns.name == "standard" || method.ns.name == "none" ? "" : "\(method.ns.name)>")\(method.name)"
+    public var fullyQualified: String {
+        method.fullyQualifiedName
     }
     
-    var string: String {
+    public var string: String {
         "\(on.bracketized).\(fullyQualified)[\(method.formattedParameterList(values: values.compactMap {$0}))]"
     }
     
-    var needsBrackets: Bool { false }
+    public var needsBrackets: Bool { false }
 }

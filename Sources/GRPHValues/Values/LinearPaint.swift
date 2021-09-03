@@ -7,14 +7,20 @@
 
 import Foundation
 
-struct LinearPaint: Paint, Equatable {
-    var from: ColorPaint
-    var direction: Direction
-    var to: ColorPaint
+public struct LinearPaint: Paint, Equatable {
+    public var from: ColorPaint
+    public var direction: Direction
+    public var to: ColorPaint
     
-    var state: String {
+    public init(from: ColorPaint, direction: Direction, to: ColorPaint) {
+        self.from = from
+        self.direction = direction
+        self.to = to
+    }
+    
+    public var state: String {
         "linear(\(from.state) \(direction.rawValue) \(to.state))"
     }
     
-    var type: GRPHType { SimpleType.linear }
+    public var type: GRPHType { SimpleType.linear }
 }

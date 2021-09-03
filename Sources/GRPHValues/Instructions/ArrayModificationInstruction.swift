@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct ArrayModificationInstruction: Instruction {
-    let lineNumber: Int
-    let name: String
-    let op: ArrayModificationOperation
-    let index: Expression?
-    let value: Expression?
+public struct ArrayModificationInstruction: Instruction {
+    public let lineNumber: Int
+    public let name: String
+    public let op: ArrayModificationOperation
+    public let index: Expression?
+    public let value: Expression?
     
-    init(lineNumber: Int, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
+    public init(lineNumber: Int, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
         self.lineNumber = lineNumber
         self.name = name
         self.op = op
@@ -32,7 +32,7 @@ struct ArrayModificationInstruction: Instruction {
         }
     }
     
-    init(lineNumber: Int, context: CompilingContext, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
+    public init(lineNumber: Int, context: CompilingContext, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
         
         if let index = index {
             guard try SimpleType.integer.isInstance(context: context, expression: index) else {
@@ -54,11 +54,11 @@ struct ArrayModificationInstruction: Instruction {
         try self.init(lineNumber: lineNumber, name: name, op: op, index: index, value: value)
     }
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         "\(line):\(indent)\(name){\(index?.string ?? "")\(op.rawValue)} = \(value?.string ?? "")\n"
     }
     
-    enum ArrayModificationOperation: String {
+    public enum ArrayModificationOperation: String {
         case set = ""
         case add = "+"
         case remove = "-"

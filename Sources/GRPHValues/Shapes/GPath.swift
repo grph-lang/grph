@@ -7,23 +7,23 @@
 
 import Foundation
 
-class GPath: PaintedShape, RotatableShape {
-    var givenName: String?
-    var typeKey: String { "Path" }
+public class GPath: PaintedShape, RotatableShape {
+    public var givenName: String?
+    public var typeKey: String { "Path" }
     
-    let uuid = UUID()
+    public let uuid = UUID()
     
-    var points: [Pos] = []
-    var actions: [PathActions] = []
-    var positionZ: Int = 0
+    public var points: [Pos] = []
+    public var actions: [PathActions] = []
+    public var positionZ: Int = 0
     
-    var paint: AnyPaint
-    var strokeStyle: StrokeWrapper?
+    public var paint: AnyPaint
+    public var strokeStyle: StrokeWrapper?
     
-    var rotation: Rotation = 0
-    var rotationCenter: Pos?
+    public var rotation: Rotation = 0
+    public var rotationCenter: Pos?
     
-    init(givenName: String? = nil, points: [Pos] = [], actions: [PathActions] = [], positionZ: Int = 0, rotation: Rotation = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
+    public init(givenName: String? = nil, points: [Pos] = [], actions: [PathActions] = [], positionZ: Int = 0, rotation: Rotation = 0, paint: AnyPaint, strokeStyle: StrokeWrapper? = nil) {
         self.givenName = givenName
         self.points = points
         self.actions = actions
@@ -33,7 +33,7 @@ class GPath: PaintedShape, RotatableShape {
         self.rotation = rotation
     }
     
-    var stateDefinitions: String {
+    public var stateDefinitions: String {
         let uniqueVarName = String(uuid.hashValue, radix: 36).dropFirst() // first might be a -
         var str = "Path path\(uniqueVarName) = Path(\(givenName?.asLiteral ?? "")\(positionZ) \(paint.state)\(strokeStyle?.stateConstructor ?? ""))\n"
         var i = 0
@@ -58,21 +58,21 @@ class GPath: PaintedShape, RotatableShape {
         return str
     }
     
-    var stateConstructor: String {
+    public var stateConstructor: String {
         "path\(String(uuid.hashValue, radix: 36).dropFirst())"
     }
     
-    var type: GRPHType { SimpleType.Path }
+    public var type: GRPHType { SimpleType.Path }
     
-    func translate(by diff: Pos) {
+    public func translate(by diff: Pos) {
         points = points.map { $0 + diff }
     }
     
-    func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
+    public func toSVG<T>(context: SVGExportContext, into out: inout T) where T : TextOutputStream {
         out.writeln(#"<path name="\#(effectiveName)" fill="\#(strokeStyle == nil ? svgPaint : "none")" stroke="\#(strokeStyle != nil ? svgPaint : "none")"\#(strokeStyle?.svgStroke ?? "") transform="rotate(\#(rotation) \#(rotationCenter?.x.description ?? "") \#(rotationCenter?.y.description ?? ""))" d="\#(svgPath)"/>"#)
     }
     
-    var svgPath: String {
+    public var svgPath: String {
         var str = ""
         var i = 0
         for action in actions {
@@ -97,7 +97,7 @@ class GPath: PaintedShape, RotatableShape {
     }
 }
 
-enum PathActions {
+public enum PathActions {
     case moveTo
     case lineTo
     case quadTo

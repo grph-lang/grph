@@ -7,18 +7,18 @@
 
 import Foundation
 
-struct VariableDeclarationInstruction: Instruction {
-    static let varNameRequirement = try! NSRegularExpression(pattern: "^[$A-Za-z_][A-Za-z0-9_]*$")
+public struct VariableDeclarationInstruction: Instruction {
+    public static let varNameRequirement = try! NSRegularExpression(pattern: "^[$A-Za-z_][A-Za-z0-9_]*$")
     
-    let global, constant: Bool
+    public let global, constant: Bool
     
-    let type: GRPHType
-    let name: String
-    let value: Expression
+    public let type: GRPHType
+    public let name: String
+    public let value: Expression
     
-    let lineNumber: Int
+    public let lineNumber: Int
     
-    init(lineNumber: Int, global: Bool, constant: Bool, type: GRPHType, name: String, value: Expression) {
+    public init(lineNumber: Int, global: Bool, constant: Bool, type: GRPHType, name: String, value: Expression) {
         self.lineNumber = lineNumber
         self.global = global
         self.constant = constant
@@ -27,7 +27,7 @@ struct VariableDeclarationInstruction: Instruction {
         self.value = value
     }
     
-    init(lineNumber: Int, context: CompilingContext, global: Bool, constant: Bool, typeOrAuto: GRPHType?, name: String, exp: Expression) throws {
+    public init(lineNumber: Int, context: CompilingContext, global: Bool, constant: Bool, typeOrAuto: GRPHType?, name: String, exp: Expression) throws {
         guard context.findVariableInScope(named: name) == nil else {
             throw GRPHCompileError(type: .redeclaration, message: "Invalid redeclaration of variable '\(name)'")
         }
@@ -51,7 +51,7 @@ struct VariableDeclarationInstruction: Instruction {
         self.init(lineNumber: lineNumber, global: global, constant: constant, type: type, name: name, value: value)
     }
     
-    func toString(indent: String) -> String {
+    public func toString(indent: String) -> String {
         "\(line):\(indent)\(global ? "global " : "")\(constant ? "final " : "")\(type.string) \(name) = \(value.string)\n"
     }
 }

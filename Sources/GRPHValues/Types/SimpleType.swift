@@ -7,21 +7,21 @@
 
 import Foundation
 
-enum SimpleType: String, GRPHType, CaseIterable {
+public enum SimpleType: String, GRPHType, CaseIterable {
     
     case num, integer, float, rotation, pos, boolean, string, paint, color, linear, radial, shape, direction, stroke, /*file, image,*/ font, mixed, void, funcref
     
     case Rectangle, Circle, Line, Polygon, /*Image,*/ Text, Path, Group, Background
     
-    var string: String {
+    public var string: String {
         rawValue
     }
     
-    var supertype: GRPHType {
+    public var supertype: GRPHType {
         return extending ?? SimpleType.mixed
     }
     
-    var extending: SimpleType? {
+    public var extending: SimpleType? {
         switch self {
         case .integer, .float:
             return .num
@@ -36,7 +36,7 @@ enum SimpleType: String, GRPHType, CaseIterable {
         }
     }
     
-    var final: Bool {
+    public var final: Bool {
         switch self {
         case .integer, .float, .color, .linear, .radial, .boolean, .string, .rotation, .pos, .direction, .stroke, .font, .void:
             return true
@@ -45,7 +45,7 @@ enum SimpleType: String, GRPHType, CaseIterable {
         }
     }
     
-    func isInstance(of other: GRPHType) -> Bool {
+    public func isInstance(of other: GRPHType) -> Bool {
         if let option = other as? OptionalType {
             return isInstance(of: option.wrapped)
         }
@@ -55,7 +55,7 @@ enum SimpleType: String, GRPHType, CaseIterable {
         return other.isTheMixed || other as? SimpleType == self || (extending?.isInstance(of: other) ?? false)
     }
     
-    var staticConstants: [TypeConstant] {
+    public var staticConstants: [TypeConstant] {
         switch self {
         case .color:
             return [TypeConstant(name: "WHITE", type: self,
@@ -145,7 +145,7 @@ enum SimpleType: String, GRPHType, CaseIterable {
         }
     }
     
-    var fields: [Field] {
+    public var fields: [Field] {
         switch self {
         case .pos:
             return [KeyPathField(name: "x", type: SimpleType.float, keyPath: \Pos.x),
@@ -274,7 +274,7 @@ enum SimpleType: String, GRPHType, CaseIterable {
         }
     }
     
-    var constructor: Constructor? {
+    public var constructor: Constructor? {
         switch self {
         case .mixed, .num, .integer, .float, .boolean, .string, .paint, .shape, .direction, .stroke, .funcref:
             return nil
@@ -314,6 +314,6 @@ enum SimpleType: String, GRPHType, CaseIterable {
     }
 }
 
-extension SimpleType {
+public extension SimpleType {
     static var rootThisType: SimpleType { SimpleType.string }
 }

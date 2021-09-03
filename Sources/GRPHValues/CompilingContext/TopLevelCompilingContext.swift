@@ -8,23 +8,23 @@
 import Foundation
 
 /// This is the only context that doesn't have a parent
-class TopLevelCompilingContext: VariableOwningCompilingContext {
+public class TopLevelCompilingContext: VariableOwningCompilingContext {
     
-    init(compiler: GRPHCompilerProtocol) {
+    public init(compiler: GRPHCompilerProtocol) {
         super.init(compiler: compiler, parent: nil)
         variables.append(contentsOf: Self.defaultVariables)
     }
     
-    override func assertParentNonNil() {
+    public override func assertParentNonNil() {
         
     }
     
-    override func addVariable(_ variable: Variable, global: Bool) {
+    public override func addVariable(_ variable: Variable, global: Bool) {
         variables.append(variable)
     }
 }
 
-extension TopLevelCompilingContext {
+public extension TopLevelCompilingContext {
     static var defaultVariables: [Variable] {
         [
             Variable(name: "this", type: SimpleType.rootThisType, content: "currentDocument", final: true),

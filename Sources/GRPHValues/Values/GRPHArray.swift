@@ -7,17 +7,17 @@
 
 import Foundation
 
-class GRPHArray: StatefulValue {
+public class GRPHArray: StatefulValue {
     
-    var wrapped: [GRPHValue]
-    var content: GRPHType
+    public var wrapped: [GRPHValue]
+    public var content: GRPHType
     
-    init(_ wrapped: [GRPHValue] = [], of content: GRPHType) {
+    public init(_ wrapped: [GRPHValue] = [], of content: GRPHType) {
         self.wrapped = wrapped
         self.content = content
     }
     
-    init?(byCasting value: GRPHValue) {
+    public init?(byCasting value: GRPHValue) {
         if let val = value as? GRPHArray {
             self.wrapped = val.wrapped // Cast will effectively copy ≠ Java
             self.content = val.content
@@ -26,7 +26,7 @@ class GRPHArray: StatefulValue {
         }
     }
     
-    var state: String {
+    public var state: String {
         guard !wrapped.isEmpty else {
             return "{}"
         }
@@ -42,11 +42,11 @@ class GRPHArray: StatefulValue {
         return "\(str.dropLast(2))}"
     }
     
-    var count: Int { wrapped.count }
+    public var count: Int { wrapped.count }
     
-    var type: GRPHType { ArrayType(content: content) }
+    public var type: GRPHType { ArrayType(content: content) }
     
-    func isEqual(to other: GRPHValue) -> Bool {
+    public func isEqual(to other: GRPHValue) -> Bool {
         if let other = other as? GRPHArray,
            other.count == self.count {
             if self === other {
@@ -64,7 +64,7 @@ class GRPHArray: StatefulValue {
 }
 
 extension GRPHArray: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         "<\(content)>\(state)"
     }
 }

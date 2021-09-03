@@ -7,34 +7,39 @@
 
 import Foundation
 
-struct Pos: StatefulValue, Equatable {
-    var x: Float
-    var y: Float
+public struct Pos: StatefulValue, Equatable {
+    public var x: Float
+    public var y: Float
     
-    var state: String {
+    public init(x: Float, y: Float) {
+        self.x = x
+        self.y = y
+    }
+    
+    public var state: String {
         "\(x),\(y)"
     }
     
-    var square: Bool {
+    public var square: Bool {
         x == y
     }
     
-    var type: GRPHType { SimpleType.pos }
+    public var type: GRPHType { SimpleType.pos }
     
-    static func + (lhs: Pos, rhs: Pos) -> Pos {
+    static public func + (lhs: Pos, rhs: Pos) -> Pos {
         Pos(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
     
-    static func - (lhs: Pos, rhs: Pos) -> Pos {
+    static public func - (lhs: Pos, rhs: Pos) -> Pos {
         Pos(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
     
-    static func += (lhs: inout Pos, rhs: Pos) {
+    static public func += (lhs: inout Pos, rhs: Pos) {
         lhs = lhs + rhs
     }
 }
 
-extension Pos {
+public extension Pos {
     init?(byCasting value: GRPHValue) {
         if let value = value as? String {
             let components = value.components(separatedBy: ",")
