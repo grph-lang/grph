@@ -13,6 +13,9 @@ let package = Package(
         .library(
             name: "GRPHValues",
             targets: ["GRPHValues"]),
+        .library(
+            name: "GRPHGenerator",
+            targets: ["GRPHGenerator"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -27,6 +30,9 @@ let package = Package(
         .target(
             name: "GRPHValues",
             dependencies: []),
+        .target(
+            name: "GRPHGenerator",
+            dependencies: ["GRPHLexer", "GRPHValues"]),
         .testTarget(
             name: "GRPHLexerTests",
             dependencies: ["GRPHLexer"]),

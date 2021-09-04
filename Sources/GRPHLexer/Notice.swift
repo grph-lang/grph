@@ -16,6 +16,13 @@ public struct Notice {
     public var source: Source
     
     public var message: String
+    
+    public init(token: Token, severity: Notice.Severity, source: Notice.Source, message: String) {
+        self.token = token
+        self.severity = severity
+        self.source = source
+        self.message = message
+    }
 }
 
 public extension Notice {

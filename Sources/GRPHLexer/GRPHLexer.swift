@@ -45,7 +45,7 @@ public class GRPHLexer {
     public func parseLine(lineNumber: Int, content: String) -> Token {
         self.lineNumber = lineNumber
         self.line = content
-        hierarchy = [Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: content[...], tokenType: .line, children: []), Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: "", tokenType: .indent, children: [])]
+        hierarchy = [Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: content[...], tokenType: .line), Token(lineNumber: lineNumber, lineOffset: content.startIndex, literal: "", tokenType: .indent)]
         var unindented = line[...]
         var level = 0
         while unindented.hasPrefix(indentation) {
@@ -65,18 +65,18 @@ public class GRPHLexer {
                 hierarchy.head.children.append(last)
                 if !maybeHandleClosingBrackets(char: char, index: index) {
                     let resolved = newTokenType(previous: currentTokenType, char: char)
-                    hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: resolved, children: []))
+                    hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: resolved))
                     if resolved == .squareBrackets || resolved == .parentheses || resolved == .curlyBraces {
-                        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
+                        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
                     }
                 }
             case .satisfiesAndTerminates:
                 popHierarchyClosing(index: index)
-                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
+                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
             case .satisfiesAndCloses:
                 popHierarchyClosing(index: index)
             case .satisfiesSubToken(let subtokenType):
-                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: subtokenType, children: []))
+                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: subtokenType))
             case .changeCurrentType(let tokenType):
                 hierarchy.head.tokenType = tokenType
             }
@@ -156,7 +156,7 @@ public class GRPHLexer {
         default:
             return false
         }
-        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: line.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace, children: []))
+        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: line.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
         return true
     }
     
@@ -414,8 +414,8 @@ public class GRPHLexer {
             } else if literal.hasSuffix("=") {
                 token.tokenType = .assignmentCompound
                 let op = literal.dropLast()
-                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator, children: []))
-                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator, children: []))
+                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: op, tokenType: .operator))
+                token.children.append(Token(lineNumber: token.lineNumber, lineOffset: op.endIndex, literal: literal[op.endIndex..<literal.endIndex], tokenType: .assignmentOperator))
             }
         case .numberLiteral:
             if token.literal.hasSuffix("f") || token.literal.hasSuffix("F") {
@@ -443,10 +443,10 @@ public class GRPHLexer {
                 break
             }
             // those numberLiteral will be parsed recursively
-            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<comma], tokenType: .numberLiteral, children: []))
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<comma], tokenType: .numberLiteral))
             let afterComma = token.literal.index(after: comma)
-            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: comma, literal: token.literal[comma..<afterComma], tokenType: .comma, children: []))
-            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: afterComma, literal: token.literal[afterComma..<token.literal.endIndex], tokenType: .numberLiteral, children: []))
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: comma, literal: token.literal[comma..<afterComma], tokenType: .comma))
+            token.children.append(Token(lineNumber: token.lineNumber, lineOffset: afterComma, literal: token.literal[afterComma..<token.literal.endIndex], tokenType: .numberLiteral))
         case .stringLiteral, .fileLiteral:
             var str = ""
             var i = token.literal.index(after: token.literal.startIndex)
@@ -504,7 +504,7 @@ public class GRPHLexer {
                     i += 1
                 }
                 let squash = token.children[index..<i]
-                let result = Token(lineNumber: token.lineNumber, lineOffset: squash.first!.lineOffset, literal: token.literal[squash.first!.lineOffset..<squash.last!.literal.endIndex], tokenType: .keyword, children: [])
+                let result = Token(lineNumber: token.lineNumber, lineOffset: squash.first!.lineOffset, literal: token.literal[squash.first!.lineOffset..<squash.last!.literal.endIndex], tokenType: .keyword)
                 squashingResult.append(result)
             } else {
                 squashingResult.append(token.children[i])

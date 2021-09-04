@@ -12,4 +12,9 @@ public struct TypeAlias: Importable {
     public let type: GRPHType
     
     public var exportedTypeAliases: [TypeAlias] { [self] }
+    
+    public init(name: String, type: GRPHType) {
+        self.name = name
+        self.type = type
+    }
 }

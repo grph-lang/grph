@@ -24,6 +24,15 @@ public struct Token {
     public var children: [Token] = []
     
     public var data: AssociatedData = .none
+    
+    public init(lineNumber: Int, lineOffset: String.Index, literal: Substring, tokenType: TokenType) {
+        self.lineNumber = lineNumber
+        self.lineOffset = lineOffset
+        self.literal = literal
+        self.tokenType = tokenType
+        self.children = []
+        self.data = .none
+    }
 }
 
 extension Token {
@@ -35,7 +44,7 @@ extension Token {
     
     /// The children, removing all whitespace characters in immediate children
     public var strippedChildren: [Token] {
-        children.filter { $0.tokenType != .ignoreableWhiteSpace }
+        children.stripped
     }
     
     /// Removes absolutely all whitespaces in the token. Should only be used for cleaning debug data, as whitespaces are necessary for splitting arguments.
@@ -45,6 +54,13 @@ extension Token {
             copy.stripWhitespaces()
             return copy
         }
+    }
+}
+
+extension Array where Element == Token {
+    /// Removes all `ignoreableWhiteSpace` directly in the array
+    public var stripped: Self {
+        filter { $0.tokenType != .ignoreableWhiteSpace }
     }
 }
 

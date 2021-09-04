@@ -24,6 +24,11 @@ public struct GRPHCompileError: Error {
     public var type: CompileErrorType
     public var message: String
     
+    public init(type: GRPHCompileError.CompileErrorType, message: String) {
+        self.type = type
+        self.message = message
+    }
+    
     public enum CompileErrorType: String {
         case parse = "Parse"
         case typeMismatch = "Type"
@@ -38,6 +43,11 @@ public struct GRPHRuntimeError: Error {
     public var type: RuntimeExceptionType
     public var message: String
     public var stack: [String] = []
+    
+    public init(type: GRPHRuntimeError.RuntimeExceptionType, message: String) {
+        self.type = type
+        self.message = message
+    }
     
     public enum RuntimeExceptionType: String {
         case typeMismatch = "InvalidType"
