@@ -45,7 +45,8 @@ class GRPHGenerator: GRPHCompilerProtocol {
             
             do {
                 try resolveInstruction(children: trimmed)
-            } catch is GRPHHandledCompileError {
+            } catch let error as DiagnosticCompileError {
+                diagnostics.append(error.notice)
                 context = nil
                 return false
             } catch let error as GRPHCompileError {
@@ -85,38 +86,31 @@ class GRPHGenerator: GRPHCompilerProtocol {
                     // shebang
                     return nil // normal
                 } else {
-                    diagnostics.append(Notice(token: cmd, severity: .error, source: .generator, message: "A command name can't be empty"))
-                    diagnostics.append(Notice(token: cmd, severity: .hint, source: .generator, message: "Did you mean to comment this line? Use '//'"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "A command name can't be empty", hint: "Did you mean to comment this line? Use '//'"))
                 }
             case "#import", "#using":
                 let ns: NameSpace
                 let member: Token
                 if tokens.count == 4 || tokens.count >= 6 { // #import ns>member || #import ns>type.method
                     guard tokens[2].literal == ">" else {
-                        diagnostics.append(Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected `>` in namespaced member"))
-                        throw GRPHHandledCompileError()
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected `>` in namespaced member"))
                     }
                     guard let namespace = NameSpaces.namespace(named: String(tokens[1].literal)) else {
-                        diagnostics.append(Notice(token: tokens[2], severity: .error, source: .generator, message: "Namespace `\(tokens[1].literal)` was not found"))
-                        throw GRPHHandledCompileError()
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Namespace `\(tokens[1].literal)` was not found"))
                     }
                     ns = namespace
                     if tokens.count == 4 {
                         member = tokens[3]
                     } else { // method import
                         guard tokens[tokens.count - 2].tokenType == .dot else {
-                            diagnostics.append(Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Expected a dot in `#import namespaceName>typeIdentifier.methodName` syntax"))
-                            throw GRPHHandledCompileError()
+                            throw DiagnosticCompileError(notice: Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Expected a dot in `#import namespaceName>typeIdentifier.methodName` syntax"))
                         }
                         let literalType = tokens[3].literal.base[(tokens[3].lineOffset)..<(tokens[tokens.count - 3].literal.endIndex)]
                         guard let type = GRPHTypes.parse(context: context, literal: String(literalType)) else {
-                            diagnostics.append(Notice(token: Token(lineNumber: tokens[3].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not parse type `\(literalType)`"))
-                            throw GRPHHandledCompileError()
+                            throw DiagnosticCompileError(notice: Notice(token: Token(lineNumber: tokens[3].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not parse type `\(literalType)`"))
                         }
                         guard let m = Method(imports: [], namespace: ns, name: String(tokens[tokens.count - 2].literal), inType: type) else {
-                            diagnostics.append(Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Could not find method '\(tokens[tokens.count - 2].literal)' in type '\(type)'"))
-                            throw GRPHHandledCompileError()
+                            throw DiagnosticCompileError(notice: Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Could not find method '\(tokens[tokens.count - 2].literal)' in type '\(type)'"))
                         }
                         imports.append(m)
                         return nil
@@ -125,16 +119,14 @@ class GRPHGenerator: GRPHCompilerProtocol {
                     ns = NameSpaces.none
                     member = tokens[1]
                 } else {
-                    diagnostics.append(Notice(token: cmd, severity: .error, source: .generator, message: "`#import` needs an argument: What namespace do you want to import?"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "`#import` needs an argument: What namespace do you want to import?"))
                 }
                 let memberLiteral = String(member.literal)
                 if ns.isEqual(to: NameSpaces.none) {
                     if let ns = NameSpaces.namespace(named: memberLiteral) {
                         imports.append(ns)
                     } else {
-                        diagnostics.append(Notice(token: member, severity: .error, source: .generator, message: "Namespace `\(memberLiteral)` was not found"))
-                        throw GRPHHandledCompileError()
+                        throw DiagnosticCompileError(notice: Notice(token: member, severity: .error, source: .generator, message: "Namespace `\(memberLiteral)` was not found"))
                     }
                 } else if let f = Function(imports: [], namespace: ns, name: memberLiteral) {
                     imports.append(f)
@@ -143,46 +135,38 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 } else if let t = ns.exportedTypeAliases.first(where: { $0.name == memberLiteral }) {
                     imports.append(t)
                 } else {
-                    diagnostics.append(Notice(token: member, severity: .error, source: .generator, message: "Could not find member '\(memberLiteral)' in namespace '\(ns.name)'"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: member, severity: .error, source: .generator, message: "Could not find member '\(memberLiteral)' in namespace '\(ns.name)'"))
                 }
                 return nil
             case "#typealias":
                 guard tokens.count >= 3 else {
-                    diagnostics.append(Notice(token: cmd, severity: .error, source: .generator, message: "`#typealias` needs two arguments: #typealias newname existingType"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "`#typealias` needs two arguments: #typealias newname existingType"))
                 }
                 let literalType = tokens[2].literal.base[(tokens[2].lineOffset)..<(tokens[tokens.count - 1].literal.endIndex)]
                 guard let type = GRPHTypes.parse(context: context, literal: String(literalType)) else {
-                    diagnostics.append(Notice(token: Token(lineNumber: tokens[2].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not find type `\(literalType)`"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: Token(lineNumber: tokens[2].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not find type `\(literalType)`"))
                 }
                 let newname = String(tokens[1].literal)
                 guard GRPHTypes.parse(context: context, literal: newname) == nil else {
-                    diagnostics.append(Notice(token: tokens[1], severity: .error, source: .generator, message: "Cannot override existing type `\(newname)` with a typealias"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Cannot override existing type `\(newname)` with a typealias"))
                 }
                 switch newname {
                 case "file", "image", "Image", "auto",
                      "final", "global", "static", "public", "private", "protected",
                      "dict", "set", "tuple":
-                    diagnostics.append(Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is reserved and can't be used as a typealias name"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is reserved and can't be used as a typealias name"))
                 case VariableDeclarationInstruction.varNameRequirement:
                     break
                 default:
-                    diagnostics.append(Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is not a valid type name"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is not a valid type name"))
                 }
                 if newname.hasSuffix("Error") || newname.hasSuffix("Exception") {
-                    diagnostics.append(Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is reserved and can't be used as a typealias name"))
-                    throw GRPHHandledCompileError()
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is reserved and can't be used as a typealias name"))
                 }
                 imports.append(TypeAlias(name: newname, type: type))
                 return nil
             default:
-                diagnostics.append(Notice(token: cmd, severity: .error, source: .generator, message: "Unknown command '\(cmd.literal)'"))
-                throw GRPHHandledCompileError()
+                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Unknown command '\(cmd.literal)'"))
             }
         }
         
@@ -288,6 +272,6 @@ class GRPHGenerator: GRPHCompilerProtocol {
     }
 }
 
-struct GRPHHandledCompileError: Error {
-    
+struct DiagnosticCompileError: Error {
+    var notice: Notice
 }

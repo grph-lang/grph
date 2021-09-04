@@ -17,11 +17,14 @@ public struct Notice {
     
     public var message: String
     
-    public init(token: Token, severity: Notice.Severity, source: Notice.Source, message: String) {
+    public var hint: String?
+    
+    public init(token: Token, severity: Notice.Severity, source: Notice.Source, message: String, hint: String? = nil) {
         self.token = token
         self.severity = severity
         self.source = source
         self.message = message
+        self.hint = hint
     }
 }
 
