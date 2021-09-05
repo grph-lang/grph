@@ -211,7 +211,7 @@ public class GRPHLexer {
         case .rotationLiteral:
             return .newToken
         case .posLiteral:
-            return char.isASCII && (char.isNumber || char == ".") ? .satisfies : .newToken
+            return char.isASCII && (char.isNumber || char == "." || char == "-") ? .satisfies : .newToken
         case .stringLiteral:
             if char == "\\" {
                 return .satisfiesSubToken(.stringLiteralEscapeSequence)
@@ -414,7 +414,7 @@ public class GRPHLexer {
             }
         case .operator: // detect compounds s.t. `+=`
             let literal = token.literal
-            if literal == "==" || literal == "!=" {
+            if literal == "==" || literal == "!=" || literal == ">=" || literal == "<=" {
                 break
             } else if literal.hasSuffix("=") {
                 token.tokenType = .assignmentCompound
@@ -508,15 +508,20 @@ public class GRPHLexer {
             if token.children[i].literal == "as" {
                 let index = i
                 i += 1
-                if token.children[i].tokenType == .operator && token.children[i].literal == "?" {
+                if token.children.count > i && token.children[i].tokenType == .operator && token.children[i].literal == "?" {
                     i += 1
                 }
-                if token.children[i].tokenType == .operator && token.children[i].literal == "!" {
+                if token.children.count > i && token.children[i].tokenType == .operator && token.children[i].literal == "!" {
                     i += 1
                 }
-                let squash = token.children[index..<i]
-                let result = Token(lineNumber: token.lineNumber, lineOffset: squash.first!.lineOffset, literal: token.literal[squash.first!.lineOffset..<squash.last!.literal.endIndex], tokenType: .keyword)
-                squashingResult.append(result)
+                squashingResult.append(Token(squash: token.children[index..<i], type: .keyword))
+            } else if i + 1 < token.children.count,
+                      token.children[i].literal == "-",
+                      case let next = token.children[i + 1].tokenType,
+                      next == .numberLiteral || next == .posLiteral || next == .rotationLiteral {
+                // `-` signs are part of literals
+                squashingResult.append(Token(squash: token.children[i...(i+1)], type: next))
+                i += 2
             } else {
                 squashingResult.append(token.children[i])
                 i += 1

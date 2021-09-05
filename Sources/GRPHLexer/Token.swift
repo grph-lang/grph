@@ -57,9 +57,13 @@ extension Token {
     }
     
     public init(compound tokens: [Token], type: TokenType) {
+        self.init(squash: tokens[...], type: type)
+        children = tokens
+    }
+    
+    public init(squash tokens: ArraySlice<Token>, type: TokenType) {
         let literal = tokens.first!.literal.base[(tokens.first!.lineOffset)..<(tokens.last!.literal.endIndex)]
         self.init(lineNumber: tokens.first!.lineNumber, lineOffset: literal.startIndex, literal: literal, tokenType: type)
-        children = tokens
     }
 }
 
