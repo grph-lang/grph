@@ -12,6 +12,12 @@ public struct CastExpression: Expression {
     public let cast: CastType
     public let to: GRPHType
     
+    public init(from: Expression, cast: CastType, to: GRPHType) {
+        self.from = from
+        self.cast = cast
+        self.to = to
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         if case .typeCheck = cast {
             return SimpleType.boolean

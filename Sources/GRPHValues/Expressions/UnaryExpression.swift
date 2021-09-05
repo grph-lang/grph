@@ -55,6 +55,10 @@ public enum UnaryOperator: String {
 public struct UnboxExpression: Expression {
     public let exp: Expression
     
+    public init(exp: Expression) {
+        self.exp = exp
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         guard let type = try exp.getType(context: context, infer: infer.optional) as? OptionalType else {
             throw GRPHCompileError(type: .typeMismatch, message: "Cannot unbox non optional")

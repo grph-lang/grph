@@ -38,6 +38,10 @@ public struct ConstantExpression: Expression {
         self.value = rot
     }
     
+    public init(string: String) {
+        self.value = string
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         value.type // The value is always known at compile time, so this is fine
     }

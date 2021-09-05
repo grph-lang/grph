@@ -221,17 +221,16 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 } else {
                     preconditionFailure("invalid posLiteral token")
                 }
+            case .stringLiteral:
+                if case .string(let str) = token.data {
+                    return ConstantExpression(string: str)
+                } else {
+                    preconditionFailure("invalid stringLiteral token")
+                }
             case .parentheses:
                 if let infer = infer {
                     let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
-                    let content: GRPHType?
-                    if let params = type.constructor?.parameters,
-                       params.count == 1,
-                       let param = params.first {
-                        content = param.type
-                    } else {
-                        content = nil
-                    }
+                    let content = inferParametrableContent(type.constructor)
                     return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: content)})
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
@@ -299,22 +298,155 @@ class GRPHGenerator: GRPHCompilerProtocol {
             break
         }
         
-        // exp op exp (by order of operation, then right to left: 3/2/1 = [3/2]/1)
-        // exp is/as(?)(!) type (right to left: [plop as float] as int)
+        if let exp = try findCast(in: tokens, infer: infer) {
+            return exp
+        }
         
-        // exp!
-        // uop exp
+        if tokens.last!.tokenType == .parentheses { // type(...)
+            let compound = Token(compound: Array(tokens.dropLast()), type: .type)
+            if compound.literal == "auto" {
+                if let infer = infer {
+                    let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
+                    let content = inferParametrableContent(type.constructor)
+                    return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: content)})
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: compound, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
+                }
+            } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
+                let content = inferParametrableContent(type.constructor)
+                return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: content)})
+            } else if compound.validTypeIdentifier {
+                diagnostics.append(Notice(token: compound, severity: .hint, source: .generator, message: "Couldn't parse '\(compound.literal)' as a type for constructor expression"))
+            }
+        }
+    arrayLiteralParsing:
+        if tokens.last!.tokenType == .curlyBraces { // type{...}
+            let compound = Token(compound: Array(tokens.dropLast()), type: .type)
+            let wrapped: GRPHType
+            if compound.literal == "auto" {
+                if let infer = infer as? ArrayType {
+                    wrapped = infer.content
+                } else {
+                    diagnostics.append(Notice(token: compound, severity: .warning, source: .generator, message: "Array literal type couldn't be inferred, assuming floats"))
+                    wrapped = SimpleType.float
+                }
+            } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
+                wrapped = type
+            } else if compound.validTypeIdentifier {
+                diagnostics.append(Notice(token: compound, severity: .hint, source: .generator, message: "Couldn't parse '\(compound.literal)' as a type for array literal"))
+                break arrayLiteralParsing
+            } else {
+                break arrayLiteralParsing
+            }
+            
+            diagnostics.append(Notice(token: tokens.last!, severity: .warning, source: .generator, message: "Array literals are deprecated", hint: "Use constructors instead"))
+            
+            return try ArrayLiteralExpression(wrapped: wrapped, values: tokens.last!.children.split(on: .comma).map { tokens in
+                let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
+                let type = try exp.getType(context: context, infer: wrapped)
+                guard type.isInstance(of: wrapped) else {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Value of type '\(type)' couldn't be converted to \(wrapped)"))
+                }
+                return exp
+            })
+        }
         
-        // exp.method[]
-        // exp.ns>method[]
+        // binary operators (by precedence)
+        if let exp = try findBinary(within: ["&&", "||"], in: tokens)
+                      ?? findBinary(within: [">=", "<=", ">", "<", "≥", "≤"], in: tokens)
+                      ?? findBinary(within: ["&", "|", "^", "<<", ">>", ">>>"], in: tokens)
+                      ?? findBinary(within: ["==", "!=", "≠"], in: tokens)
+                      ?? findBinary(within: ["+", "-"], in: tokens)
+                      ?? findBinary(within: ["*", "/", "%"], in: tokens) {
+            return exp
+        }
+        
+        // unary operators
+        do {
+            let op = tokens.first!
+            if op.tokenType == .operator {
+                switch op.literal {
+                case "~", "-", "!":
+                    return try UnaryExpression(context: context, op: String(op.literal), exp: try resolveExpression(tokens: Array(tokens.dropFirst()), infer: infer))
+                default:
+                    break
+                }
+            }
+        }
+        if tokens.last?.literal == "!" {
+            return try UnboxExpression(exp: resolveExpression(tokens: Array(tokens.dropLast()), infer: infer?.optional))
+        }
+        
+        // exp.method[...]
+        // exp.ns>method[...]
         // exp.fieldName
         // type.FIELD_NAME, [type].FIELD_NAME
         
-        // type(...)
-        // type{...}
-        
+        // tests:
+        // funcref<string><string+string>("static")
+        // pos(4 1) + pos(1 2)
+        // 1 + 2 as int == [1 + 2] as integer
+        // -maybeInt! == -[maybeInt!]
         
         throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
+    }
+    
+    func findBinary(within ops: [String], in tokens: [Token]) throws -> BinaryExpression? {
+        try findBinary(within: ops, in: tokens) { lhs, op, rhs in
+            return try BinaryExpression(
+                context: context,
+                left: resolveExpression(tokens: Array(lhs), infer: nil),
+                op: String(op.literal),
+                right: resolveExpression(tokens: Array(rhs), infer: nil)
+            )
+        }
+    }
+    
+    func findCast(in tokens: [Token], infer: GRPHType?) throws -> CastExpression? {
+        try findBinary(within: ["is", "as", "as?", "as!", "as?!"], in: tokens) { lhs, op, rhs in
+            let compound = Token(compound: Array(rhs), type: .type)
+            let casting: GRPHType
+            if compound.literal == "auto" {
+                if let infer = infer {
+                    casting = infer
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: compound, severity: .error, source: .generator, message: "Could not infer cast type automatically"))
+                }
+            } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
+                casting = type
+            } else if compound.validTypeIdentifier {
+                // we aren't sure if its valid or an error yet. add it as a hint
+                diagnostics.append(Notice(token: compound, severity: .hint, source: .generator, message: "Couldn't parse '\(compound.literal)' as a type for cast expression"))
+                return nil // maybe invalid
+            } else {
+                return nil // invalid
+            }
+            return try CastExpression(from: resolveExpression(tokens: Array(lhs), infer: casting), cast: CastType(String(op.literal))!, to: casting)
+        }
+    }
+    
+    func findBinary<T: Expression>(within ops: [String], in tokens: [Token], resolver: (ArraySlice<Token>, Token, ArraySlice<Token>) throws -> T?) rethrows -> T? {
+        for (index, token) in tokens.enumerated().reversed() {
+            if ops.contains(where: { $0 == token.literal }) {
+                let lhs = tokens[..<index]
+                let rhs = tokens[(index + 1)...]
+                if !lhs.isEmpty && !rhs.isEmpty,
+                   let result = try resolver(lhs, token, rhs) {
+                    return result
+                }
+            }
+        }
+        return nil
+    }
+    
+    func inferParametrableContent(_ p: Parametrable?) -> GRPHType? {
+        if let params = p?.parameters,
+           params.count == 1,
+           let param = params.first {
+            return param.type
+        } else {
+            return nil
+        }
     }
     
     func trimUselessStuff(children: [Token]) -> [Token] {

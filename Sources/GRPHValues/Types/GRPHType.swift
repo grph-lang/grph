@@ -70,7 +70,6 @@ public func != (lhs: GRPHType, rhs: GRPHType) -> Bool {
 }
 
 public struct GRPHTypes {
-    static let funcrefPattern = try! NSRegularExpression(pattern: "funcref<>")
     static let plus = try! NSRegularExpression(pattern: "\\+")
     
     private init() {}

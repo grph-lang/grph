@@ -69,8 +69,6 @@ public enum TokenType {
     case methodCallOperator
     /// The `,` token
     case comma
-    /// The `>` token when it is used as a namespace separator
-    case namespaceSeparator
     /// The `.` token
     case dot
     /// The single `/` token

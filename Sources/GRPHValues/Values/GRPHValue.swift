@@ -97,7 +97,7 @@ extension String: StatefulValue {
     public var type: GRPHType { SimpleType.string }
     
     public var state: String {
-        "\"\(self.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"").replacingOccurrences(of: "\t", with: "\\t").replacingOccurrences(of: "\n", with: "\\n"))\""
+        debugDescription
     }
     
     var asLiteral: String {
