@@ -11,6 +11,11 @@ public struct ArrayLiteralExpression: Expression {
     public let wrapped: GRPHType
     public let values: [Expression]
     
+    public init(wrapped: GRPHType, values: [Expression]) {
+        self.wrapped = wrapped
+        self.values = values
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         ArrayType(content: wrapped)
     }

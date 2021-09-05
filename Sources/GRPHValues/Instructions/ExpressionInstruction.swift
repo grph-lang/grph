@@ -11,6 +11,11 @@ public struct ExpressionInstruction: Instruction {
     public let lineNumber: Int
     public let expression: Expression
     
+    public init(lineNumber: Int, expression: Expression) {
+        self.lineNumber = lineNumber
+        self.expression = expression
+    }
+    
     public func toString(indent: String) -> String {
         "\(line):\(indent)\(expression)\n"
     }

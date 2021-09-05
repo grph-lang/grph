@@ -44,6 +44,8 @@ public enum TokenType {
     case nullLiteral
     /// An integer, a float, or a rotation
     case numberLiteral
+    /// A rotation
+    case rotationLiteral
     /// A position
     case posLiteral
     /// A double-quoted string. Supports children of type `.stringLiteralEscapeSequence`

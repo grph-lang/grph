@@ -11,6 +11,11 @@ public struct LambdaExpression: Expression {
     public let lambda: Lambda
     public let capturedVarNames: [String]
     
+    public init(lambda: Lambda, capturedVarNames: [String]) {
+        self.lambda = lambda
+        self.capturedVarNames = capturedVarNames
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         lambda.currentType
     }

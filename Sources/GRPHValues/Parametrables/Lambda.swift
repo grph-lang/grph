@@ -8,9 +8,13 @@
 import Foundation
 
 public struct Lambda: Parametrable {
-    
     public var currentType: FuncRefType
     public var instruction: Instruction // will always be an ExpressionInstruction if returnType ≠ void
+    
+    public init(currentType: FuncRefType, instruction: Instruction) {
+        self.currentType = currentType
+        self.instruction = instruction
+    }
     
     public var parameters: [Parameter] { currentType.parameters }
     

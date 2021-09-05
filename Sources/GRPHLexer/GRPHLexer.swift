@@ -198,13 +198,18 @@ public class GRPHLexer {
         case .commandName:
             return char.isASCII && char.isLetter ? .satisfies : .newToken
         case .numberLiteral:
-            if char == "f" || char == "F" || char == "º" || char == "°" {
+            if char == "f" || char == "F" {
                 return .satisfiesAndTerminates
+            }
+            if char == "º" || char == "°" {
+                return .changeCurrentType(.rotationLiteral)
             }
             if char == "," {
                 return .changeCurrentType(.posLiteral)
             }
             return char.isASCII && (char.isNumber || char == ".") ? .satisfies : .newToken
+        case .rotationLiteral:
+            return .newToken
         case .posLiteral:
             return char.isASCII && (char.isNumber || char == ".") ? .satisfies : .newToken
         case .stringLiteral:
@@ -437,6 +442,12 @@ public class GRPHLexer {
                 }
                 token.data = .integer(parsed)
             }
+        case .rotationLiteral:
+            guard let parsed = Int(token.literal.dropLast()) else {
+                diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid rotation literal: expected an integer"))
+                break
+            }
+            token.data = .integer(parsed)
         case .posLiteral:
             guard let comma = token.literal.firstIndex(of: ",") else {
                 diagnostics.append(Notice(token: token, severity: .error, source: .tokenDetector, message: "Invalid pos literal"))

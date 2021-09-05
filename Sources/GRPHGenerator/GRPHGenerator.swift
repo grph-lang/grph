@@ -174,6 +174,110 @@ class GRPHGenerator: GRPHCompilerProtocol {
         throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
     }
     
+    func resolveExpression(tokens _tokens: [Token], infer: GRPHType?) throws -> Expression {
+        // whitespaces are never useful in individual expressions
+        // they are in instructions for method calls
+        // otherwise, they always will be inside .squareBrackets or .parentheses
+        let tokens = _tokens.stripped
+        if tokens.count == 0 {
+            // this shouldn't happen. the message is vague, and we have no token to blame
+            throw GRPHCompileError(type: .invalidArguments, message: "Empty expression found")
+        } else if tokens.count == 1 {
+            let token = tokens[0]
+            switch token.tokenType {
+            case .squareBrackets:
+                return try resolveExpression(tokens: token.children, infer: infer)
+            case .enumCase:
+                let raw = String(token.literal)
+                if let direction = Direction(rawValue: raw) {
+                    return ConstantExpression(direction: direction)
+                } else if let stroke = Stroke(rawValue: raw) {
+                    return ConstantExpression(stroke: stroke)
+                } else {
+                    preconditionFailure(".enumCase token type can only be direction or stroke")
+                }
+            case .booleanLiteral:
+                return ConstantExpression(boolean: token.literal == "true")
+            case .nullLiteral:
+                return NullExpression()
+            case .numberLiteral:
+                switch token.data {
+                case .integer(let int):
+                    return ConstantExpression(int: int)
+                case .float(let float):
+                    return ConstantExpression(float: float)
+                default:
+                    preconditionFailure("invalid numberLiteral token")
+                }
+            case .rotationLiteral:
+                if case .integer(let int) = token.data {
+                    return ConstantExpression(rot: Rotation(value: int))
+                } else {
+                    preconditionFailure("invalid rotationLiteral token")
+                }
+            case .posLiteral:
+                if case .float(let x) = token.children[0].data,
+                   case .float(let y) = token.children[2].data {
+                    return ConstantExpression(pos: Pos(x: x, y: y))
+                } else {
+                    preconditionFailure("invalid posLiteral token")
+                }
+            case .parentheses:
+                if let infer = infer {
+                    let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
+                    let content: GRPHType?
+                    if let params = type.constructor?.parameters,
+                       params.count == 1,
+                       let param = params.first {
+                        content = param.type
+                    } else {
+                        content = nil
+                    }
+                    return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: content)})
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
+                }
+            case .curlyBraces:
+                diagnostics.append(Notice(token: token, severity: .warning, source: .generator, message: "Array literals are deprecated", hint: "Use constructors instead"))
+                let wrapped: GRPHType
+                if let infer = infer as? ArrayType {
+                    wrapped = infer.content
+                } else {
+                    diagnostics.append(Notice(token: token, severity: .warning, source: .generator, message: "Array literal type couldn't be inferred, assuming floats"))
+                    wrapped = SimpleType.float
+                }
+                return try ArrayLiteralExpression(wrapped: wrapped, values: token.children.split(on: .comma).map { tokens in
+                    let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
+                    let type = try exp.getType(context: context, infer: wrapped)
+                    guard type.isInstance(of: wrapped) else {
+                        throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Value of type '\(type)' couldn't be converted to \(wrapped)"))
+                    }
+                    return exp
+                })
+            case .identifier:
+                // RESOLVE semantic token: variable
+                return VariableExpression(name: String(token.literal))
+            default:
+                break
+            }
+        } else if tokens.count == 2 {
+            if tokens[0].tokenType == .lambdaHatOperator {
+                if tokens[1].tokenType == .squareBrackets { // ^[...]
+                    return try LambdaExpression(context: context, token: tokens[1], infer: infer)
+                } else if tokens[1].tokenType == .identifier {
+                    // RESOLVE semantic token: function
+                    let name = String(tokens[1].literal)
+                    guard let function = Function(imports: context.imports, namespace: NameSpaces.none, name: name) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
+                    }
+                    return try FunctionReferenceExpression(function: function, infer: infer)
+                }
+            }
+        }
+        
+        throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
+    }
+    
     func trimUselessStuff(children: [Token]) -> [Token] {
         var slice = children[...]
         
@@ -274,4 +378,10 @@ class GRPHGenerator: GRPHCompilerProtocol {
 
 struct DiagnosticCompileError: Error {
     var notice: Notice
+}
+
+extension CompilingContext {
+    var generator: GRPHGenerator {
+        compiler as! GRPHGenerator
+    }
 }

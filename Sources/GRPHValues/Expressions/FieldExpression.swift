@@ -11,6 +11,11 @@ public struct FieldExpression: Expression {
     public let on: Expression
     public let field: Field
     
+    public init(on: Expression, field: Field) {
+        self.on = on
+        self.field = field
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         field.type
     }
@@ -34,6 +39,11 @@ public struct ConstantPropertyExpression: Expression {
     public let property: TypeConstant
     public let inType: GRPHType
     
+    public init(property: TypeConstant, inType: GRPHType) {
+        self.property = property
+        self.inType = inType
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         property.type
     }
@@ -50,6 +60,10 @@ public struct ConstantPropertyExpression: Expression {
 public struct ValueTypeExpression: Expression {
     public let on: Expression
     
+    public init(on: Expression) {
+        self.on = on
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         SimpleType.string
     }
@@ -63,6 +77,10 @@ public struct ValueTypeExpression: Expression {
 
 public struct TypeValueExpression: Expression {
     public let type: GRPHType
+    
+    public init(type: GRPHType) {
+        self.type = type
+    }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         SimpleType.string

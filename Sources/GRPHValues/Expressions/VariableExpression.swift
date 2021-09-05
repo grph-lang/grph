@@ -10,6 +10,10 @@ import Foundation
 public struct VariableExpression: Expression {
     public let name: String
     
+    public init(name: String) {
+        self.name = name
+    }
+    
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
         if let v = context.findVariable(named: name) {
             return v.type
