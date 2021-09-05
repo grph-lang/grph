@@ -60,8 +60,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 context = nil
                 return false
             } catch {
-                diagnostics.append(Notice(token: line, severity: .error, source: .generator, message: "An internal error occured while parsing this line: \(type(of: error))"))
-                diagnostics.append(Notice(token: line, severity: .hint, source: .generator, message: error.localizedDescription))
+                diagnostics.append(Notice(token: line, severity: .error, source: .generator, message: "An internal error occured while parsing this line: \(type(of: error))", hint: error.localizedDescription))
                 print("NativeError; line \(lineNumber + 1)")
                 print(error.localizedDescription)
                 context = nil
@@ -105,9 +104,9 @@ class GRPHGenerator: GRPHCompilerProtocol {
                         guard tokens[tokens.count - 2].tokenType == .dot else {
                             throw DiagnosticCompileError(notice: Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Expected a dot in `#import namespaceName>typeIdentifier.methodName` syntax"))
                         }
-                        let literalType = tokens[3].literal.base[(tokens[3].lineOffset)..<(tokens[tokens.count - 3].literal.endIndex)]
-                        guard let type = GRPHTypes.parse(context: context, literal: String(literalType)) else {
-                            throw DiagnosticCompileError(notice: Notice(token: Token(lineNumber: tokens[3].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not parse type `\(literalType)`"))
+                        let typeToken = Token(compound: Array(tokens[3...(tokens.count - 3)]), type: .type)
+                        guard let type = GRPHTypes.parse(context: context, literal: String(typeToken.literal)) else {
+                            throw DiagnosticCompileError(notice: Notice(token: typeToken, severity: .error, source: .generator, message: "Could not parse type `\(typeToken.literal)`"))
                         }
                         guard let m = Method(imports: [], namespace: ns, name: String(tokens[tokens.count - 2].literal), inType: type) else {
                             throw DiagnosticCompileError(notice: Notice(token: tokens[tokens.count - 2], severity: .error, source: .generator, message: "Could not find method '\(tokens[tokens.count - 2].literal)' in type '\(type)'"))
@@ -142,9 +141,9 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 guard tokens.count >= 3 else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "`#typealias` needs two arguments: #typealias newname existingType"))
                 }
-                let literalType = tokens[2].literal.base[(tokens[2].lineOffset)..<(tokens[tokens.count - 1].literal.endIndex)]
-                guard let type = GRPHTypes.parse(context: context, literal: String(literalType)) else {
-                    throw DiagnosticCompileError(notice: Notice(token: Token(lineNumber: tokens[2].lineNumber, lineOffset: literalType.startIndex, literal: literalType, tokenType: .type), severity: .error, source: .generator, message: "Could not find type `\(literalType)`"))
+                let typeToken = Token(compound: Array(tokens[2...(tokens.count - 1)]), type: .type)
+                guard let type = GRPHTypes.parse(context: context, literal: String(typeToken.literal)) else {
+                    throw DiagnosticCompileError(notice: Notice(token: typeToken, severity: .error, source: .generator, message: "Could not find type `\(typeToken.literal)`"))
                 }
                 let newname = String(tokens[1].literal)
                 guard GRPHTypes.parse(context: context, literal: newname) == nil else {
@@ -300,8 +299,8 @@ class GRPHGenerator: GRPHCompilerProtocol {
             break
         }
         
-        // exp op exp
-        // exp is/as(?)(!) type
+        // exp op exp (by order of operation, then right to left: 3/2/1 = [3/2]/1)
+        // exp is/as(?)(!) type (right to left: [plop as float] as int)
         
         // exp!
         // uop exp
@@ -344,8 +343,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
             return
         }
         guard amount > 0 else {
-            diagnostics.append(Notice(token: lines[lineNumber].children[0], severity: .warning, source: .generator, message: "Unexpected indent, \(blockCount) indents or less were expected, but \(tabs) were found"))
-            diagnostics.append(Notice(token: lines[lineNumber].children[0], severity: .hint, source: .generator, message: "You can use `#compiler indent n*spaces` to change the amount of indentation to use"))
+            diagnostics.append(Notice(token: lines[lineNumber].children[0], severity: .warning, source: .generator, message: "Unexpected indent, \(blockCount) indents or less were expected, but \(tabs) were found", hint: "You can use `#compiler indent n*spaces` to change the amount of indentation to use"))
             return
         }
         for _ in 0..<amount {
