@@ -260,20 +260,60 @@ class GRPHGenerator: GRPHCompilerProtocol {
             default:
                 break
             }
-        } else if tokens.count == 2 {
-            if tokens[0].tokenType == .lambdaHatOperator {
-                if tokens[1].tokenType == .squareBrackets { // ^[...]
-                    return try LambdaExpression(context: context, token: tokens[1], infer: infer)
-                } else if tokens[1].tokenType == .identifier {
-                    // RESOLVE semantic token: function
-                    let name = String(tokens[1].literal)
-                    guard let function = Function(imports: context.imports, namespace: NameSpaces.none, name: name) else {
-                        throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
-                    }
-                    return try FunctionReferenceExpression(function: function, infer: infer)
-                }
-            }
         }
+        switch tokens {
+        case TokenMatcher(types: .lambdaHatOperator, .squareBrackets): // ^[...]
+            return try LambdaExpression(context: context, token: tokens[1], infer: infer)
+        case TokenMatcher(types: .lambdaHatOperator, .identifier): // ^funcName
+            // RESOLVE semantic token: function
+            let name = String(tokens[1].literal)
+            guard let function = Function(imports: context.imports, namespace: NameSpaces.none, name: name) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
+            }
+            return try FunctionReferenceExpression(function: function, infer: infer)
+        case TokenMatcher(types: .identifier, .squareBrackets): // funcName[...]
+            // RESOLVE semantic token: function
+            let name = String(tokens[0].literal)
+            guard let function = Function(imports: context.imports, namespace: NameSpaces.none, name: name) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
+            }
+            return try FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) })
+        case TokenMatcher(.type(.identifier), ">", .type(.identifier), .type(.squareBrackets)): // ns>funcName[...]
+            // RESOLVE semantic token: namespace, function
+            guard let ns = NameSpaces.namespace(named: String(tokens[0].literal)) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[0].literal)'"))
+            }
+            let name = String(tokens[0].literal)
+            guard let function = Function(imports: context.imports, namespace: ns, name: name) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find function '\(name)' in namespace '\(ns.name)'"))
+            }
+            return try FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) })
+        case TokenMatcher(types: .identifier, .curlyBraces): // varName{...}
+            // RESOLVE semantic token: variable
+            let removing = tokens[1].children.last?.literal == "-"
+            let children = tokens[1].children.dropLast(removing ? 1 : 0)
+            return try ArrayValueExpression(context: context, varName: String(tokens[0].literal), index: children.isEmpty ? nil : resolveExpression(tokens: Array(children), infer: SimpleType.integer), removing: removing)
+        case TokenMatcher(types: .identifier, .lambdaHatOperator, .squareBrackets): // varName^[...]
+            // RESOLVE semantic token: variable
+            return try FuncRefCallExpression(ctx: context, varName: String(tokens[0].literal), values: tokens[2].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) })
+        default:
+            break
+        }
+        
+        // exp op exp
+        // exp is/as(?)(!) type
+        
+        // exp!
+        // uop exp
+        
+        // exp.method[]
+        // exp.ns>method[]
+        // exp.fieldName
+        // type.FIELD_NAME, [type].FIELD_NAME
+        
+        // type(...)
+        // type{...}
+        
         
         throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
     }
