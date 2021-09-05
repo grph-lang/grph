@@ -27,7 +27,7 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
         self.elements = types.map { .type($0) }
     }
     
-    func matches(tokens: [Token]) -> Bool {
+    func matches<T: Collection>(tokens: T) -> Bool where T.Element == Token {
         guard tokens.count == elements.count else {
             return false
         }
@@ -41,6 +41,8 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
                 if type != token.tokenType {
                     return false
                 }
+            case .any:
+                break
             }
         }
         return true
@@ -53,6 +55,7 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
     enum Component: ExpressibleByStringLiteral {
         case type(TokenType)
         case literal(String)
+        case any
         
         init(stringLiteral value: StringLiteralType) {
             self = .literal(value)

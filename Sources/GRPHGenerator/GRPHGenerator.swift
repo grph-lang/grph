@@ -351,6 +351,20 @@ class GRPHGenerator: GRPHCompilerProtocol {
             })
         }
         
+        // we require exp to be one token as otherwise it'd be difficult to differenciate with the greater-than operator
+        // [exp].ns>methodName[...]
+        if TokenMatcher(.any, .type(.dot), .type(.identifier), ">", .type(.identifier), .type(.squareBrackets)).matches(tokens: tokens) {
+            guard let ns = NameSpaces.namespace(named: String(tokens[2].literal)) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[2].literal)'"))
+            }
+            let on = try resolveExpression(tokens: [tokens[0]], infer: nil)
+            let name = tokens[4]
+            guard let method = Method(imports: context.imports, namespace: ns, name: String(name.literal), inType: try on.getType(context: context, infer: SimpleType.mixed)) else {
+                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(ns.name)>\(name.literal)'")
+            }
+            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) })
+        }
+        
         // binary operators (by precedence)
         if let exp = try findBinary(within: ["&&", "||"], in: tokens)
                       ?? findBinary(within: [">=", "<=", ">", "<", "≥", "≤"], in: tokens)
@@ -377,18 +391,59 @@ class GRPHGenerator: GRPHCompilerProtocol {
             return try UnboxExpression(exp: resolveExpression(tokens: Array(tokens.dropLast()), infer: infer?.optional))
         }
         
-        // exp.method[...]
-        // exp.ns>method[...]
-        // exp.fieldName
-        // type.FIELD_NAME, [type].FIELD_NAME
+        // exp.methodName[...]
+        if TokenMatcher(types: .dot, .identifier, .squareBrackets).matches(tokens: tokens.suffix(3)) {
+            let on = try resolveExpression(tokens: tokens.dropLast(3), infer: nil)
+            let name = tokens[tokens.count - 2]
+            guard let method = Method(imports: context.imports, namespace: NameSpaces.none, name: String(name.literal), inType: try on.getType(context: context, infer: SimpleType.mixed)) else {
+                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(name.literal)'")
+            }
+            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) })
+        }
+        
+        if TokenMatcher(types: .dot, .identifier).matches(tokens: tokens.suffix(2)) {
+            let on = tokens[0..<(tokens.count - 2)]
+            let field = tokens.last!
+            if field.literal.first!.isUppercase {
+                // constant property
+                let typeLiteral: Token
+                if on.count == 1 && on[0].tokenType == .squareBrackets {
+                    typeLiteral = Token(compound: on[0].children, type: .type)
+                } else {
+                    typeLiteral = Token(compound: Array(on), type: .type)
+                }
+                guard let type = GRPHTypes.parse(context: context, literal: String(typeLiteral.literal)) else {
+                    throw DiagnosticCompileError(notice: Notice(token: typeLiteral, severity: .error, source: .generator, message: "Could not resolve type literal"))
+                }
+                if field.literal == "TYPE" {
+                    return TypeValueExpression(type: type)
+                } else if let const = type.staticConstants.first(where: { $0.name == field.literal }) {
+                    return ConstantPropertyExpression(property: const, inType: type)
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find property '\(field.literal)' in type \(type)"))
+                }
+            } else {
+                let exp = try resolveExpression(tokens: Array(on), infer: nil)
+                if field.literal == "type" {
+                    return ValueTypeExpression(on: exp)
+                }
+                let type = try exp.getType(context: context, infer: SimpleType.mixed)
+                if let property = GRPHTypes.field(named: String(field.literal), in: type) {
+                    return FieldExpression(on: exp, field: property)
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find field '\(field.literal)' in type \(type)"))
+                }
+            }
+        }
         
         // tests:
         // funcref<string><string+string>("static")
-        // pos(4 1) + pos(1 2)
+        // pos1 + pos(1 2)
         // 1 + 2 as int == [1 + 2] as integer
         // -maybeInt! == -[maybeInt!]
+        // 5 + 5.ns>double[]
         
-        throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
+        throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve expression"))
     }
     
     func findBinary(within ops: [String], in tokens: [Token]) throws -> BinaryExpression? {
