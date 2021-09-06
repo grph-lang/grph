@@ -28,7 +28,7 @@ public struct CastExpression: Expression {
         }
     }
     
-    public var string: String { "\(from.string) \(cast.string) \(to.string)" }
+    public var string: String { "\(from.bracketized) \(cast.string) \(to.string)" }
     
     public var needsBrackets: Bool { true }
 }

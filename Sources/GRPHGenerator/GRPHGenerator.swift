@@ -436,13 +436,6 @@ class GRPHGenerator: GRPHCompilerProtocol {
             }
         }
         
-        // tests:
-        // funcref<string><string+string>("static")
-        // pos1 + pos(1 2)
-        // 1 + 2 as int == [1 + 2] as integer
-        // -maybeInt! == -[maybeInt!]
-        // 5 + 5.ns>double[]
-        
         throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve expression"))
     }
     

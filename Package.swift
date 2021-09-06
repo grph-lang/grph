@@ -36,5 +36,8 @@ let package = Package(
         .testTarget(
             name: "GRPHLexerTests",
             dependencies: ["GRPHLexer"]),
+        .testTarget(
+            name: "GeneratorTests",
+            dependencies: ["GRPHGenerator"]),
     ]
 )

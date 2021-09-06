@@ -20,6 +20,10 @@ public class GRPHLexer {
     
     public private(set) var diagnostics: [Notice] = []
     
+    public init() {
+        
+    }
+    
     /// Fully lexes (base lexing + token detection) a full source file.
     /// - Parameter content: The source to parse
     /// - Returns: An array of line tokens. Each token in the array is a fully lexed `.line` token
