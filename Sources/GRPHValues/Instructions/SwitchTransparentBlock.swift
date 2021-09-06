@@ -16,4 +16,8 @@ public struct SwitchTransparentBlock: BlockInstruction {
     public var label: String?
     
     public var name: String { "switch" }
+    
+    public init(lineNumber: Int) {
+        self.lineNumber = lineNumber
+    }
 }

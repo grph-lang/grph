@@ -48,11 +48,8 @@ class GRPHGenerator: GRPHCompilerProtocol {
             do {
                 if let resolved = try resolveInstruction(children: trimmed) {
                     if !resolved.notABlock,
-                       var block = resolved.instruction as? BlockInstruction {
-                        block.label = nextLabel?.description
-                        nextLabel = nil
-                        try addInstruction(block)
-                        blockCount += 1
+                       let block = resolved.instruction as? BlockInstruction {
+                        try addBlock(block)
                     } else if let nextLabel = nextLabel {
                         throw DiagnosticCompileError(notice: Notice(token: nextLabel, severity: .error, source: .generator, message: "Labels must precede a block"))
                     } else {
@@ -307,8 +304,6 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .fall, scope: .parse(tokens: tokens.dropFirst())))
             case "#fallthrough":
                 return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .fallthrough, scope: .parse(tokens: tokens.dropFirst())))
-            case "#goto":
-                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
             case "#block":
                 return ResolvedInstruction(instruction: SimpleBlockInstruction(context: &context, lineNumber: lineNumber))
             case "#requires":
@@ -330,7 +325,105 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 } else {
                     return ResolvedInstruction(instruction: requires)
                 }
+            case "#switch":
+                if let nextLabel = nextLabel {
+                    throw DiagnosticCompileError(notice: Notice(token: nextLabel, severity: .error, source: .generator, message: "A #switch block cannot have a label", hint: "Put the label on the cases instead"))
+                }
+                
+                var name: String
+                var n = 0
+                repeat {
+                    name = "$_switch\(n)$"
+                    n += 1
+                } while context.findVariable(named: name) != nil
+                
+                let exp = try resolveExpression(tokens: Array(tokens.dropFirst()), infer: nil)
+                let type = try exp.getType(context: context, infer: SimpleType.mixed)
+                // We declare our variable
+                try addInstruction(VariableDeclarationInstruction(lineNumber: lineNumber, global: false, constant: true, type: type, name: name, value: exp))
+                try addBlock(SwitchTransparentBlock(lineNumber: lineNumber))
+                // We create our context, denying non-#case/#default and advertising our var name
+                context = SwitchCompilingContext(parent: context, compare: VariableExpression(name: name))
+                // We advertise our var with its type, so type checks in #case works
+                context.addVariable(Variable(name: name, type: type, final: true, compileTime: true), global: false)
+                return nil // handled
+            case "#case": // uwu
+                guard let ctx = context as? SwitchCompilingContext else {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case cannot be used outside of a #switch"))
+                }
+                let type = try ctx.compare.getType(context: context, infer: SimpleType.mixed)
+                // children instead of tokens as we need the spaces
+                let params = children.dropFirst().split(on: .ignoreableWhiteSpace)
+                guard params.count > 0 else {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case needs at least an argument"))
+                }
+                let exps = try params.map { try resolveExpression(tokens: $0, infer: type) }
+                    .map { try BinaryExpression(context: ctx, left: ctx.compare, op: "==", right: $0) }
+                let combined = try exps.reduce(into: nil) { (into: inout Expression?, curr: BinaryExpression) in
+                    if let last = into {
+                        into = try BinaryExpression(context: ctx, left: last, op: "||", right: curr)
+                    } else {
+                        into = curr
+                    }
+                }!
+                
+                switch ctx.state {
+                case .first:
+                    ctx.state = .next
+                    return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, context: &context, condition: combined))
+                case .next:
+                    return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, context: &context, condition: combined))
+                case .last:
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case must come before the terminating #default case in a #switch"))
+                }
+            case "#default":
+                guard let ctx = context as? SwitchCompilingContext else {
+                    throw GRPHCompileError(type: .parse, message: "#default cannot be used outside of a #switch")
+                }
+                if tokens.count > 1 {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "#default doesn't expect arguments"))
+                }
+                switch ctx.state {
+                case .first:
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#default cannot be first in a #switch, it must be last"))
+                case .next:
+                    ctx.state = .last
+                    return ResolvedInstruction(instruction: ElseBlock(context: &context, lineNumber: lineNumber))
+                case .last:
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Cannot put multiple #default cases in a #switch"))
+                }
+            case "#compiler":
+                guard tokens.count == 3 else {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected syntax '#compiler key value'"))
+                }
+                switch tokens[1].literal {
+                case "indent", "altBrackets", "altBracketSet", "alternativeBracketSet":
+                    return nil // handled by the lexer
+                case "strict", "strictUnbox", "strictUnboxing", "noAutoUnbox":
+                    guard let value = Bool(String(tokens[2].literal)) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected value to be a boolean literal"))
+                    }
+                    hasStrictUnboxing = value
+                case "strictBoxing", "noAutobox", "noAutoBox":
+                    guard let value = Bool(String(tokens[2].literal)) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected value to be a boolean literal"))
+                    }
+                    hasStrictBoxing = value
+                case "strictest":
+                    guard let value = Bool(String(tokens[2].literal)) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected value to be a boolean literal"))
+                    }
+                    hasStrictUnboxing = value
+                    hasStrictBoxing = value
+                default:
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Unknown compiler key"))
+                }
+            case "#goto":
+                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
+            case "#setting":
+                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#setting isn't available in this version of GRPH"))
             default:
+                // note: #type, #setting have been removed
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
             }
         }
@@ -708,6 +801,14 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 context = (context as! BlockCompilingContext).parent
             }
         }
+    }
+    
+    func addBlock(_ instruction: BlockInstruction) throws {
+        var block = instruction
+        block.label = nextLabel?.description
+        nextLabel = nil
+        try addInstruction(block)
+        blockCount += 1
     }
     
     func addInstruction(_ instruction: Instruction) throws {
