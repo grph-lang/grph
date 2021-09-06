@@ -12,6 +12,12 @@ public struct BreakInstruction: Instruction {
     public let type: BreakType
     public let scope: BreakScope
     
+    public init(lineNumber: Int, type: BreakInstruction.BreakType, scope: BreakInstruction.BreakScope) {
+        self.lineNumber = lineNumber
+        self.type = type
+        self.scope = scope
+    }
+    
     public func toString(indent: String) -> String {
         return "\(line):\(indent)#\(type.rawValue) \(scope)\n"
     }
@@ -53,6 +59,11 @@ public struct BreakInstruction: Instruction {
 public struct ReturnInstruction: Instruction {
     public let lineNumber: Int
     public var value: Expression? = nil
+    
+    public init(lineNumber: Int, value: Expression? = nil) {
+        self.lineNumber = lineNumber
+        self.value = value
+    }
     
     public func toString(indent: String) -> String {
         return "\(line):\(indent)#return \(value?.string ?? "")\n"

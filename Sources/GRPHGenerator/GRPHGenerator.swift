@@ -164,6 +164,141 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 imports.append(TypeAlias(name: newname, type: type))
                 return nil
+            case "#if":
+                if context is SwitchCompilingContext {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected #case or #default in #switch block"))
+                }
+                if tokens.count == 1 {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#if requires an argument of type boolean"))
+                }
+                return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+                
+            case "#elseif", "#elif":
+                if let ctx = context as? SwitchCompilingContext {
+                    guard ctx.state == .next else {
+                        throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected #case or #default in #switch block"))
+                    }
+                    // we can allow it here, it is harmless
+                }
+                if tokens.count == 1 {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#elseif requires an argument of type boolean"))
+                }
+                return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+            case "#else":
+                if context is SwitchCompilingContext {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected #case or #default in #switch block"))
+                }
+                if tokens.count > 1 {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "#else doesn't expect arguments"))
+                }
+                return ResolvedInstruction(instruction: ElseBlock(context: &context, lineNumber: lineNumber))
+            case "#while":
+                if tokens.count == 1 {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#while requires an argument of type boolean"))
+                }
+                return try ResolvedInstruction(instruction: WhileBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+            case "#foreach":
+                let split = tokens.dropFirst().split(on: .methodCallOperator)
+                guard split.count == 2 else {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve foreach syntax, '#foreach varName : array' expected"))
+                }
+                return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, context: &context, varName: String(Token(compound: split[0], type: .identifier).literal), array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
+            case "#try":
+                return ResolvedInstruction(instruction: TryBlock(context: &context, lineNumber: lineNumber))
+            case "#catch":
+                let split = tokens.dropFirst().split(on: .methodCallOperator)
+                guard split.count == 2 else {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve catch syntax, '#catch varName : errortype' expected"))
+                }
+                let name = String(Token(compound: split[0], type: .identifier).literal)
+                let exs = split[1].split(whereSeparator: { $0.literal == "|" })
+                let trm = try findTryBlock()
+                let currblock = currentBlock
+                var tr: TryBlock
+                if let currblock = currblock {
+                    tr = currblock.children[currblock.children.count - trm] as! TryBlock
+                } else {
+                    tr = instructions[instructions.count - trm] as! TryBlock
+                }
+                let block = try CatchBlock(lineNumber: lineNumber, context: &context, varName: name)
+                for rawErr in exs {
+                    let error = String(Token(compound: Array(rawErr), type: .type).literal)
+                    if error == "Exception" {
+                        tr.catches[nil] = block
+                        block.addError(type: "Exception")
+                    } else if error.hasSuffix("Exception"),
+                              let err = GRPHRuntimeError.RuntimeExceptionType(rawValue: String(error.dropLast(9))) {
+                        guard tr.catches[err] == nil else {
+                            continue
+                        }
+                        tr.catches[err] = block
+                        block.addError(type: "\(err.rawValue)Exception")
+                    } else {
+                        throw GRPHCompileError(type: .undeclared, message: "Error '\(error)' not found")
+                    }
+                }
+                if let currblock = currblock {
+                    currentBlock!.children[currblock.children.count - trm] = tr
+                } else {
+                    instructions[instructions.count - trm] = tr
+                }
+                return ResolvedInstruction(instruction: block)
+            case "#throw":
+                guard TokenMatcher(types: .commandName, .identifier, .parentheses).matches(tokens: tokens) else {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve throw syntax, '#throw errorType(message)' expected"))
+                }
+                let err = tokens[1]
+                guard err.literal.hasSuffix("Exception"),
+                      let error = GRPHRuntimeError.RuntimeExceptionType(rawValue: String(err.literal.dropLast(9))) else {
+                    throw DiagnosticCompileError(notice: Notice(token: err, severity: .error, source: .generator, message: "Could not find error type '\(err.literal)'"))
+                }
+                let msg = try resolveExpression(tokens: tokens[2].children, infer: SimpleType.string)
+                guard try SimpleType.string.isInstance(context: context, expression: msg) else {
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected the message to be a string"))
+                }
+                return ResolvedInstruction(instruction: ThrowInstruction(lineNumber: lineNumber, type: error, message: msg))
+            case "#function":
+                #warning("TODO")
+                throw GRPHCompileError(type: .unsupported, message: "#function: to be supported")
+//                return try ResolvedInstruction(instruction: FunctionDeclarationBlock())
+            case "#return":
+                
+                guard let block = context.inFunction else {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#return may only be used in functions"))
+                }
+                
+                let params = Array(tokens.dropFirst())
+                if block.generated.returnType.isTheVoid {
+                    guard params.isEmpty else {
+                        throw DiagnosticCompileError(notice: Notice(token: Token(compound: params, type: .squareBrackets), severity: .error, source: .generator, message: "No return value expected in void function declaration"))
+                    }
+                    return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: nil))
+                } else if params.isEmpty {
+                    if block.returnDefault == nil {
+                        throw DiagnosticCompileError(notice: Notice(token: Token(compound: params, type: .squareBrackets), severity: .error, source: .generator, message: "Expected a return value in non-void function declaration"))
+                    } else {
+                        return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: nil))
+                    }
+                } else {
+                    let expected = block.generated.returnType
+                    let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: params, infer: expected), expected: expected)
+                    guard try block.generated.returnType.isInstance(context: context, expression: exp) else {
+                        throw GRPHCompileError(type: .parse, message: "Expected a #return value of type \(expected), found a \(try exp.getType(context: context, infer: expected))")
+                    }
+                    return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: exp))
+                }
+            case "#break":
+                return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .break, scope: .parse(tokens: tokens.dropFirst())))
+            case "#continue":
+                return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .continue, scope: .parse(tokens: tokens.dropFirst())))
+            case "#fall":
+                return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .fall, scope: .parse(tokens: tokens.dropFirst())))
+            case "#fallthrough":
+                return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .fallthrough, scope: .parse(tokens: tokens.dropFirst())))
+            case "#goto":
+                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
+            case "#block":
+                return ResolvedInstruction(instruction: SimpleBlockInstruction(context: &context, lineNumber: lineNumber))
             default:
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Unknown command '\(cmd.literal)'"))
             }
@@ -545,6 +680,26 @@ class GRPHGenerator: GRPHCompilerProtocol {
     }
     
     // Those come from GRPHCompiler — ugly & dirty
+    
+    private func findTryBlock(minus: Int = 1) throws -> Int {
+        var last: Instruction? = nil
+        if blockCount > 0,
+           let block = currentBlock {
+            if block.children.count >= minus {
+                last = block.children[block.children.count - minus]
+            }
+        } else {
+            if instructions.count >= minus {
+                last = instructions[instructions.count - minus]
+            }
+        }
+        if last is TryBlock {
+            return minus
+        } else if last is CatchBlock {
+            return try findTryBlock(minus: minus + 1)
+        }
+        throw GRPHCompileError(type: .parse, message: "#catch requires a #try block before")
+    }
     
     private var currentBlock: BlockInstruction? {
         get {
