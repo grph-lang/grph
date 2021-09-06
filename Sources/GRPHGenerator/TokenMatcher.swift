@@ -48,7 +48,7 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
         return true
     }
     
-    static func ~= (lhs: TokenMatcher, rhs: [Token]) -> Bool {
+    static func ~= <T: Collection>(lhs: TokenMatcher, rhs: T) -> Bool where T.Element == Token {
         lhs.matches(tokens: rhs)
     }
     
@@ -69,7 +69,7 @@ extension Token {
             switch child.tokenType {
             case .ignoreableWhiteSpace, .identifier, .type, .operator, .curlyBraces:
                 continue
-            case .indent, .comment, .docComment, .commentContent, .variable, .function, .method, .keyword, .label, .enumCase, .commandName, .booleanLiteral, .nullLiteral, .numberLiteral, .rotationLiteral, .posLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .assignmentOperator, .assignmentCompound, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .line, .unresolved:
+            case .indent, .comment, .docComment, .commentContent, .variable, .function, .method, .keyword, .label, .enumCase, .commandName, .booleanLiteral, .nullLiteral, .numberLiteral, .rotationLiteral, .posLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .assignmentOperator, .assignmentCompound, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .line, .unresolved, .varargs:
                 return false
             }
         }

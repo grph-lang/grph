@@ -258,9 +258,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 return ResolvedInstruction(instruction: ThrowInstruction(lineNumber: lineNumber, type: error, message: msg))
             case "#function":
-                #warning("TODO")
-                throw GRPHCompileError(type: .unsupported, message: "#function: to be supported")
-//                return try ResolvedInstruction(instruction: FunctionDeclarationBlock())
+                return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, context: &context, tokens: Array(tokens.dropFirst())))
             case "#return":
                 
                 guard let block = context.inFunction else {

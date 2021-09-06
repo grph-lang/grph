@@ -19,7 +19,7 @@ public enum TokenType {
     /// The content of a comment
     case commentContent
     
-    /// A word, that hasn't been resolved yet
+    /// A word, that hasn't been resolved yet. Matches `[A-Za-z_$][A-Za-z0-9_]*`
     case identifier
     /// A variable name
     case variable
@@ -73,6 +73,8 @@ public enum TokenType {
     case dot
     /// The single `/` token
     case slashOperator
+    /// The `...` token
+    case varargs
     
     /// A bracketized expression. Supports children.
     case squareBrackets

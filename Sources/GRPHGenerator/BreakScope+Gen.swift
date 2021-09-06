@@ -12,7 +12,7 @@ import GRPHLexer
 extension BreakInstruction.BreakScope {
     static func parse(tokens: ArraySlice<Token>) throws -> Self {
         switch tokens {
-        case []:
+        case TokenMatcher([]):
             return .scopes(1)
         case TokenMatcher(types: .labelPrefixOperator, .label):
             return .label(String(tokens[1].literal))
@@ -23,6 +23,6 @@ extension BreakInstruction.BreakScope {
         default:
             break
         }
-        throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Break instruction expected a label or an integer literal with the amount of scopes"))
+        throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens), type: .squareBrackets), severity: .error, source: .generator, message: "Break instruction expected a label or an integer literal with the amount of scopes"))
     }
 }

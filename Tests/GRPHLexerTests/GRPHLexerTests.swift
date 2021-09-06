@@ -25,6 +25,7 @@ final class GRPHLexerTests: XCTestCase {
         parsing(line: "1 as float as? integer as! int?", assert: [.indent, .numberLiteral, .keyword, .identifier, .keyword, .identifier, .keyword, .identifier, .operator])
         parsing(line: "18 as", assert: [.indent, .numberLiteral, .keyword])
         parsing(line: "a{i-}=", assert: [.indent, .identifier, .curlyBraces, .assignmentOperator])
+        parsing(line: "integer nums...", assert: [.indent, .identifier, .identifier, .varargs])
         
         parsing(line: "#compiler altBrackets true", assert: [.indent, .commandName, .identifier, .booleanLiteral])
         parsing(line: "\t\tlog: pos{10 10} createPos(10 10)", assert: [.indent, .identifier, .methodCallOperator, .identifier, .parentheses, .identifier, .squareBrackets])

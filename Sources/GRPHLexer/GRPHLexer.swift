@@ -259,7 +259,7 @@ public class GRPHLexer {
             }
         case .squareBrackets, .parentheses, .curlyBraces:
             preconditionFailure("token type should never be current")
-        case .line, .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound:
+        case .line, .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .varargs:
             preconditionFailure("token type is never yielded at this point")
         case .unresolved:
             return .newToken
@@ -400,7 +400,7 @@ public class GRPHLexer {
     /// - Parameter token: the token to update. it's type and stored data may change, and this will happen recursively with all its children
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword:
+        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword, .varargs:
             break // nothing to do
         case .identifier:
             switch token.literal {
@@ -526,6 +526,12 @@ public class GRPHLexer {
                 // `-` signs are part of literals
                 squashingResult.append(Token(squash: token.children[i...(i+1)], type: next))
                 i += 2
+            } else if i + 2 < token.children.count,
+                      token.children[i].tokenType == .dot,
+                      token.children[i + 1].tokenType == .dot,
+                      token.children[i + 2].tokenType == .dot {
+                squashingResult.append(Token(squash: token.children[i...(i+2)], type: .varargs))
+                i += 3
             } else {
                 squashingResult.append(token.children[i])
                 i += 1
