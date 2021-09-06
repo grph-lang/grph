@@ -21,6 +21,8 @@ class GRPHGenerator: GRPHCompilerProtocol {
     var blockCount = 0
     var instructions: [Instruction] = []
     
+    var nextLabel: Token?
+    
     var context: CompilingContext!
     
     public private(set) var diagnostics: [Notice] = []
@@ -44,7 +46,19 @@ class GRPHGenerator: GRPHCompilerProtocol {
             closeBlocks(tabs: indent)
             
             do {
-                try resolveInstruction(children: trimmed)
+                if let resolved = try resolveInstruction(children: trimmed) {
+                    if !resolved.notABlock,
+                       var block = resolved.instruction as? BlockInstruction {
+                        block.label = nextLabel?.description
+                        nextLabel = nil
+                        try addInstruction(block)
+                        blockCount += 1
+                    } else if let nextLabel = nextLabel {
+                        throw DiagnosticCompileError(notice: Notice(token: nextLabel, severity: .error, source: .generator, message: "Labels must precede a block"))
+                    } else {
+                        try addInstruction(resolved.instruction)
+                    }
+                }
             } catch let error as DiagnosticCompileError {
                 diagnostics.append(error.notice)
                 context = nil
@@ -297,8 +311,27 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
             case "#block":
                 return ResolvedInstruction(instruction: SimpleBlockInstruction(context: &context, lineNumber: lineNumber))
+            case "#requires":
+                let version: Version
+                if tokens.count == 2 {
+                    version = Version()
+                } else if tokens.count == 3 {
+                    guard let v = Version(description: String(tokens[2].literal)) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Couldn't parse version number '\(tokens[2].literal)'"))
+                    }
+                    version = v
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected syntax '#requires plugin version'"))
+                }
+                let requires = RequiresInstruction(lineNumber: lineNumber, plugin: String(tokens[1].literal), version: version)
+                if blockCount == 0 {
+                    try requires.run(context: context)
+                    return nil
+                } else {
+                    return ResolvedInstruction(instruction: requires)
+                }
             default:
-                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Unknown command '\(cmd.literal)'"))
+                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
             }
         }
         
@@ -674,6 +707,15 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 blockCount -= 1
                 context = (context as! BlockCompilingContext).parent
             }
+        }
+    }
+    
+    func addInstruction(_ instruction: Instruction) throws {
+        try context.accepts(instruction: instruction)
+        if blockCount == 0 {
+            instructions.append(instruction)
+        } else {
+            currentBlock!.children.append(instruction)
         }
     }
     

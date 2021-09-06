@@ -65,6 +65,10 @@ extension Token {
         let literal = tokens.first!.literal.base[(tokens.first!.lineOffset)..<(tokens.last!.literal.endIndex)]
         self.init(lineNumber: tokens.first!.lineNumber, lineOffset: literal.startIndex, literal: literal, tokenType: type)
     }
+    
+    public var description: String {
+        String(literal)
+    }
 }
 
 extension Collection where Element == Token {
