@@ -425,11 +425,12 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#setting isn't available in this version of GRPH"))
             default:
                 // note: #type, #setting have been removed
-                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
+                diagnostics.append(Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
+                return nil
             }
         } else if children[0].tokenType == .labelPrefixOperator {
             guard tokens.count == 2, tokens[1].tokenType == .label else {
-                throw DiagnosticCompileError(notice: Notice(token: children[0], severity: .warning, source: .generator, message: "Invalid label, expected label identifier"))
+                throw DiagnosticCompileError(notice: Notice(token: children[0], severity: .error, source: .generator, message: "Invalid label, expected label identifier"))
             }
             nextLabel = tokens[1]
             return nil
@@ -485,6 +486,53 @@ class GRPHGenerator: GRPHCompilerProtocol {
                         indexExp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: index, infer: SimpleType.integer), expected: SimpleType.integer)
                     }
                     return try ResolvedInstruction(instruction: ArrayModificationInstruction(lineNumber: lineNumber, context: context, name: varName, op: type, index: indexExp, value: value))
+                } else if last.tokenType == .squareBrackets { // inline function
+                    var inner = context! // do not modify external context, this isn't a block
+                    return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, context: &inner, tokens: tokens), notABlock: true)
+                } else {
+                    guard assignment < tokens.endIndex - 1 else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[assignment], severity: .error, source: .generator, message: "Assignment value cannot be empty"))
+                    }
+                    // var declaration or assignment, try assignment first
+                    if let assigned = try? resolveExpression(tokens: Array(tokens[..<assignment]), infer: nil) as? AssignableExpression {
+                        let type = try assigned.getType(context: context, infer: SimpleType.mixed)
+                        let value = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: type)
+                        return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: nil, value: value))
+                    } else { // var declaration
+                        guard last.tokenType == .identifier else {
+                            throw DiagnosticCompileError(notice: Notice(token: tokens[assignment], severity: .error, source: .generator, message: "Expected variable name or valid assignable expression"))
+                        }
+                        var offset = 0
+                        var global = false
+                        var final = false
+                        if tokens[offset].literal == "global" {
+                            global = true
+                            offset += 1
+                        }
+                        if tokens[offset].literal == "final" {
+                            final = true
+                            offset += 1
+                            if tokens[offset].literal == "global" && !global {
+                                // non blocking error
+                                diagnostics.append(Notice(token: tokens[offset], severity: .error, source: .generator, message: "'global' must precede 'final'"))
+                                global = true
+                                offset += 1
+                            }
+                        }
+                        let typeLit = Token(compound: Array(tokens[offset..<assignment]), type: .type)
+                        let typeOrAuto: GRPHType?
+                        if typeLit.literal == "auto" {
+                            typeOrAuto = nil
+                        } else if let type = GRPHTypes.parse(context: context, literal: String(typeLit.literal)) {
+                            typeOrAuto = type
+                        } else {
+                            throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Could not find type '\(typeLit.literal)'"))
+                        }
+                        
+                        let exp = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: typeOrAuto)
+                        
+                        return try ResolvedInstruction(instruction: VariableDeclarationInstruction(lineNumber: lineNumber, context: context, global: global, constant: final, typeOrAuto: typeOrAuto, name: last.description, exp: exp))
+                    }
                 }
             }
             throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
