@@ -84,11 +84,11 @@ class GRPHGenerator: GRPHCompilerProtocol {
     }
     
     func resolveInstruction(children: [Token]) throws -> ResolvedInstruction? {
-        // children is guaranteed to be non empty
+        // children is guaranteed to be non empty. it is trimmed, so stripping it only removes whitespaces in between two tokens
+        let tokens = children.stripped
         
         if children[0].tokenType == .commandName {
             let cmd = children[0]
-            let tokens = children.stripped
             switch cmd.literal {
             case "#":
                 if let bang = tokens[safeExact: 1],
@@ -418,6 +418,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 default:
                     throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Unknown compiler key"))
                 }
+                return nil
             case "#goto":
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
             case "#setting":
@@ -426,10 +427,68 @@ class GRPHGenerator: GRPHCompilerProtocol {
                 // note: #type, #setting have been removed
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
             }
+        } else if children[0].tokenType == .labelPrefixOperator {
+            guard tokens.count == 2, tokens[1].tokenType == .label else {
+                throw DiagnosticCompileError(notice: Notice(token: children[0], severity: .warning, source: .generator, message: "Invalid label, expected label identifier"))
+            }
+            nextLabel = tokens[1]
+            return nil
+        } else {
+            // simple assignment, variable declaration, inline function, array modification
+            if let assignment = tokens.firstIndex(where: { $0.tokenType == .assignmentOperator }),
+               assignment > 0 {
+                let last = tokens[assignment - 1]
+                if last.tokenType == .curlyBraces { // array modification
+                    // WE COULD ALLOW ANY (ASSIGNABLE) EXPRESSION INSTEAD OF JUST VARIABLES YAY
+                    guard assignment == 2, tokens[0].tokenType == .identifier else {
+                        throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens[0..<(assignment - 1)]), type: .squareBrackets), severity: .error, source: .generator, message: "Expected array modification subject to be a variable"))
+                    }
+                    let varName = tokens[0].description
+                    // RESOLVE semantic token: variable
+                    guard let indexLast = last.children.last else {
+                        throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "Index or operation required in array modification instruction"))
+                    } // -, +, = or ignore
+                    let index: [Token]
+                    let type: ArrayModificationInstruction.ArrayModificationOperation
+                    switch indexLast.literal {
+                    case "=":
+                        index = Array(last.children.dropLast())
+                        type = .set
+                    case "-":
+                        index = Array(last.children.dropLast())
+                        type = .remove
+                    case "+":
+                        index = Array(last.children.dropLast())
+                        type = .add
+                    default:
+                        index = last.children
+                        type = .set
+                    }
+                    
+                    guard let assignedTo = context.findVariable(named: varName) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find variable '\(varName)' in scope"))
+                    }
+                    guard let arr = assignedTo.type as? ArrayType else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "The type of the variable in an array modification instruction must be an array"))
+                    }
+                    
+                    let value: Expression?
+                    if assignment == tokens.endIndex - 1 {
+                        value = nil
+                    } else {
+                        value = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: arr.content)
+                    }
+                    let indexExp: Expression?
+                    if index.isEmpty {
+                        indexExp = nil
+                    } else {
+                        indexExp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: index, infer: SimpleType.integer), expected: SimpleType.integer)
+                    }
+                    return try ResolvedInstruction(instruction: ArrayModificationInstruction(lineNumber: lineNumber, context: context, name: varName, op: type, index: indexExp, value: value))
+                }
+            }
+            throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
         }
-        
-        
-        throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
     }
     
     func resolveExpression(tokens _tokens: [Token], infer: GRPHType?) throws -> Expression {
