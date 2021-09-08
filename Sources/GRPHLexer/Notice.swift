@@ -30,8 +30,10 @@ public struct Notice {
 
 public extension Notice {
     func represent() -> String {
-        var msg = token.literal.base + "\n"
-        msg += String(repeating: " ", count: token.literal.base.distance(from: token.literal.base.startIndex, to: token.lineOffset))
+        // remove tabs as they mess everything up with their wider size
+        let base = token.literal.base.replacingOccurrences(of: "\t", with: "")
+        var msg = String(base) + "\n"
+        msg += String(repeating: " ", count: base.distance(from: base.startIndex, to: token.lineOffset))
         msg += String(repeating: "^", count: token.literal.count)
         msg += "\n\(severity): \(message)"
         return msg

@@ -445,24 +445,25 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                         throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens[0..<(assignment - 1)]), type: .squareBrackets), severity: .error, source: .generator, message: "Expected array modification subject to be a variable"))
                     }
                     let varName = tokens[0].description
+                    let curly = last.children.stripped
                     // RESOLVE semantic token: variable
-                    guard let indexLast = last.children.last else {
+                    guard let indexLast = curly.last else {
                         throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "Index or operation required in array modification instruction"))
                     } // -, +, = or ignore
                     let index: [Token]
                     let type: ArrayModificationInstruction.ArrayModificationOperation
                     switch indexLast.literal {
                     case "=":
-                        index = Array(last.children.dropLast())
+                        index = Array(curly.dropLast())
                         type = .set
                     case "-":
-                        index = Array(last.children.dropLast())
+                        index = Array(curly.dropLast())
                         type = .remove
                     case "+":
-                        index = Array(last.children.dropLast())
+                        index = Array(curly.dropLast())
                         type = .add
                     default:
-                        index = last.children
+                        index = curly
                         type = .set
                     }
                     
@@ -519,7 +520,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                                 offset += 1
                             }
                         }
-                        let typeLit = Token(compound: Array(tokens[offset..<assignment]), type: .type)
+                        let typeLit = Token(compound: Array(tokens[offset..<(assignment - 1)]), type: .type)
                         let typeOrAuto: GRPHType?
                         if typeLit.literal == "auto" {
                             typeOrAuto = nil
