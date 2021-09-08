@@ -130,7 +130,7 @@ public struct StandardNameSpace: NameSpace {
         ]
     }
     
-    func constructorLegacyFunction(type: GRPHType) -> Function {
+    public func constructorLegacyFunction(type: GRPHType) -> Function {
         let base = type.constructor!
         return Function(ns: self, name: type.string, parameters: base.parameters, returnType: type, varargs: base.varargs)
     }

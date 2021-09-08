@@ -8,7 +8,9 @@
 import Foundation
 
 public struct SVGExportContext {
-    
+    public init() {
+        
+    }
 }
 
 extension TextOutputStream {
