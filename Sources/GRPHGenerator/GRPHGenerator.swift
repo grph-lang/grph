@@ -161,7 +161,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Cannot override existing type `\(newname)` with a typealias"))
                 }
                 switch newname {
-                case "file", "image", "Image", "auto",
+                case "file", "image", "Image", "auto", "type",
                      "final", "global", "static", "public", "private", "protected",
                      "dict", "set", "tuple":
                     throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Type name '\(newname)' is reserved and can't be used as a typealias name"))
@@ -532,6 +532,56 @@ class GRPHGenerator: GRPHCompilerProtocol {
                         let exp = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: typeOrAuto)
                         
                         return try ResolvedInstruction(instruction: VariableDeclarationInstruction(lineNumber: lineNumber, context: context, global: global, constant: final, typeOrAuto: typeOrAuto, name: last.description, exp: exp))
+                    }
+                }
+            } else if let compound = tokens.firstIndex(where: { $0.tokenType == .assignmentCompound }) {
+                guard let assigned = try resolveExpression(tokens: Array(tokens[..<compound]), infer: nil) as? AssignableExpression else {
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens[..<compound]), type: .squareBrackets), severity: .error, source: .generator, message: "Left value of an assignment must be assignable"))
+                }
+                let type = try assigned.getType(context: context, infer: SimpleType.mixed)
+                let value = try resolveExpression(tokens: Array(tokens[(compound + 1)...]), infer: type)
+                return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: tokens[compound].children[0].description, value: value))
+            } else if let colon = tokens.firstIndex(where: { $0.tokenType == .methodCallOperator }), colon > 0 {
+                // functionName: arg1 arg2
+                // methodExecutedOnThis: arg1 arg2
+                // methodName subjectExp: arg1 arg2
+                let ns: NameSpace
+                let name: Token
+                let offset: Int
+                if TokenMatcher(.type(.identifier), .literal(">"), .type(.identifier)).matches(tokens: tokens.prefix(3)) {
+                    guard let namespace = NameSpaces.namespace(named: tokens[0].description) else {
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[0].literal)'"))
+                    }
+                    ns = namespace
+                    name = tokens[2]
+                    offset = 3
+                } else if tokens[0].tokenType == .identifier {
+                    ns = NameSpaces.none
+                    name = tokens[0]
+                    offset = 1
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Expected method/function name"))
+                }
+                let unstrippedColon = children.firstIndex(where: { $0.tokenType == .methodCallOperator })!
+                let args = try children[(unstrippedColon + 1)...].split(on: .ignoreableWhiteSpace).map { literal in
+                    try resolveExpression(tokens: literal, infer: nil)
+                }
+                if offset < colon {
+                    // A method on some subject
+                    let subject = try resolveExpression(tokens: Array(tokens[offset..<colon]), infer: nil)
+                    let type = try subject.getType(context: context, infer: SimpleType.mixed)
+                    guard let method = Method(imports: imports, namespace: ns, name: name.description, inType: type) else {
+                        throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find method '\(name.literal)' in type '\(type.string)'"))
+                    }
+                    return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: subject, values: args, asInstruction: true)))
+                } else {
+                    // function, or method on 'this'
+                    if let function = Function(imports: imports, namespace: ns, name: name.description) {
+                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: args, asInstruction: true)))
+                    } else if let method = Method(imports: imports, namespace: ns, name: name.description, inType: context.findVariable(named: "this")!.type) {
+                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: VariableExpression(name: "this"), values: args, asInstruction: true)))
+                    } else {
+                        throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function or method '\(name.literal)'"))
                     }
                 }
             }
