@@ -683,7 +683,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     diagnostics.append(Notice(token: token, severity: .warning, source: .generator, message: "Array literal type couldn't be inferred, assuming floats"))
                     wrapped = SimpleType.float
                 }
-                return try ArrayLiteralExpression(wrapped: wrapped, values: token.children.split(on: .comma).map { tokens in
+                return try ArrayLiteralExpression(wrapped: wrapped, values: token.children.stripped.split(on: .comma).map { tokens in
                     let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
                     let type = try exp.getType(context: context, infer: wrapped)
                     guard type.isInstance(of: wrapped) else {
@@ -780,7 +780,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             
             diagnostics.append(Notice(token: tokens.last!, severity: .warning, source: .generator, message: "Array literals are deprecated", hint: "Use constructors instead"))
             
-            return try ArrayLiteralExpression(wrapped: wrapped, values: tokens.last!.children.split(on: .comma).map { tokens in
+            return try ArrayLiteralExpression(wrapped: wrapped, values: tokens.last!.children.stripped.split(on: .comma).map { tokens in
                 let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
                 let type = try exp.getType(context: context, infer: wrapped)
                 guard type.isInstance(of: wrapped) else {

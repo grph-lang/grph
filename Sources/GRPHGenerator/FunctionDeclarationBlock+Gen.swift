@@ -63,69 +63,87 @@ extension FunctionDeclarationBlock {
         var pars: [Parameter] = []
         pars.reserveCapacity(params.count)
         for (i, param) in params.enumerated() {
-            let equal = param.firstIndex(where: { $0.tokenType == .assignmentOperator }) ?? param.endIndex
-            guard equal >= 2 else {
-                throw DiagnosticCompileError(notice: Notice(token: Token(compound: param, type: .squareBrackets), severity: .error, source: .generator, message: "Expected parameter to have a type and name"))
-            }
+            let par = try parseParam(param: param, i: i, context: context, varargs: &varargs, isLast: i == params.count - 1)
             
-            let last = param[equal - 1]
-            let optional: Bool
-            let name: Token
-            if last.tokenType == .varargs {
-                guard i == params.count - 1 else {
-                    throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "The varargs '...' must be the last parameter"))
+            let varType: GRPHType
+            if par.optional {
+                if defaults[i] != nil {
+                    varType = par.type
+                } else {
+                    varType = par.type.optional
                 }
-                guard equal == param.endIndex else {
-                    throw DiagnosticCompileError(notice: Notice(token: param[equal], severity: .error, source: .generator, message: "A parameter can't be both varargs and have a default value"))
-                }
-                varargs = true
-                optional = false // require at least 1 argument for some reason
-                name = param[equal - 2]
-            } else if last.literal == "?" {
-                guard equal == param.endIndex else {
-                    throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "Do not specify '?' when having a default parameter value"))
-                }
-                optional = true
-                name = param[equal - 2]
+            } else if varargs {
+                varType = par.type.inArray
             } else {
-                optional = equal != param.endIndex
-                name = last
-            }
-            
-            // RESOLVE semantic token: variable
-            guard name.tokenType == .identifier else {
-                throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
-            }
-            
-            let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
-            let ptypeOrAuto: GRPHType?
-            if typeLit.literal == "auto" {
-                ptypeOrAuto = nil
-            } else if let type = GRPHTypes.parse(context: context, literal: String(typeLit.literal)) {
-                ptypeOrAuto = type
-            } else {
-                throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Could not find type '\(typeLit.literal)'"))
-            }
-            
-            let ptype: GRPHType
-            if equal < param.endIndex - 1 {
-                let exp = try context.generator.resolveExpression(tokens: Array(param[(equal + 1)...]), infer: ptypeOrAuto)
-                defaults[i] = exp
-                ptype = try ptypeOrAuto ?? exp.getType(context: context, infer: SimpleType.mixed)
-            } else if equal == param.endIndex {
-                guard let ptypeOrAuto = ptypeOrAuto else {
-                    throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Cannot infer parameter type without a default parameter value"))
-                }
-                ptype = ptypeOrAuto
-            } else {
-                throw DiagnosticCompileError(notice: Notice(token: param[equal], severity: .error, source: .generator, message: "Expected default parameter value after the equal sign"))
+                varType = par.type
             }
             // NEW: the parameter is now declared constant
-            context.variables.append(Variable(name: String(name.literal), type: ptype, final: true, compileTime: true))
-            pars.append(Parameter(name: String(name.literal), type: ptype, optional: optional))
+            context.variables.append(Variable(name: par.name, type: varType, final: true, compileTime: true))
+            pars.append(par)
         }
         
         generated = Function(ns: NameSpaces.none, name: String(name.literal), parameters: pars, returnType: returnType, varargs: varargs, storage: .block(self))
         context.imports.append(generated)
+    }
+    
+    func parseParam(param: [Token], i: Int, context: BlockCompilingContext, varargs: inout Bool, isLast: Bool) throws -> Parameter {
+        let equal = param.firstIndex(where: { $0.tokenType == .assignmentOperator }) ?? param.endIndex
+        guard equal >= 2 else {
+            throw DiagnosticCompileError(notice: Notice(token: Token(compound: param, type: .squareBrackets), severity: .error, source: .generator, message: "Expected parameter to have a type and name"))
+        }
+        
+        let last = param[equal - 1]
+        let optional: Bool
+        let name: Token
+        if last.tokenType == .varargs {
+            guard isLast else {
+                throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "The varargs '...' must be the last parameter"))
+            }
+            guard equal == param.endIndex else {
+                throw DiagnosticCompileError(notice: Notice(token: param[equal], severity: .error, source: .generator, message: "A parameter can't be both varargs and have a default value"))
+            }
+            varargs = true
+            optional = false // require at least 1 argument for some reason
+            name = param[equal - 2]
+        } else if last.literal == "?" {
+            guard equal == param.endIndex else {
+                throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "Do not specify '?' when having a default parameter value"))
+            }
+            optional = true
+            name = param[equal - 2]
+        } else {
+            optional = equal != param.endIndex
+            name = last
+        }
+        
+        // RESOLVE semantic token: variable
+        guard name.tokenType == .identifier else {
+            throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
+        }
+        
+        let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
+        let ptypeOrAuto: GRPHType?
+        if typeLit.literal == "auto" {
+            ptypeOrAuto = nil
+        } else if let type = GRPHTypes.parse(context: context, literal: String(typeLit.literal)) {
+            ptypeOrAuto = type
+        } else {
+            throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Could not find type '\(typeLit.literal)'"))
+        }
+        
+        let ptype: GRPHType
+        if equal < param.endIndex - 1 {
+            let exp = try context.generator.resolveExpression(tokens: Array(param[(equal + 1)...]), infer: ptypeOrAuto)
+            defaults[i] = exp
+            ptype = try ptypeOrAuto ?? exp.getType(context: context, infer: SimpleType.mixed)
+        } else if equal == param.endIndex {
+            guard let ptypeOrAuto = ptypeOrAuto else {
+                throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Cannot infer parameter type without a default parameter value"))
+            }
+            ptype = ptypeOrAuto
+        } else {
+            throw DiagnosticCompileError(notice: Notice(token: param[equal], severity: .error, source: .generator, message: "Expected default parameter value after the equal sign"))
+        }
+        return Parameter(name: String(name.literal), type: ptype, optional: optional)
     }
 }
