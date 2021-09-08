@@ -19,6 +19,13 @@ struct GraphismCLI: ParsableCommand {
           help: "Only compiles the code and checks for compile errors, without running it")
     var onlyCheck: Bool = false
     
+    @Flag(help: "Dumps AST and exits. No other compiling phase will be run.")
+    var dumpAst: Bool = false
+    
+    @Flag(name: [.long],
+          help: "Dumps WDIU code and exits. Equivalent to '--wdiu -c'")
+    var dumpWdiu: Bool = false
+    
     @Flag(help: "Enables WDIU code dump")
     var wdiu = false
     
@@ -31,23 +38,38 @@ struct GraphismCLI: ParsableCommand {
     @Argument(help: "The input file to read, as an utf8 encoded grph file")
     var input: String
     
+    mutating func validate() throws {
+        if dumpWdiu {
+            onlyCheck = true
+            wdiu = true
+        }
+        if (onlyCheck || dumpAst) && (debug || step != nil) {
+            throw ValidationError("Incompatible options given, cannot have debug options when running is disabled")
+        }
+    }
+    
     // That way, the compiler will be deallocated when not needed anymore
     func createRuntime() throws -> (GRPHGenerator, GRPHRuntime) {
         let lexer = GRPHLexer()
         let lines = lexer.parseDocument(content: try String(contentsOfFile: input, encoding: .utf8))
         
         for diag in lexer.diagnostics {
-            print(diag.represent())
+            print(diag.representNicely())
         }
         guard !lexer.diagnostics.contains(where: { $0.severity == .error }) else {
             throw ExitCode.failure
+        }
+        
+        if dumpAst {
+            print(lines.map { $0.dumpAST() }.joined(separator: "\n"))
+            throw ExitCode.success
         }
         
         let compiler = GRPHGenerator(lines: lines)
         let result = compiler.compile()
         
         for diag in compiler.diagnostics {
-            print(diag.represent())
+            print(diag.representNicely())
         }
         
         guard result else {
@@ -58,7 +80,6 @@ struct GraphismCLI: ParsableCommand {
             compiler.dumpWDIU()
         }
         if onlyCheck {
-            print("Code compiled successfully")
             throw ExitCode.success
         }
         let runtime = GRPHRuntime(instructions: compiler.instructions, globalVariables: TopLevelCompilingContext.defaultVariables.filter { !$0.compileTime }, image: GImage(delegate: {}))
