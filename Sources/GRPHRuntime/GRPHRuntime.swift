@@ -10,10 +10,10 @@ import GRPHValues
 
 typealias Method = GRPHValues.Method
 
-class GRPHRuntime {
+public class GRPHRuntime {
     
     // Debugging
-    var debugging: Bool = false {
+    public var debugging: Bool = false {
         didSet {
             if debugging && context != nil {
                 for v in context.allVariables {
@@ -22,21 +22,21 @@ class GRPHRuntime {
             }
         }
     }
-    var debugStep: TimeInterval = 0
-    var debugSemaphore = DispatchSemaphore(value: 0)
+    public var debugStep: TimeInterval = 0
+    public var debugSemaphore = DispatchSemaphore(value: 0)
     
     var initialGlobalVariables: [Variable]
     var instructions: [Instruction]
     var timestamp: Date!
-    var context: RuntimeContext!
+    public var context: RuntimeContext!
     
-    var localFunctions: [Function] = []
+    public var localFunctions: [Function] = []
     
-    var image: GImage
+    public var image: GImage
     
     var settings: [RuntimeSetting: Bool] = [:]
     
-    init(instructions: [Instruction], globalVariables: [Variable], image: GImage) {
+    public init(instructions: [Instruction], globalVariables: [Variable], image: GImage) {
         self.instructions = instructions
         self.initialGlobalVariables = globalVariables
         self.image = image
@@ -49,7 +49,7 @@ class GRPHRuntime {
 //        self.localFunctions = compiler.imports.compactMap { $0 as? Function }.filter { $0.ns.isEqual(to: NameSpaces.none) }
 //    }
     
-    func run() -> Bool {
+    public func run() -> Bool {
         timestamp = Date()
         context = TopLevelRuntimeContext(runtime: self)
         do {

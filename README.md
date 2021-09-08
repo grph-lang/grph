@@ -11,7 +11,7 @@ To see the shapes animate, for now, check out [the legacy project](https://githu
 - GRPHGenerator: Second phase of the compiler, transforms the AST to Instructions
 - GRPHValues: Common types used in GRPH: contains instructions, expressions, namespaces, functions, methods, types, properties, variables, value types, shapes, etc.
 - GRPHRuntime: The runtime, implementing the standard library
-- CLI: (soon) The command line compiler and runner, headless (so no animations)
+- CLI: The command line compiler and runner, headless (so no animations)
 - GRPHLSP: (maybe soon) The language server for GRPH, compatible with all IDEs implementing LSP
 - IRGen: (probably never) New optional phase of the compiler, transforms Instructions into LLVM IR
 

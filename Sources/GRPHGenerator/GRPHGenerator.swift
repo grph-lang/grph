@@ -8,30 +8,30 @@
 import GRPHLexer
 import GRPHValues
 
-class GRPHGenerator: GRPHCompilerProtocol {
-    var imports: [Importable] = [NameSpaces.namespace(named: "standard")!]
+public class GRPHGenerator: GRPHCompilerProtocol {
+    public var imports: [Importable] = [NameSpaces.namespace(named: "standard")!]
     
-    var hasStrictUnboxing: Bool = false
-    var hasStrictBoxing: Bool = false
+    public var hasStrictUnboxing: Bool = false
+    public var hasStrictBoxing: Bool = false
     
-    var lines: [Token]
+    public var lines: [Token]
     
-    var lineNumber = 0
+    public var lineNumber = 0
     
     var blockCount = 0
-    var instructions: [Instruction] = []
+    public var instructions: [Instruction] = []
     
     var nextLabel: Token?
     
-    var context: CompilingContext!
+    public var context: CompilingContext!
     
     public private(set) var diagnostics: [Notice] = []
     
-    init(lines: [Token]) {
+    public init(lines: [Token]) {
         self.lines = lines
     }
     
-    func compile() -> Bool {
+    public func compile() -> Bool {
         context = TopLevelCompilingContext(compiler: self)
         for line in lines {
             let trimmed = trimUselessStuff(children: line.children)
@@ -80,7 +80,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
         }
         closeBlocks(tabs: 0)
         context = nil
-        return true
+        return !diagnostics.contains(where: { $0.severity == .error })
     }
     
     func resolveInstruction(children: [Token]) throws -> ResolvedInstruction? {
@@ -611,7 +611,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
         }
     }
     
-    func resolveExpression(tokens _tokens: [Token], infer: GRPHType?) throws -> Expression {
+    public func resolveExpression(tokens _tokens: [Token], infer: GRPHType?) throws -> Expression {
         // whitespaces are never useful in individual expressions
         // they are in instructions for method calls
         // otherwise, they always will be inside .squareBrackets or .parentheses
@@ -935,7 +935,7 @@ class GRPHGenerator: GRPHCompilerProtocol {
         }
     }
     
-    func trimUselessStuff(children: [Token]) -> [Token] {
+    public func trimUselessStuff(children: [Token]) -> [Token] {
         var slice = children[...]
         
         while shouldTrim(type: slice.first?.tokenType) {
@@ -997,6 +997,16 @@ class GRPHGenerator: GRPHCompilerProtocol {
         } else {
             currentBlock!.children.append(instruction)
         }
+    }
+    
+    public func dumpWDIU() {
+        print("[WDIU START]")
+        var builder = ""
+        for line in instructions {
+            builder += line.toString(indent: "\t")
+        }
+        print(builder, terminator: "")
+        print("[WDIU END]")
     }
     
     // Those come from GRPHCompiler — ugly & dirty
@@ -1069,8 +1079,8 @@ class GRPHGenerator: GRPHCompilerProtocol {
     }
 }
 
-struct DiagnosticCompileError: Error {
-    var notice: Notice
+public struct DiagnosticCompileError: Error {
+    public var notice: Notice
 }
 
 extension CompilingContext {

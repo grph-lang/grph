@@ -12,7 +12,7 @@ protocol RunnableExpression: Expression {
     func eval(context: RuntimeContext) throws -> GRPHValue
 }
 
-extension Expression {
+public extension Expression {
     func evalIfRunnable(context: RuntimeContext) throws -> GRPHValue {
         if let self = self as? RunnableExpression {
             return try self.eval(context: context)
