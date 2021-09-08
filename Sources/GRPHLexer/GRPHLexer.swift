@@ -503,9 +503,19 @@ public class GRPHLexer {
         case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound:
             assertionFailure("tried to validate an already validated token")
         }
-        // TODO squash the namespace identifiers
         
-        // Squashing tokens
+        performSquashing(token: &token)
+        performUnsquashing(token: &token)
+        
+        // recurse
+        token.children = token.children.map {
+            var copy = $0
+            performTokenDetection(token: &copy)
+            return copy
+        }
+    }
+    
+    func performSquashing(token: inout Token) {
         var i = 0
         var squashingResult: [Token] = []
         while i < token.children.count {
@@ -538,13 +548,26 @@ public class GRPHLexer {
             }
         }
         token.children = squashingResult
-        
-        // recurse
-        token.children = token.children.map {
-            var copy = $0
-            performTokenDetection(token: &copy)
-            return copy
+    }
+    
+    func performUnsquashing(token: inout Token) {
+        var i = 0
+        var squashingResult: [Token] = []
+        while i < token.children.count {
+            let current = token.children[i]
+            if current.tokenType == .posLiteral,
+               current.literal.hasSuffix(",") {
+                // invalid posLiteral, fix it
+                squashingResult.append(Token(lineNumber: token.lineNumber, lineOffset: current.lineOffset, literal: current.literal.dropLast(), tokenType: .numberLiteral))
+                let commaIndex = current.literal.index(before: current.literal.endIndex)
+                squashingResult.append(Token(lineNumber: token.lineNumber, lineOffset: commaIndex, literal: current.literal[commaIndex..<current.literal.endIndex], tokenType: .comma))
+                i += 1
+            } else {
+                squashingResult.append(token.children[i])
+                i += 1
+            }
         }
+        token.children = squashingResult
     }
 }
 
