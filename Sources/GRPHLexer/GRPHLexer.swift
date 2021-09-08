@@ -329,7 +329,7 @@ public class GRPHLexer {
     public func tokenDetectLine(line: inout Token) {
         performTokenDetection(token: &line)
         
-        let stripped = line.strippedChildren
+        let stripped = line.children.stripped
         // [.indent, .commandName, .identifier, value(s)...]
         if stripped.count >= 4,
            stripped[1].literal == "#compiler" {

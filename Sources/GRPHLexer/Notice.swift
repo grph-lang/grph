@@ -31,11 +31,14 @@ public struct Notice {
 public extension Notice {
     func represent() -> String {
         // remove tabs as they mess everything up with their wider size
-        let base = token.literal.base.replacingOccurrences(of: "\t", with: "")
-        var msg = String(base) + "\n"
+        let base = token.literal.base
+        var msg = base.replacingOccurrences(of: "\t", with: " ") + "\n"
         msg += String(repeating: " ", count: base.distance(from: base.startIndex, to: token.lineOffset))
         msg += String(repeating: "^", count: token.literal.count)
         msg += "\n\(severity): \(message)"
+        if let hint = hint {
+            msg += "\nhint: \(hint)"
+        }
         return msg
     }
 }

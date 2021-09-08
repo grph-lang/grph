@@ -42,11 +42,6 @@ extension Token {
         return head + children.map { $0.represent(indent: indent + "    ") }.joined()
     }
     
-    /// The children, removing all whitespace characters in immediate children
-    public var strippedChildren: [Token] {
-        children.stripped
-    }
-    
     /// Removes absolutely all whitespaces in the token. Should only be used for cleaning debug data, as whitespaces are necessary for splitting arguments.
     internal mutating func stripWhitespaces() {
         children = children.filter { $0.tokenType != .whitespace }.map {
