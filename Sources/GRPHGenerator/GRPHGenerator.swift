@@ -584,8 +584,30 @@ class GRPHGenerator: GRPHCompilerProtocol {
                         throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function or method '\(name.literal)'"))
                     }
                 }
+            } else if TokenMatcher(.type(.identifier), .literal(">"), .type(.identifier), .type(.squareBrackets)).matches(tokens: tokens) {
+                // RESOLVE semantic tokens: namespace, function
+                guard let ns = NameSpaces.namespace(named: tokens[0].description) else {
+                    throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[0].literal)'"))
+                }
+                let name = tokens[2]
+                guard let function = Function(imports: imports, namespace: ns, name: name.description) else {
+                    throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function '\(name.literal)' in namespace '\(ns.name)'"))
+                }
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[3].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+            } else if TokenMatcher(types: .identifier, .squareBrackets).matches(tokens: tokens) {
+                // RESOLVE semantic tokens: function
+                let name = tokens[0]
+                guard let function = Function(imports: imports, namespace: NameSpaces.none, name: name.description) else {
+                    throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function '\(name.literal)' in scope"))
+                }
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+            } else if TokenMatcher(types: .identifier, .lambdaHatOperator, .squareBrackets).matches(tokens: tokens) {
+                // RESOLVE semantic tokens: variable
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FuncRefCallExpression(ctx: context, varName: tokens[0].description, values: tokens[2].children.split(on: .ignoreableWhiteSpace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+            } else if let exp = try? resolveExpression(tokens: tokens, infer: nil) as? ArrayValueExpression, exp.removing {
+                return ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: exp))
             }
-            throw GRPHCompileError(type: .unsupported, message: "compiler ain't ready")
+            throw GRPHCompileError(type: .parse, message: "Could not resolve instruction")
         }
     }
     
