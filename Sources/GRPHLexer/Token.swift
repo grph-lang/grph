@@ -49,7 +49,7 @@ extension Token {
     
     /// Removes absolutely all whitespaces in the token. Should only be used for cleaning debug data, as whitespaces are necessary for splitting arguments.
     internal mutating func stripWhitespaces() {
-        children = children.filter { $0.tokenType != .ignoreableWhiteSpace }.map {
+        children = children.filter { $0.tokenType != .whitespace }.map {
             var copy = $0
             copy.stripWhitespaces()
             return copy
@@ -74,7 +74,7 @@ extension Token {
 extension Collection where Element == Token {
     /// Removes all `ignoreableWhiteSpace` directly in the array
     public var stripped: [Token] {
-        filter { $0.tokenType != .ignoreableWhiteSpace }
+        filter { $0.tokenType != .whitespace }
     }
     
     public func split(on separator: TokenType) -> [[Token]] {

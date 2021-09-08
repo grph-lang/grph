@@ -71,12 +71,12 @@ public class GRPHLexer {
                     let resolved = newTokenType(previous: currentTokenType, char: char)
                     hierarchy.append(Token(lineNumber: lineNumber, lineOffset: index, literal: "", tokenType: resolved))
                     if resolved == .squareBrackets || resolved == .parentheses || resolved == .curlyBraces {
-                        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
+                        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .whitespace))
                     }
                 }
             case .satisfiesAndTerminates:
                 popHierarchyClosing(index: index)
-                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
+                hierarchy.append(Token(lineNumber: lineNumber, lineOffset: content.index(after: index), literal: "", tokenType: .whitespace))
             case .satisfiesAndCloses:
                 popHierarchyClosing(index: index)
             case .satisfiesSubToken(let subtokenType):
@@ -160,7 +160,7 @@ public class GRPHLexer {
         default:
             return false
         }
-        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: line.index(after: index), literal: "", tokenType: .ignoreableWhiteSpace))
+        hierarchy.append(Token(lineNumber: lineNumber, lineOffset: line.index(after: index), literal: "", tokenType: .whitespace))
         return true
     }
     
@@ -179,7 +179,7 @@ public class GRPHLexer {
     /// - Returns: what to do with that character (include in previous token? new token? change token type? include and close token?)
     func satisfies(tokenType: TokenType, char: Character) -> SatisfiesResult {
         switch tokenType {
-        case .ignoreableWhiteSpace:
+        case .whitespace:
             return char.isWhitespace ? .satisfies : .newToken
         case .indent:
             return .newToken // indentation is fully parsed before this phase. just a start of line, always a new token
@@ -273,7 +273,7 @@ public class GRPHLexer {
     /// - Returns: the token type of this new token
     func newTokenType(previous: TokenType, char: Character) -> TokenType {
         if char.isWhitespace {
-            return .ignoreableWhiteSpace
+            return .whitespace
         }
         if char.isASCII {
             if char.isNumber {
@@ -314,7 +314,7 @@ public class GRPHLexer {
         case "{":
             return .curlyBraces
         case "]", ")", "}":
-            return .ignoreableWhiteSpace // only happens for unmatched braces, we decide to ignore them (error already triggered)
+            return .whitespace // only happens for unmatched braces, we decide to ignore them (error already triggered)
         default:
             return .unresolved
         }
@@ -400,7 +400,7 @@ public class GRPHLexer {
     /// - Parameter token: the token to update. it's type and stored data may change, and this will happen recursively with all its children
     func performTokenDetection(token: inout Token) {
         switch token.tokenType {
-        case .ignoreableWhiteSpace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword, .varargs:
+        case .whitespace, .indent, .comment, .docComment, .commentContent, .label, .commandName, .stringLiteralEscapeSequence, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .line, .assignmentOperator, .keyword, .varargs:
             break // nothing to do
         case .identifier:
             switch token.literal {

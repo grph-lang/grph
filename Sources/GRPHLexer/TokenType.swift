@@ -9,7 +9,7 @@ import Foundation
 
 public enum TokenType {
     /// Insignificant whitespace, that gets removed at a later stage. This is also used to separate tokens, so the token literal may be empty.
-    case ignoreableWhiteSpace
+    case whitespace
     /// Indentation at the beginning of a line. Not necessarily whitespace
     case indent
     /// An ignoreable comment (starting with `//`). Supports children of type `commentContent`.
