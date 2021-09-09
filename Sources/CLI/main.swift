@@ -77,6 +77,7 @@ struct GraphismCLI: ParsableCommand {
         
         let compiler = GRPHGenerator(lines: lines)
         if highlight {
+            compiler.ignoreErrors = true
             compiler.resolvedSemanticTokens = []
         }
         let result = compiler.compile()

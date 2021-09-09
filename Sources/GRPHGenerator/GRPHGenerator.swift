@@ -29,6 +29,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     /// To start capturing semantic tokens, set this to an empty array. If nil, none will be captured.
     public var resolvedSemanticTokens: [Token]?
+    public var ignoreErrors = false
     
     public init(lines: [Token]) {
         self.lines = lines
@@ -60,13 +61,16 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     }
                 }
             } catch let error as DiagnosticCompileError {
+                if ignoreErrors {
+                    continue
+                }
                 diagnostics.append(error.notice)
                 context = nil
                 return false
             } catch let error as GRPHCompileError {
-//                if compilerSettings.contains(.ignoreErrors) || compilerSettings.contains(.ignore(error.type)) {
-//                    continue
-//                }
+                if ignoreErrors {
+                    continue
+                }
                 // no more specific error: add this fallback diagnostic
                 if !diagnostics.contains(where: { $0.token.lineNumber == lineNumber && $0.severity == .error }) {
                     diagnostics.append(Notice(token: line, severity: .error, source: .generator, message: "\(error.type.rawValue)Error: \(error.message)"))
@@ -437,6 +441,16 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     }
                     hasStrictUnboxing = value
                     hasStrictBoxing = value
+                case "ignore":
+                    context.generator.resolveSemanticToken(tokens[2].withType(.keyword))
+                    switch tokens[2].literal {
+                    case "errors", "Error":
+                        ignoreErrors = true
+                    case "reset", "nothing":
+                        ignoreErrors = false
+                    default:
+                        throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected value to be 'errors' or 'reset'"))
+                    }
                 default:
                     throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Unknown compiler key"))
                 }
