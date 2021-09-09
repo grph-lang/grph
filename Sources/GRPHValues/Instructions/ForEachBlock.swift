@@ -16,23 +16,30 @@ public struct ForEachBlock: BlockInstruction {
     public let array: Expression
     public let inOut: Bool
     
-    public init(lineNumber: Int, context: inout CompilingContext, varName: String, array: Expression) throws {
-        self.inOut = varName.hasPrefix("&") // new in Swift Edition
-        self.varName = inOut ? String(varName.dropFirst()) : varName
+    public init(lineNumber: Int, context: inout CompilingContext, inOut: Bool, varName: String, array: Expression) throws {
+        self.varName = varName
+        self.inOut = inOut
         self.array = try GRPHTypes.autobox(context: context, expression: array, expected: SimpleType.mixed.inArray)
         self.lineNumber = lineNumber
         let ctx = createContext(&context)
         
-        let type = try array.getType(context: context, infer: SimpleType.mixed.inArray)
+        let type = try self.array.getType(context: context, infer: SimpleType.mixed.inArray)
         
         guard let arrtype = type as? ArrayType else {
             throw GRPHCompileError(type: .typeMismatch, message: "#foreach needs an array, a \(type) was given")
         }
-        
-        guard VariableDeclarationInstruction.varNameRequirement.firstMatch(string: self.varName) != nil else {
-            throw GRPHCompileError(type: .parse, message: "Illegal variable name \(self.varName)")
-        }
         ctx.variables.append(Variable(name: self.varName, type: arrtype.content, final: !inOut, compileTime: true))
+    }
+    
+    public init(lineNumber: Int, context: inout CompilingContext, varName: String, array: Expression) throws {
+        let inOut = varName.hasPrefix("&") // new in Swift Edition
+        let name = inOut ? String(varName.dropFirst()) : varName
+        
+        guard VariableDeclarationInstruction.varNameRequirement.firstMatch(string: name) != nil else {
+            throw GRPHCompileError(type: .parse, message: "Illegal variable name \(name)")
+        }
+        
+        try self.init(lineNumber: lineNumber, context: &context, inOut: inOut, varName: name, array: array)
     }
     
     public var name: String { "foreach \(inOut ? "&" : "")\(varName) : \(array.string)" }

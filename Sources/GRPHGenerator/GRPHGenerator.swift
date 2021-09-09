@@ -233,11 +233,20 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 guard split.count == 2 else {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve foreach syntax, '#foreach varName : array' expected"))
                 }
-                // TODO: the inout & shouldn't be part of the var name !!!
-                // Also, only set .readonly if not inout
-                let variable = Token(compound: split[0], type: .variable)
-                context.generator.resolveSemanticToken(variable.withModifiers([.declaration, .definition, .readonly]))
-                return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, context: &context, varName: variable.description, array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
+                let variable: Token
+                let inOut: Bool
+                switch split[0] {
+                case TokenMatcher("&", .type(.identifier)):
+                    inOut = true
+                    variable = split[0][1]
+                case TokenMatcher(.type(.identifier)):
+                    inOut = false
+                    variable = split[0][0]
+                default:
+                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: split[0], type: .squareBrackets), severity: .error, source: .generator, message: "Expected a variable name in '#foreach' syntax"))
+                }
+                context.generator.resolveSemanticToken(variable.withModifiers([.declaration, .definition, inOut ? .none : .readonly]))
+                return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, context: &context, inOut: inOut, varName: variable.description, array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
             case "#try":
                 return ResolvedInstruction(instruction: TryBlock(context: &context, lineNumber: lineNumber))
             case "#catch":
