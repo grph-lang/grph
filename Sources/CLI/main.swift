@@ -84,7 +84,7 @@ struct GraphismCLI: ParsableCommand {
         
         if highlight {
             for line in lines {
-                print(line.highlighted(semanticTokens: compiler.resolvedSemanticTokens!.filter({ $0.lineNumber == line.lineNumber })))
+                print(line.highlighted(semanticTokens: compiler.resolvedSemanticTokens!.map { $0.token }.filter({ $0.lineNumber == line.lineNumber })))
             }
             throw ExitCode.success
         }
