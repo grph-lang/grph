@@ -23,7 +23,7 @@ extension FunctionDeclarationBlock {
         }
         
         let name = tokens[paramsIndex - 1]
-        // RESOLVE semantic token: function
+        context.generator.resolveSemanticToken(name.withType(.function))
         guard name.tokenType == .identifier && name.literal.allSatisfy({ $0.isLetter || $0 == "_" }) else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Expected function name to only contain letters and underscores"))
         }
@@ -37,6 +37,7 @@ extension FunctionDeclarationBlock {
         } else {
             throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Could not find type '\(typeLit.literal)'"))
         }
+        context.generator.resolveSemanticToken(typeLit)
         
         let returnType: GRPHType
         if tokens.count == paramsIndex + 1 {
@@ -116,12 +117,11 @@ extension FunctionDeclarationBlock {
             name = last
         }
         
-        // RESOLVE semantic token: variable
         guard name.tokenType == .identifier else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
+        context.generator.resolveSemanticToken(name.withType(.variable))
         
-        // RESOLVE semantic token: type
         let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
         let ptypeOrAuto: GRPHType?
         if typeLit.literal == "auto" {
@@ -131,6 +131,7 @@ extension FunctionDeclarationBlock {
         } else {
             throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Could not find type '\(typeLit.literal)'"))
         }
+        context.generator.resolveSemanticToken(typeLit)
         
         let ptype: GRPHType
         if equal < param.endIndex - 1 {

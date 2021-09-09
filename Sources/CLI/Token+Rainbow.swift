@@ -16,7 +16,16 @@ extension Token {
         return head + children.map { $0.dumpAST(indent: indent + "    ") }.joined()
     }
     
-    func highlighted() -> String {
+    // semantic tokens must all be on the correct line
+    func highlighted(semanticTokens: [Token] = []) -> String {
+        
+        // matches are either exact same, or bigger
+        if let match = semanticTokens.first(where: { sem in
+            return sem.lineOffset <= self.lineOffset && self.literal.endIndex <= sem.literal.endIndex
+        }), let color = match.tokenType.color {
+            return description[keyPath: color]
+        }
+        
         if let color = tokenType.color {
             return description[keyPath: color]
         } else {
@@ -26,7 +35,7 @@ extension Token {
                 if i < child.lineOffset {
                     str += literal[i..<child.lineOffset]
                 }
-                str += child.highlighted()
+                str += child.highlighted(semanticTokens: semanticTokens)
                 i = child.literal.endIndex
             }
             if i < literal.endIndex {

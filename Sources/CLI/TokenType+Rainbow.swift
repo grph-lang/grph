@@ -30,6 +30,8 @@ extension TokenType {
             return \.lightRed
         case .type:
             return \.magenta
+        case .namespace:
+            return \.yellow
         case .keyword, .nullLiteral, .booleanLiteral:
             return \.magenta.bold
         case .enumCase, .numberLiteral, .rotationLiteral, .posLiteral:

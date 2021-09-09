@@ -75,15 +75,18 @@ struct GraphismCLI: ParsableCommand {
             throw ExitCode.success
         }
         
+        let compiler = GRPHGenerator(lines: lines)
+        if highlight {
+            compiler.resolvedSemanticTokens = []
+        }
+        let result = compiler.compile()
+        
         if highlight {
             for line in lines {
-                print(line.highlighted())
+                print(line.highlighted(semanticTokens: compiler.resolvedSemanticTokens!.filter({ $0.lineNumber == line.lineNumber })))
             }
             throw ExitCode.success
         }
-        
-        let compiler = GRPHGenerator(lines: lines)
-        let result = compiler.compile()
         
         for diag in compiler.diagnostics {
             print(diag.representNicely())

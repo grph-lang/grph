@@ -37,6 +37,8 @@ public enum TokenType {
     case enumCase
     /// A #-command name
     case commandName
+    /// A namespace
+    case namespace
     
     /// true or false
     case booleanLiteral

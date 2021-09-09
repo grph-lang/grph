@@ -69,7 +69,7 @@ extension Token {
             switch child.tokenType {
             case .whitespace, .identifier, .type, .operator, .curlyBraces:
                 continue
-            case .indent, .comment, .docComment, .commentContent, .variable, .function, .method, .keyword, .label, .enumCase, .commandName, .booleanLiteral, .nullLiteral, .numberLiteral, .rotationLiteral, .posLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .assignmentOperator, .assignmentCompound, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .line, .unresolved, .varargs:
+            case .indent, .comment, .docComment, .commentContent, .variable, .function, .method, .keyword, .label, .enumCase, .commandName, .booleanLiteral, .nullLiteral, .numberLiteral, .rotationLiteral, .posLiteral, .stringLiteral, .fileLiteral, .stringLiteralEscapeSequence, .assignmentOperator, .assignmentCompound, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .comma, .dot, .slashOperator, .squareBrackets, .parentheses, .line, .unresolved, .varargs, .namespace:
                 return false
             }
         }

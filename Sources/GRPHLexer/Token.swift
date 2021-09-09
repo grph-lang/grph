@@ -64,6 +64,12 @@ extension Token {
     public var description: String {
         String(literal)
     }
+    
+    public func withType(_ type: TokenType) -> Token {
+        var copy = self
+        copy.tokenType = type
+        return copy
+    }
 }
 
 extension Collection where Element == Token {
