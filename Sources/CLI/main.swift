@@ -26,6 +26,10 @@ struct GraphismCLI: ParsableCommand {
           help: "Dumps WDIU code and exits. Equivalent to '--wdiu -c'")
     var dumpWdiu: Bool = false
     
+    @Flag(name: [.long, .customShort("s")],
+          help: "Dumps the code with syntax highlighting, for a terminal")
+    var highlight: Bool = false
+    
     @Flag(help: "Enables WDIU code dump")
     var wdiu = false
     
@@ -43,7 +47,13 @@ struct GraphismCLI: ParsableCommand {
             onlyCheck = true
             wdiu = true
         }
-        if (onlyCheck || dumpAst) && (debug || step != nil) {
+        if dumpAst && highlight {
+            throw ValidationError("Incompatible options given, cannot highlight and dump AST")
+        }
+        if (dumpAst || highlight) && wdiu {
+            throw ValidationError("Incompatible options given, cannot dump WDIU while dumping the AST")
+        }
+        if (onlyCheck || dumpAst || highlight) && (debug || step != nil) {
             throw ValidationError("Incompatible options given, cannot have debug options when running is disabled")
         }
     }
@@ -62,6 +72,13 @@ struct GraphismCLI: ParsableCommand {
         
         if dumpAst {
             print(lines.map { $0.dumpAST() }.joined(separator: "\n"))
+            throw ExitCode.success
+        }
+        
+        if highlight {
+            for line in lines {
+                print(line.highlighted())
+            }
             throw ExitCode.success
         }
         

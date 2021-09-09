@@ -121,6 +121,7 @@ extension FunctionDeclarationBlock {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
         
+        // RESOLVE semantic token: type
         let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
         let ptypeOrAuto: GRPHType?
         if typeLit.literal == "auto" {

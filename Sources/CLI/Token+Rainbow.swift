@@ -15,6 +15,26 @@ extension Token {
         
         return head + children.map { $0.dumpAST(indent: indent + "    ") }.joined()
     }
+    
+    func highlighted() -> String {
+        if let color = tokenType.color {
+            return description[keyPath: color]
+        } else {
+            var str = ""
+            var i = lineOffset
+            for child in children {
+                if i < child.lineOffset {
+                    str += literal[i..<child.lineOffset]
+                }
+                str += child.highlighted()
+                i = child.literal.endIndex
+            }
+            if i < literal.endIndex {
+                str += literal[i..<literal.endIndex]
+            }
+            return str
+        }
+    }
 }
 
 extension Notice.Severity {
