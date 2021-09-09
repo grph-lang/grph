@@ -20,7 +20,7 @@ extension TokenType {
             return \.lightGreen
         case .identifier:
             return \.clearColor
-        case .variable:
+        case .variable, .parameter, .property:
             return \.lightRed
         case .function:
             return \.blue
@@ -43,7 +43,7 @@ extension TokenType {
         case .stringLiteralEscapeSequence:
             return nil
         case .operator, .assignmentCompound, .assignmentOperator, .lambdaHatOperator, .labelPrefixOperator, .methodCallOperator, .dot, .comma, .slashOperator, .varargs:
-            return \.blue
+            return \.clearColor
         case .unresolved:
             return \.onRed
         }

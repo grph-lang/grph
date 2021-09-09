@@ -259,7 +259,7 @@ public class GRPHLexer {
             }
         case .squareBrackets, .parentheses, .curlyBraces:
             preconditionFailure("token type should never be current")
-        case .line, .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .varargs, .namespace:
+        case .line, .variable, .function, .method, .type, .keyword, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .varargs, .namespace, .property, .parameter:
             preconditionFailure("token type is never yielded at this point")
         case .unresolved:
             return .newToken
@@ -500,7 +500,7 @@ public class GRPHLexer {
             }
         case .unresolved:
             diagnostics.append(Notice(token: token, severity: .error, source: .lexer, message: "Unresolved token '\(token.literal)' in source"))
-        case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespace:
+        case .variable, .function, .method, .type, .enumCase, .booleanLiteral, .nullLiteral, .assignmentCompound, .namespace, .property, .parameter:
             assertionFailure("tried to validate an already validated token")
         }
         

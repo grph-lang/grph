@@ -906,7 +906,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         if TokenMatcher(types: .dot, .identifier).matches(tokens: tokens.suffix(2)) {
             let on = tokens[0..<(tokens.count - 2)]
             let field = tokens.last!
-            resolveSemanticToken(field.withType(.variable))
+            resolveSemanticToken(field.withType(.property))
             if field.literal.first!.isUppercase {
                 // constant property
                 let typeLiteral: Token

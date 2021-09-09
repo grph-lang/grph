@@ -120,7 +120,7 @@ extension FunctionDeclarationBlock {
         guard name.tokenType == .identifier else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
-        context.generator.resolveSemanticToken(name.withType(.variable))
+        context.generator.resolveSemanticToken(name.withType(.parameter))
         
         let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
         let ptypeOrAuto: GRPHType?

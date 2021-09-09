@@ -39,6 +39,10 @@ public enum TokenType {
     case commandName
     /// A namespace
     case namespace
+    /// A parameter name in a function definition
+    case parameter
+    /// A property of a type
+    case property
     
     /// true or false
     case booleanLiteral
