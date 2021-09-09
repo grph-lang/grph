@@ -142,13 +142,15 @@ struct GraphismCLI: ParsableCommand {
                 runtime.debugStep = Double(line.dropFirst(7))! / 1000 // Using milliseconds here for consistency with Java Edition
             case "setwait":
                 runtime.debugStep = Double(line.dropFirst(8))! // Using seconds here for consistency with command line argument
-            case "eval":
+            case "eval", "expr":
                 do {
                     guard let context = runtime.context else {
                         print("[EVAL ERR No context]")
                         break
                     }
-                    let tokens = GRPHLexer().parseLine(lineNumber: -1, content: String(line.dropFirst(5)))
+                    let lexer = GRPHLexer()
+                    var tokens = lexer.parseLine(lineNumber: -1, content: String(line.dropFirst(5)))
+                    lexer.tokenDetectLine(line: &tokens)
                     compiler.context = DebuggingCompilingContext(adapting: context, compiler: compiler)
                     let e = try compiler.resolveExpression(tokens: compiler.trimUselessStuff(children: tokens.children), infer: nil)
                     print("[EVAL OUT \(try e.evalIfRunnable(context: context))]")
