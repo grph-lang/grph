@@ -20,7 +20,7 @@ extension Token {
     func highlighted(semanticTokens: [Token] = []) -> String {
         
         // matches are either exact same, or bigger
-        if let match = semanticTokens.first(where: { sem in
+        if let match = semanticTokens.last(where: { sem in
             return sem.lineOffset <= self.lineOffset && self.literal.endIndex <= sem.literal.endIndex
         }), let color = match.tokenType.color {
             return description[keyPath: color]

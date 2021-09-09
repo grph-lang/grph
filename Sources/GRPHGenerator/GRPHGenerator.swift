@@ -444,7 +444,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case "#goto":
                 throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#goto has been removed"))
             case "#setting":
-                throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#setting isn't available in this version of GRPH"))
+                diagnostics.append(Notice(token: cmd, severity: .warning, source: .generator, message: "#setting isn't available in this version of GRPH"))
+                return nil
             default:
                 // note: #type has been removed
                 diagnostics.append(Notice(token: cmd, severity: .warning, source: .generator, message: "Unknown command '\(cmd.literal)'"))
@@ -685,8 +686,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     preconditionFailure("invalid rotationLiteral token")
                 }
             case .posLiteral:
-                if case .float(let x) = token.children[0].data,
-                   case .float(let y) = token.children[2].data {
+                if let x = token.children[0].data.asNumber,
+                   let y = token.children[2].data.asNumber {
                     return ConstantExpression(pos: Pos(x: x, y: y))
                 } else {
                     preconditionFailure("invalid posLiteral token")
@@ -739,6 +740,17 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
             }
             return try FunctionReferenceExpression(function: function, infer: infer)
+        case TokenMatcher(.type(.lambdaHatOperator), .type(.identifier), ">", .type(.identifier)): // ^ns>funcName
+            guard let ns = NameSpaces.namespace(named: String(tokens[1].literal)) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[1], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[1].literal)'"))
+            }
+            let name = String(tokens[3].literal)
+            resolveSemanticToken(tokens[1].withType(.namespace))
+            resolveSemanticToken(tokens[3].withType(.function))
+            guard let function = Function(imports: context.imports, namespace: ns, name: name) else {
+                throw DiagnosticCompileError(notice: Notice(token: tokens[3], severity: .error, source: .generator, message: "Could not find function '\(name)' in namespace '\(ns.name)'"))
+            }
+            return try FunctionReferenceExpression(function: function, infer: infer)
         case TokenMatcher(types: .identifier, .squareBrackets): // funcName[...]
             let name = String(tokens[0].literal)
             resolveSemanticToken(tokens[0].withType(.function))
@@ -785,6 +797,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
             } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
                 let content = inferParametrableContent(type.constructor)
+                resolveSemanticToken(compound)
                 return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content)})
             } else if compound.validTypeIdentifier {
                 diagnostics.append(Notice(token: compound, severity: .hint, source: .generator, message: "Couldn't parse '\(compound.literal)' as a type for constructor expression"))
@@ -938,6 +951,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: compound, severity: .error, source: .generator, message: "Could not infer cast type automatically"))
                 }
             } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
+                resolveSemanticToken(compound)
                 casting = type
             } else if compound.validTypeIdentifier {
                 // we aren't sure if its valid or an error yet. add it as a hint

@@ -22,26 +22,23 @@ extension LambdaExpression {
         for param in type.parameters {
             lambdaContext.addVariable(Variable(name: param.name, type: param.type, final: true, compileTime: true), global: false)
         }
+        let prevContext = compiler.context
+        compiler.context = lambdaContext
         
         let lambda: Lambda
         
         // if void
         if type.returnType.isTheVoid {
-            let prevContext = compiler.context
-            compiler.context = lambdaContext
-            
             let instruction: Instruction
             if token.children.isEmpty {
                 instruction = ExpressionInstruction(lineNumber: compiler.lineNumber, expression: ConstantPropertyExpression(property: SimpleType.void.staticConstants[0], inType: SimpleType.void))
-            } else if let resolved = try compiler.resolveInstruction(children: token.children)?.instruction {
+            } else if let resolved = try compiler.resolveInstruction(children: compiler.trimUselessStuff(children: token.children))?.instruction {
                 instruction = resolved
             } else {
                 throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Invalid instruction in void lambda"))
             }
             try lambdaContext.accepts(instruction: instruction)
             lambda = Lambda(currentType: type, instruction: instruction)
-            
-            compiler.context = prevContext
         } else {
             let expr = try compiler.resolveExpression(tokens: token.children, infer: type.returnType)
             let exprType = try expr.getType(context: lambdaContext, infer: type.returnType)
@@ -50,6 +47,8 @@ extension LambdaExpression {
             }
             lambda = Lambda(currentType: type, instruction: ExpressionInstruction(lineNumber: compiler.lineNumber, expression: expr))
         }
+        compiler.context = prevContext
+        
         self.init(lambda: lambda, capturedVarNames: Array(lambdaContext.capturedVarNames))
     }
 }

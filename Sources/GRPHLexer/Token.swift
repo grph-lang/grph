@@ -90,6 +90,17 @@ extension Token {
         case string(String)
         
         case none
+        
+        public var asNumber: Float? {
+            switch self {
+            case .integer(let int):
+                return Float(int)
+            case .float(let float):
+                return float
+            case .string(_), .none:
+                return nil
+            }
+        }
     }
 }
 
