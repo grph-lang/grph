@@ -19,6 +19,9 @@ let package = Package(
         .library(
             name: "GRPHRuntime",
             targets: ["GRPHRuntime"]),
+        .library(
+            name: "DocGen",
+            targets: ["DocGen"]),
         .executable(
             name: "CLI",
             targets: ["CLI"]),
@@ -40,6 +43,9 @@ let package = Package(
         .target(
             name: "GRPHGenerator",
             dependencies: ["GRPHLexer", "GRPHValues"]),
+        .target(
+            name: "DocGen",
+            dependencies: ["GRPHGenerator"]),
         .target(
             name: "GRPHRuntime",
             dependencies: ["GRPHValues"]),

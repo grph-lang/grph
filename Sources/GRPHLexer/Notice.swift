@@ -61,5 +61,7 @@ public extension Notice {
         case tokenDetector
         /// This problem was catched by the generator
         case generator
+        /// This problem was catched by the documentation generator
+        case docgen
     }
 }
