@@ -64,10 +64,10 @@ extension Notice {
     func representNicely() -> String {
         // remove tabs as they mess everything up with their wider size
         let base = token.literal.base
-        var msg = base.replacingOccurrences(of: "\t", with: " ") + "\n"
+        var msg = "file:\(token.lineNumber + 1):\(token.lineOffset.utf16Offset(in: base)): \(severity.colorfulDescription): \(message)\n"
+        msg += base.replacingOccurrences(of: "\t", with: " ") + "\n"
         msg += String(repeating: " ", count: base.distance(from: base.startIndex, to: token.lineOffset))
-        msg += String(repeating: "^", count: token.literal.count)
-        msg += "\n\(severity.colorfulDescription): \(message)"
+        msg += "^" + String(repeating: "~", count: max(0, token.literal.count - 1))
         if let hint = hint {
             msg += "\nhint: \(hint)"
         }
