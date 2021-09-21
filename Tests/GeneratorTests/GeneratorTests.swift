@@ -1,3 +1,14 @@
+//
+//  GeneratorTests.swift
+//  GRPH Tests
+//
+//  Created by Emil Pedersen on 01/09/2021.
+//
+//  This Source Code Form is subject to the terms of the Mozilla Public
+//  License, v. 2.0. If a copy of the MPL was not distributed with this
+//  file, You can obtain one at https://mozilla.org/MPL/2.0/.
+//
+
 import XCTest
 @testable import GRPHGenerator
 import GRPHLexer
