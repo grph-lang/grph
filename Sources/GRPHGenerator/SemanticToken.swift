@@ -14,6 +14,14 @@ public struct SemanticToken {
     
     public var modifiers: Modifiers
     
+    public var data: AssociatedData
+    
+    public init(token: Token, modifiers: SemanticToken.Modifiers, data: SemanticToken.AssociatedData) {
+        self.token = token
+        self.modifiers = modifiers
+        self.data = data
+    }
+    
     public struct Modifiers: OptionSet {
         public static let none: Self = []
         
@@ -31,11 +39,26 @@ public struct SemanticToken {
         
         public var rawValue: UInt32
     }
+    
+    public enum AssociatedData {
+        case function(Function)
+        case method(GRPHValues.Method)
+        case variable(Variable)
+        case property(Property)
+        case constructor(Constructor)
+        case identifier(String)
+        
+        case none
+    }
 }
 
 extension Token {
-    func withModifiers(_ modifiers: SemanticToken.Modifiers) -> SemanticToken {
-        SemanticToken(token: self, modifiers: modifiers)
+    func withModifiers(_ modifiers: SemanticToken.Modifiers, data: SemanticToken.AssociatedData? = nil) -> SemanticToken {
+        SemanticToken(token: self, modifiers: modifiers, data: data ?? .none)
+    }
+    
+    func forVariable(_ variable: Variable?) -> SemanticToken {
+        withModifiers(variable?.semantic ?? [], data: variable.map( { .variable($0) }))
     }
 }
 

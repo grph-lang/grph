@@ -23,7 +23,9 @@ extension FunctionDeclarationBlock {
         }
         
         let name = tokens[paramsIndex - 1]
-        context.generator.resolveSemanticToken(name.withType(.function).withModifiers([.declaration, .definition]))
+        defer { // make sure generated is set (or use .none if we fail parsing)
+            context.generator.resolveSemanticToken(name.withType(.function).withModifiers([.declaration, .definition], data: generated.map { .function($0) }))
+        }
         guard name.tokenType == .identifier && name.literal.allSatisfy({ $0.isLetter || $0 == "_" }) else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Expected function name to only contain letters and underscores"))
         }
@@ -120,6 +122,7 @@ extension FunctionDeclarationBlock {
         guard name.tokenType == .identifier else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
+        // no variable data as .parameter is handled in a special way (uses function documentation)
         context.generator.resolveSemanticToken(name.withType(.parameter).withModifiers([.declaration]))
         
         let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)

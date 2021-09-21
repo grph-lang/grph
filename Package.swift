@@ -45,7 +45,8 @@ let package = Package(
             dependencies: ["GRPHLexer", "GRPHValues"]),
         .target(
             name: "DocGen",
-            dependencies: ["GRPHGenerator"]),
+            dependencies: ["GRPHGenerator"],
+            resources: [.process("builtins.grph")]),
         .target(
             name: "GRPHRuntime",
             dependencies: ["GRPHValues"]),
@@ -61,6 +62,6 @@ let package = Package(
             dependencies: ["GRPHLexer"]),
         .testTarget(
             name: "GeneratorTests",
-            dependencies: ["GRPHGenerator"]),
+            dependencies: ["DocGen"]),
     ]
 )

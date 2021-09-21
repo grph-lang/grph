@@ -15,14 +15,16 @@ public class Variable {
     private(set) public var content: GRPHValue?
     
     public let compileTime: Bool
+    public let builtin: Bool
     
     public let final: Bool
     
-    public init(name: String, type: GRPHType, content: GRPHValue? = nil, final: Bool, compileTime: Bool = false) {
+    public init(name: String, type: GRPHType, content: GRPHValue? = nil, final: Bool, builtin: Bool = false, compileTime: Bool = false) {
         self.name = name
         self.type = type
         self.content = content
         self.final = final
+        self.builtin = builtin
         self.compileTime = compileTime
     }
     

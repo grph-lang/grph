@@ -1,0 +1,2220 @@
+
+#builtin namespace standard
+
+/// Creates a color with specified red, green, blue and alpha.
+/// @since GRPH 1.0
+/// @param red Red component beetween 0 and 255 inclusive.
+/// @param green Green component beetween 0 and 255 inclusive.
+/// @param blue Blue component beetween 0 and 255 inclusive.
+/// @param alpha Optional. Alpha as a float. Its default value is 1F.
+/// @see colorFromInt
+/// @see linear
+/// @see radial
+#builtin function color color[integer red, integer green, integer blue, float alpha?]
+
+/// Creates a color with an 32-bit integer specifying red, green, blue and alpha components.<br/>It is the same as color'[[[value >> 16] & 0xFF] [[value >> 8] & 0xFF] [value & 0xFF] [[value >> 24] & 0xFF]]'.
+/// @since GRPH 1.0
+/// @param value The integer.
+/// @see color
+#builtin function color colorFromInteger[integer value]
+
+/// Creates a linear gradient with specified colors and direction.
+/// @since GRPH 1.0
+/// @param from First color
+/// @param direction Direction to paint
+/// @param to Second color
+/// @see color
+/// @see radial
+#builtin function linear linear[color from, direction direction, color to]
+
+/// Creates a radial gradient with specified colors and points.
+/// @since GRPH 1.0
+/// @param centerColor The color at the center
+/// @param center The center position as floats of the shape
+/// @param externalColor The outer color
+/// @param radius The radius as a float ; 0.5 for a balanced gradient.
+/// @param focus Optional. The position of the centerColor as floats of the shape
+/// @see color
+/// @see linear
+#builtin function radial radial[color centerColor, pos center, color externalColor, float radius, pos focus?]
+
+/// Returns whether the file exists.
+/// @since GRPH 1.0
+/// @param file The file to test
+/// @see bytes
+#builtin function boolean exists[file file]
+
+/// Returns the number of bytes in the file. Returns -1 if it doesn't exists.
+/// @since GRPH 1.0
+/// @param file The file
+/// @see exists
+#builtin function integer bytes[file file]
+
+/// Returns the dimension of the image representation of the file. If this image doesn't point to an image or it doesn't exists, it crashes.
+/// @since GRPH 1.0
+/// @param file The image file
+#builtin function pos imageDimension[file file]
+
+/// Creates an integer from a string. The content of the string must only contain the integer.<br/>As of 1.4, It can be in hexadecimal by adding a '0x' or a '#' at the beginning, in octal if it begins with '0' or in decimal by default. To make it negative, add a minus as first character.
+/// @since GRPH 1.0
+/// @param string The string to decode
+#builtin function integer stringToInteger[string string]
+
+/// Creates an float from a string. The string may contain a trailing F.
+/// @since GRPH 1.0
+/// @param string The string to parse
+#builtin function float stringToFloat[string string]
+
+/// Returns the string representation of the parameters, separated with spaces. If you want no separation, use concat.
+/// @since GRPH 1.0
+/// @param values... The objects to convert
+/// @see concat
+#builtin function string toString[mixed values...]
+
+/// Returns the string representation of the joined parameters, without separation, unlike toString.
+/// @since GRPH 1.4
+/// @param values... The objects to convert and concat
+/// @see toString
+#builtin function string concat[mixed values...]
+
+/// Write the parameters to standard output. All the parameters are converted to string and separated with spaces. Returns the printed string.
+/// @since GRPH 1.0
+/// @param text... The objects to print
+/// @see toString
+#builtin function string log[mixed text...]
+
+/// Gets the rotation of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see setRotation
+/// @see rotate
+#builtin function rotation getRotation[shape shape]
+
+/// Gets the position of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see setPosition
+/// @see translate
+#builtin function pos getPosition[shape shape]
+
+/// Gets the size of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see setSize
+/// @see grow
+#builtin function pos getSize[shape shape]
+
+/// Gets the center of the given shape. It is equal to the center of the bounds of the shape.If the shape is a path, the bounds will also contains the control points.
+/// @since GRPH 1.1
+/// @param shape The shape
+/// @see getRotationCenter
+#builtin function pos getCenterPoint[shape shape]
+
+/// Gets the name of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see setName
+#builtin function string getName[shape shape]
+
+/// Gets the paint of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+#builtin function paint getPaint[shape shape]
+
+/// Gets the stroke width of the given shape. If the shape is filled, the last value, or 5 by default, is returned.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see getStrokeType
+/// @see getStrokeDashArray
+/// @see setStroke
+#builtin function float getStrokeWidth[shape shape]
+
+/// Gets the stroke type of the given shape. If the shape is filled, the last value, or elongated by default, is returned.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see getStrokeWidth
+/// @see getStrokeDashArray
+/// @see setStroke
+#builtin function stroke getStrokeType[shape shape]
+
+/// Gets the stroke dash array of the given shape. If the shape is filled, the last value, or an empty array by default, is returned.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see getStrokeWidth
+/// @see getStrokeType
+/// @see setStroke
+#builtin function {float} getStrokeDashArray[shape shape]
+
+/// Gets if the given shape is filled.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see filling
+#builtin function boolean isFilled[shape shape]
+
+/// Gets the Z position of the shape. A low value will be in the background and a high value will be in the foreground. When two shapes has the same Z position, the last validated shape is on the top.
+/// @since GRPH 1.6
+/// @param shape The shape
+/// @see setZPosition
+#builtin function integer getZPos[shape shape]
+
+/// Gets the image of the Image.
+/// @since GRPH 1.6
+/// @param shape The shape
+/// @see setImage
+/// @see getFile
+/// @see setFile
+#builtin function image getImage[Image shape]
+
+/// Gets the file of the Image.
+/// @since GRPH 1.6
+/// @param shape The shape
+/// @see setFile
+/// @see getImage
+/// @see setImage
+#builtin function file getFile[Image shape]
+
+/// Gets the font set for the Text.
+/// @since GRPH 1.6
+/// @param shape The shape
+/// @see setFont
+#builtin function font getFont[Text shape]
+
+/// Gets the blur level of the given shape.
+/// @since GRPH 1.0
+/// @param shape The shape
+/// @see blur
+#builtin function integer getBlurLevel[shape shape]
+
+/// Gets the given point of the given polygon.
+/// @since GRPH 1.0
+/// @param shape The polygon
+/// @param index The point index
+/// @see setPoint
+/// @see setPoints
+/// @see addPoint
+#builtin function pos getPoint[shape shape, integer index]
+
+/// Gets the x position in the given point.
+/// @since GRPH 1.0
+/// @param pos The point
+/// @see getYForPos
+/// @see createPos
+#builtin function float getXForPos[pos pos]
+
+/// Gets the y position in the given point.
+/// @since GRPH 1.0
+/// @param pos The point
+/// @see getXForPos
+/// @see createPos
+#builtin function float getYForPos[pos pos]
+
+/// Creates a rotation from the given int in degrees.
+/// @since GRPH 1.1
+/// @param integer The integer
+/// @see rotationToInt
+#builtin function rotation integerToRotation[integer integer]
+
+/// Creates an integer from the given rotation
+/// @since GRPH 1.1
+/// @param rotation The rotation
+/// @see intToRotation
+#builtin function integer rotationToInteger[rotation rotation]
+
+/// Gets the n<sup>th</sup> float in the float array.<br/><em><strong>Deprecated :</strong> As of GRPH 1.8, use <code>array{index}</code> instead of <code>getValueInArray[array index]</code>. The new syntax is compatible with all types of arrays, whereas this function only works with float arrays.</em>
+/// @since GRPH 1.1
+/// @param farray The farray to explore
+/// @param index The index in the array to get
+/// @see getArrayLength
+#builtin function float getValueInArray[{float} farray, integer index]
+
+/// Gets the length of the array.
+/// @since GRPH 1.9
+/// @param farray The array to use
+/// @see getValueInArray
+#builtin function integer getArrayLength[{mixed} farray]
+
+/// Gets the shape with the index. The index is ordered by z-position and then by time.
+/// @since GRPH 1.1
+/// @param file Optional. The file of shapes, must be <i>this</i>
+/// @param index The index of the shape
+/// @see getShapeAt
+/// @see getNumberOfShapes
+#builtin function shape getShape[file file?, integer index]
+
+/// Gets the upper shape shown at the given position.
+/// @since GRPH 1.1
+/// @param file Optional. The file of shapes, must be <i>this</i>
+/// @param pos The position of the shape
+/// @see getShape
+/// @see getShapeWithName
+#builtin function shape getShapeAt[file file?, pos pos]
+
+/// Returns the number of shapes stored in variables of the specified file.
+/// @since GRPH 1.1
+/// @param file Optional. The file to search in, may be this
+/// @see getShape
+#builtin function integer getNumberOfShapes[file file?]
+
+/// Gets the first shape in the list with the specified name.
+/// @since GRPH 1.1
+/// @param file Optional. The file of shapes, must be <i>this</i>
+/// @param name The name of the shape
+/// @see getShapeAt
+/// @see getShape
+#builtin function shape getShapeNamed[file file?, string name]
+
+/// Creates a pos from the given floats.
+/// @since GRPH 1.1
+/// @param x The x position
+/// @param y The y position
+/// @see getXForPos
+/// @see getYForPos
+#builtin function pos createPos[num x, num y]
+
+/// Returns true if the second point is in the circle with center the first point and the given radius, false otherwise.
+/// @since GRPH 1.1
+/// @param pos1 The first position, the circle's center.
+/// @param pos2 The second position, to check
+/// @param radius The radius of the circle
+#builtin function boolean posAround[pos pos1, pos pos2, integer radius]
+
+/// Returns true if the first shape intersects with the second, false otherwise. This means that if at least one of the points composing the first shape is also in the second, it returns true.This means also that the shape with the greatest zpos of the two will overlap the other.<br/>If one (or more) of the shapes is in rotated Group, this function will NOT take in account the rotation, and may return an incorrect value.If it is the case, please use <a href="intersectsGrouped">intersectsGrouped</a>
+/// @since GRPH 1.3
+/// @param first The first shape
+/// @param second The second shape
+/// @see intersectsGrouped
+#builtin function boolean intersects[shape first, shape second]
+
+/// Returns true if the first shape intersects with the second, false otherwise. Unlike <a href="intersects">intersects</a>, this method works with shapes from a rotated group.
+/// @since GRPH 1.5
+/// @param file Optional. the file in which the shapes are (this)
+/// @param first The first shape
+/// @param second The second shape
+/// @see intersects
+#builtin function boolean intersectsGrouped[file file?, shape first, shape second]
+
+/// Returns a copy of the given shape.
+/// @since GRPH 1.3
+/// @param shape The shape to copy
+#builtin function shape cloneShape[shape shape]
+
+/// Creates a new intersection shape between two shapes.
+/// @since GRPH 1.4
+/// @param shape The first shape
+/// @param clip The second shape
+#builtin function shape clippedShape[shape shape, shape clip]
+
+/// Returns true if the shape is directly in the group.
+/// @since GRPH 1.5
+/// @param group The group in which the shape may be
+/// @param shape The shape
+/// @see intersects
+#builtin function boolean isInGroup[Group group, shape shape]
+
+/// Gets the rotation center of the given shape. If not set, the center point of the shape is returned.
+/// @since GRPH 1.5
+/// @param shape The shape
+/// @see setRotationCenter
+/// @see getCenterPoint
+#builtin function pos getRotationCenter[shape shape]
+
+/// Creates an image from an image file or a shape.<br/>If a file is provided, it will be read as an image (PNG, JPEG, GIF, BMP or WBMP) and returned.<br/>If a shape is provided, it will painted in a transparent image, which size is the size of the shape. If the shape is rotated, a part of it may miss.<br/>If 'this' is provided, it will fail, as 'this' is NOT an image file. Use <a href="createCurrentImage">stdio&gt;createCurrentImage</a> instead.
+/// @since GRPH 1.6
+/// @param from A file or a shape to transform.
+/// @see createCurrentImage
+/// @see Image
+#builtin function image image[file|shape from]
+
+/// Creates a font from the specified font family (Arial by default), font size, and font style. The font style is calculated by summing the desired effects :<br/>1	Bold<br/>2	Italic
+/// @since GRPH 1.6
+/// @param name Optional. The font family, Arial by default
+/// @param size The font size
+/// @param style Optional. The font style, between 0 and 3 inclusive.
+/// @see Text
+#builtin function font font[string name?, integer size, integer style?]
+
+/// Creates an array containing all integer between the first and the last value, with the specified step. If the last is lower than the first, the integers will be in descending order.
+/// @since GRPH 1.9
+/// @param first The first integer
+/// @param last The last integer
+/// @param step Optional. The step, positive, 1 by default
+/// @see #foreach
+#builtin function {integer} range[integer first, integer last, integer step?]
+
+/// Returns the currently selected shape, or back if no shape is selected.
+/// @since GRPH 1.2
+/// @param file Optional. The file of shapes, must be <i>this</i>
+/// @see setSelectedShape
+/// @see resetSelectedShape
+#builtin function shape getSelectedShape[file file?]
+
+/// Rotates the shape by adding the value to the current rotation.
+/// @since GRPH 1.0
+/// @param addRotation The rotation
+/// @see setRotation
+/// @see getRotation
+#builtin method void shape.rotate[rotation addRotation]
+
+/// Sets the rotation of the shape.
+/// @since GRPH 1.0
+/// @param newRotation The rotation
+/// @see rotate
+/// @see getRotation
+#builtin method void shape.setRotation[rotation newRotation]
+
+/// Sets the rotation center of the shape. When set, the rotation center of the shape changes only when this method is called again. If not set, the center point of the shape is used. The center point can change.
+/// @since GRPH 1.5
+/// @param rotationCenter The rotation center
+/// @see getRotationCenter
+/// @see getCenterPoint
+#builtin method void shape.setRotationCenter[pos rotationCenter]
+
+/// Translates the shape by adding the value to the current position
+/// @since GRPH 1.0
+/// @param translation The position
+/// @see setPosition
+/// @see getPosition
+#builtin method void shape.translate[pos translation]
+
+/// Sets the position of the shape.
+/// @since GRPH 1.0
+/// @param newPosition The position
+/// @see translate
+/// @see getPosition
+#builtin method void shape.setPosition[pos newPosition]
+
+/// Changes the position of the shape to center it horizontally.
+/// @since GRPH 1.2
+/// @param shape The shape to center
+/// @see setVCentered
+/// @see setLeftAligned
+/// @see setRightAligned
+#builtin method void file.setHCentered[shape shape]
+
+/// Changes the position of the shape to left-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setRightAligned
+#builtin method void file.setLeftAligned[shape shape]
+
+/// Changes the position of the shape to right-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setLeftAligned
+#builtin method void file.setRightAligned[shape shape]
+
+/// Changes the position of the shape to center it vertically.
+/// @since GRPH 1.2
+/// @param shape The shape to center
+/// @see setHCentered
+/// @see setTopAligned
+/// @see setBottomAligned
+#builtin method void file.setVCentered[shape shape]
+
+/// Changes the position of the shape to top-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setBottomAligned
+#builtin method void file.setTopAligned[shape shape]
+
+/// Changes the position of the shape to bottom-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setTopAligned
+#builtin method void file.setBottomAligned[shape shape]
+
+/// Mirrors the shape horizontally. Is only effective on polygons, paths and images.
+/// @since GRPH shape
+/// @see 1.9
+/// @see verticalMirror
+#builtin method void shape.horizontalMirror[]
+
+/// Mirrors the shape vertically. Is only effective on polygons, paths and images.
+/// @since GRPH shape
+/// @see 1.9
+/// @see horizontalMirror
+#builtin method void shape.verticalMirror[]
+
+/// Grow the shape's size by adding the value to the current size
+/// @since GRPH 1.0
+/// @param extension The size
+/// @see setSize
+/// @see getSize
+#builtin method void shape.grow[pos extension]
+
+/// Sets the size of the shape.
+/// @since GRPH 1.0
+/// @param newSize The size
+/// @see grow
+/// @see getSize
+#builtin method void shape.setSize[pos newSize]
+
+/// Sets the name of the shape.
+/// @since GRPH 1.0
+/// @param newName The name
+/// @see getName
+#builtin method void shape.setName[string newName]
+
+/// Sets the paint of the shape. It can be a color, a linear or a radial gradient. It is ineffective on images.
+/// @since GRPH 1.0
+/// @param newPaint The paint
+/// @see getPaint
+/// @see color
+/// @see linear
+/// @see radial
+#builtin method void shape.setPaint[paint newPaint]
+
+/// Sets the stroke of the shape and disable filling if it is activated. It is ineffective on images.
+/// @since GRPH 1.0
+/// @param newStrokeWidth Optional. The new stroke width
+/// @param newStrokeType Optional. The new stroke type.
+/// @param newStrokeDashArray Optional. The new dash array.
+/// @see getStrokeWidth
+/// @see getStrokeType
+/// @see getStrokeDashArray
+#builtin method void shape.setStroke[float newStrokeWidth?, stroke newStrokeType?, {float} newStrokeDashArray?]
+
+/// Enables or disables filling. It is ineffective on images or lines.
+/// @since GRPH 1.0
+/// @param fill Whether to fill the shape, or stroke it
+/// @see isFilled
+#builtin method void shape.filling[boolean fill]
+
+/// Sets the Z position of the shape. A low value will be in the background and a high value will be in the foreground. When two shapes has the same Z position, the last validated shape is on the top.
+/// @since GRPH 1.6
+/// @param zpos The Z position
+/// @see getZPosition
+#builtin method void shape.setZPos[integer zpos]
+
+/// Sets the image for an Image. The file of the Image will be reset.
+/// @since GRPH 1.6
+/// @param img The image
+/// @see getImage
+/// @see setFile
+/// @see getFile
+#builtin method void Image.setImage[image img]
+
+/// Sets the file for an Image. The image of the Image will also be updated, by reading the file.
+/// @since GRPH 1.6
+/// @param file The file
+/// @see getFile
+/// @see setImage
+/// @see getImage
+#builtin method void Image.setFile[file file]
+
+/// Sets the font for the Text.
+/// @since GRPH 1.6
+/// @param font The font
+/// @see getFont
+#builtin method void Text.setFont[font font]
+
+/// Sets the blur level of the shape.
+/// @since GRPH 1.0
+/// @param blurLevel The blur level
+/// @see getBlurLevel
+#builtin method void shape.blur[integer blurLevel]
+
+/// Adds a new point to this polygon. If executed on a non-polygon shape, it crashes.
+/// @since GRPH 1.0
+/// @param point The new point
+/// @see setPoint
+/// @see getPoint
+#builtin method void Polygon.addPoint[pos point]
+
+/// Replace the requested point with a new on this polygon. If executed on a non-polygon shape, it crashes.
+/// @since GRPH 1.0
+/// @param index The point's index. The first is 0, the last is the number of points minus one.
+/// @param points The new point
+/// @see setPoints
+/// @see getPoint
+/// @see addPoint
+#builtin method void Polygon.setPoint[integer index, pos points]
+
+/// Sets all the points of this polygon. If executed on a non-polygon shape, it crashes.
+/// @since GRPH 1.0
+/// @param points... The new points
+/// @see setPoint
+/// @see addPoint
+/// @see getPoint
+#builtin method void Polygon.setPoints[pos points...]
+
+/// Moves the current point of the path.
+/// @since GRPH 1.2
+/// @param point The point to set
+/// @see lineTo
+/// @see quadTo
+/// @see cubicTo
+/// @see closePath
+#builtin method void Path.moveTo[pos point]
+
+/// Makes a line from the current point to the specified position in the path. The end point becomes the current point.
+/// @since GRPH 1.2
+/// @param point The end point
+/// @see moveTo
+/// @see quadTo
+/// @see cubicTo
+/// @see closePath
+#builtin method void Path.lineTo[pos point]
+
+/// Makes a quadratic line from the current point to the specified position, using the specified control point, in the path. The end point becomes the current point.
+/// @since GRPH 1.2
+/// @param ctrl The control point, used to curve the line
+/// @param point The end point
+/// @see moveTo
+/// @see lineTo
+/// @see cubicTo
+/// @see closePath
+#builtin method void Path.quadTo[pos ctrl, pos point]
+
+/// Makes a curved line from the current point to the specified position, using the specified control points, in the path. The end point becomes the current point.
+/// @since GRPH 1.2
+/// @param ctrl1 The first control point
+/// @param ctrl2 The second control point
+/// @param point The end point
+/// @see moveTo
+/// @see lineTo
+/// @see quadTo
+/// @see closePath
+#builtin method void Path.cubicTo[pos ctrl1, pos ctrl2, pos point]
+
+/// Closes the path by stroking a line from the current point to the first point. The first point becomes the current point.
+/// @since GRPH 1.2
+/// @see moveTo
+/// @see lineTo
+/// @see cubicTo
+/// @see cubicTo
+#builtin method void Path.closePath[]
+
+/// Adds the given shape to this group.
+/// @since GRPH 1.4
+/// @param shape The shape to add
+/// @see removeShapeFromGroup
+/// @see isInGroup
+#builtin method void Group.addToGroup[shape shape]
+
+/// Removes the given shape from this group.
+/// @since GRPH 1.4
+/// @param shape The shape to remove
+/// @see addShapeToGroup
+/// @see isInGroup
+#builtin method void Group.removeFromGroup[shape shape]
+
+/// Changes the selected shape to the shape in the parameter.
+/// @since GRPH 1.2
+/// @param shape The shape to select
+/// @see getSelectedShape
+/// @see resetSelectedShape
+#builtin method void file.setSelectedShape[shape shape]
+
+/// Resets the selection.<br/>Since GRPH 1.8, you can also do :<br/><pre>setSelectedShape: null</pre>
+/// @since GRPH 1.2
+/// @see getSelectedShape
+/// @see setSelectedShape
+#builtin method void file.resetSelectedShape[]
+
+/// Validates the shape. This means it will be rendered. Must be called only once by shape. All the modifications done after the validate are visible.
+/// @since GRPH 1.0
+/// @param shape The shape to validate
+/// @see validateAll
+/// @see unvalidate
+#builtin method void file.validate[shape shape]
+
+/// Validates all the shapes on the file. See <a href="validate">validate</a> for more informations.
+/// @since GRPH 1.0
+/// @see validate
+#builtin method void file.validateAll[]
+
+/// Unvalidates the shape by removing it from the image. This means it will not be rendered until validate is called again.
+/// @since GRPH 1.1
+/// @param shape The shape to unvalidate
+/// @see validate
+#builtin method void file.unvalidate[shape shape]
+
+/// Waits for a time. Can be used to do animations. Mustn't be called on other files than <i>this</i>.
+/// @since GRPH 1.0
+/// @param time The time in milliseconds to wait.
+#builtin method void file.wait[integer time]
+
+/// Ends the reading of the file. Can't be called on other files than <i>this</i>.
+/// @since GRPH file
+/// @see 1.0
+#builtin method void file.end[]
+
+/// Standard Input/Output namespace with file creation, modification and creation, but also exporting tools and user input querying.
+/// @since GRPH 1.0
+#builtin namespace stdio
+
+/// Reads the given file and returns its content as a UTF-8 string.<br/>Needs file-read permission.
+/// @since GRPH 1.0
+/// @param file The file to read
+/// @see getLineInString
+/// @see writeInFile
+/// @see appendInFile
+#builtin function string stdio>getFileContents[file file]
+
+/// Splits the given string and returns its n<sup>th</sup> result.<br/><b>Deprecated</b>: Since GRPH 1.8, you can use <code>split[string "\n"]{line}</code> instead.
+/// @since GRPH 1.0
+/// @param string The string to split
+/// @param line The line to get
+/// @see getFileContents
+/// @see split
+#builtin function string stdio>getLineInString[string string, integer line]
+
+/// Gets the canonical file. It represents the same file, but there is only one canonical path per file.<br/>Needs file-list permission.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see getParentFile
+#builtin function file stdio>getAbsoluteFile[file file]
+
+/// Gets the parent file of the given file. Same as <code>getAbsoluteFile[concat[file "/.."] as file]</code>, but shorter. If the given file the root file ('/' on Unix, 'C:\' on Windows), 'null' is returned.<br/>Needs file-list permission.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see getAbsoluteFile
+/// @see listFiles
+#builtin function file? stdio>getParentFile[file file]
+
+/// Gets an array of all child files of the given directory.<br/>This is always true, if index is in the valid range and dir is an existing directory: <pre>fileExists[[concat[dir "/" getFileName[listFiles[dir]{index}]] as file]]</pre>Throws an error if the given file is not a directory.<br/>Needs file-list permission.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see isDirectory
+/// @see getFileName
+/// @see getParentFile
+#builtin function {file} stdio>listFiles[file file]
+
+/// Returns true if the given file is a directory (listFiles works), false otherwise.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see isFile
+/// @see fileExists
+/// @see listFiles
+#builtin function boolean stdio>isDirectory[file file]
+
+/// Returns true if the given file is a normal file (not a directory, getFileContents works), false otherwise.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see isDirectory
+/// @see fileExists
+/// @see getFileContents
+/// @see image
+#builtin function boolean stdio>isFile[file file]
+
+/// Returns the name of the file. Ex: 'data/save.properties' will return "save.properties".
+/// @since GRPH 1.9
+/// @param file The file
+/// @see fileExists
+#builtin function string stdio>getFileName[file file]
+
+/// Returns true if the file exists, false otherwise.
+/// @since GRPH 1.9
+/// @param file The file
+/// @see createFile
+#builtin function boolean stdio>fileExists[file file]
+
+/// <strong>Doesn't work currently</strong><br/>Converts the file to an SVG string, encoded in ISO-8859-1. It can then be writen to a file. Everything is transformed to javascript.
+/// @since GRPH Future
+/// @param file Optional. The GRPH file to convert
+#builtin function string stdio>convertToSVG[file file?]
+
+/// Gets the current rendered image and converts it to PNG format. Returns it as an ISO-8859-1 string.
+/// @since GRPH 1.0
+/// @param file Optional. The file to convert, should be <i>this</i>
+/// @see getJPEGFromCurrentImage
+/// @see createCurrentImage
+#builtin function string stdio>getPNGFromCurrentImage[file file?]
+
+/// Gets the current rendered image and converts it to JPEG format. Returns it as an ISO-8859-1 string.
+/// @since GRPH 1.0
+/// @param file Optional. The file to convert, should be <i>this</i>
+/// @see getPNGFromCurrentImage
+/// @see createCurrentImage
+#builtin function string stdio>getJPEGFromCurrentImage[file file?]
+
+/// Gets the current rendered image and returns it.
+/// @since GRPH 1.6
+/// @param file Optional. The file to convert, should be <i>this</i>
+/// @see getPNGFromCurrentImage
+/// @see getJPEGFromCurrentImage
+#builtin function image stdio>createCurrentImage[file file?]
+
+/// Returns the mouse position in the frame.
+/// @since GRPH 1.1
+/// @param file Optional. The file containing the image
+/// @see getXForPos
+/// @see getYForPos
+#builtin function pos stdio>getMousePos[file file?]
+
+/// Returns the time in milliseconds since the loading of the file.
+/// @since GRPH 1.2
+/// @param file Optional. The current file, must be <i>this</i>
+#builtin function integer stdio>getTimeInMillisSinceLoad[file file?]
+
+/// Returns if the key is pressed. The key numbers can be found <a href="https://docs.oracle.com/javase/7/docs/api/constant-values.html#java.awt.event.KeyEvent.VK_0">here</a>.
+/// @since GRPH 1.2
+/// @param file Optional. The current file, must be <i>this</i>
+/// @param keyCode The VK_ key number
+/// @see isKeyPressedWithString
+#builtin function boolean stdio>isKeyPressedWithKeyCode[file file?, integer keyCode]
+
+/// Returns if the key with the given character as a string is pressed. For example, to check if A is pressed,write <code>isKeyPressedWithString[this "A"]</code>
+/// @since GRPH 1.2
+/// @param file Optional. The current file, must be <i>this</i>
+/// @param keyChar The character
+/// @see isKeyPressedWithKeyCode
+#builtin function boolean stdio>isKeyPressedWithString[file file?, string keyChar]
+
+/// Creates the given file. If it already exists, it will just outputs a warning.<br/>Needs file-write permission.
+/// @since GRPH 1.0
+/// @see writeInFile
+/// @see appendInFile
+/// @see fileExists
+#builtin method void file.stdio>createFile[]
+
+/// Writes the given string in the file.<br/><strong>Warning:</strong> If using <i>this</i>, it will replace it, so it will read the given string from line 2 in GRPH 1.5 and from line 1 since GRPH 1.6.<br/>Needs file-write permission.
+/// @since GRPH 1.0
+/// @param content The string to write.
+/// @param charset Optional. The charset to use (ISO-8859-1, UTF-8...)
+/// @see appendInFile
+/// @see writeImageInFile
+/// @see getFileContents
+#builtin method void file.stdio>writeInFile[string content, string charset?]
+
+/// Writes the given image in the file.<br/><strong>Warning:</strong> If using <i>this</i>, it will replace it, but it will continue reading the cache as it hasn't changed.<br/>Needs file-write permission.
+/// @since GRPH 1.6
+/// @param img The image to write.
+/// @param format The format to use, defaults to PNG. Available formats are PNG, JPEG, GIF, BMP and WBMP.
+/// @see writeInFile
+/// @see getCurrentFile
+#builtin method void file.stdio>writeImageInFile[image img, string format]
+
+/// Appends the given string in the file.<br/><strong>Warning:</strong> If using <i>this</i>, and no <a href="end">end</a> is called at the end of the file, the given string will be parsed on end since GRPH 1.6.<br/>Needs file-write permission.
+/// @since GRPH 1.0
+/// @param content The string to append.
+/// @param charset The charset to use (ISO-8859-1, UTF-8...)
+/// @see writeInFile
+/// @see getFileContents
+#builtin method void file.stdio>appendInFile[string content, string charset]
+
+/// Includes simple mathematic tools like addition and substraction but also powers and square roots.
+/// @since GRPH 1.0
+#builtin namespace math
+
+/// Calculates the sum of the parameters by performing additions.
+/// @since GRPH 1.0
+/// @param numbers... The numbers
+/// @see difference
+/// @see multiply
+#builtin function num math>sum[num numbers...]
+
+/// Calculates the difference of the parameters by performing substractions.
+/// @since GRPH 1.0
+/// @param numbers... The numbers
+/// @see sum
+/// @see divide
+#builtin function num math>difference[num numbers...]
+
+/// Multiplies the parameters
+/// @since GRPH 1.0
+/// @param numbers... The numbers
+/// @see divide
+/// @see sum
+#builtin function num math>multiply[num numbers...]
+
+/// Divide the parameters.
+/// @since GRPH 1.0
+/// @param numbers... The numbers
+/// @see multiply
+/// @see difference
+/// @see modulo
+#builtin function num math>divide[num numbers...]
+
+/// Returns the remainder of the division of the parameters.
+/// @since GRPH 1.0
+/// @param numbers... The numbers
+/// @see modulo
+#builtin function num math>modulo[num numbers...]
+
+/// Calculates the square root of the parameter.
+/// @since GRPH 1.0
+/// @param number The number
+/// @see cbrt
+/// @see pow
+#builtin function float math>sqrt[integer number]
+
+/// Calculates the cubic root of the parameter.
+/// @since GRPH 1.0
+/// @param number The number
+/// @see sqrt
+/// @see pow
+#builtin function float math>cbrt[integer number]
+
+/// Calculates the first number power the second.
+/// @since GRPH 1.0
+/// @param number The number
+/// @param power The power
+/// @see sqrt
+/// @see cbrt
+#builtin function num math>pow[num number, integer power]
+
+/// Returns PI, with a float precision.
+/// @since GRPH 1.0
+#builtin function float math>PI[]
+
+/// Rounds the given number to the nearest int.
+/// @since GRPH 1.0
+/// @param number The number
+/// @see floor
+/// @see ceil
+#builtin function integer math>round[num number]
+
+/// Rounds the given number to his biggest inferior or equal integer.
+/// @since GRPH 1.0
+/// @param number The number
+/// @see round
+/// @see ceil
+#builtin function integer math>floor[num number]
+
+/// Rounds the given number to his smallest superior or equal integer.
+/// @since GRPH 1.0
+/// @param number The number
+/// @see round
+/// @see floor
+#builtin function integer math>ceil[num number]
+
+/// Creates a float with the given number.
+/// @since GRPH 1.0
+/// @param number The number
+#builtin function float math>asFloat[num number]
+
+/// Creates a string with the char represented by the given number.
+/// @since GRPH 1.0
+/// @param number The integer
+#builtin function string math>asChar[integer number]
+
+/// Includes functions for getting random values.
+/// @since GRPH 1.1
+#builtin namespace random
+
+/// Generates a random integer between 0 (inclusive) and the specified value (exclusive).
+/// @since GRPH 1.1
+/// @param max The upper bound
+/// @see randomFloat
+/// @see randomString
+/// @see randomBoolean
+#builtin function integer random>randomInteger[integer max]
+
+/// Generates a random float between 0.0 and 1.0.
+/// @since GRPH 1.1
+/// @see randomInteger
+/// @see randomString
+/// @see randomBoolean
+#builtin function float random>randomFloat[]
+
+/// Generates a random alphanumeric string with specified length.
+/// @since GRPH 1.1
+/// @param length The length of the string
+/// @see shuffleString
+/// @see randomInteger
+#builtin function string random>randomString[integer length]
+
+/// Generates a random boolean.
+/// @since GRPH 1.1
+/// @see randomInteger
+/// @see randomString
+/// @see randomFloat
+#builtin function boolean random>randomBoolean[]
+
+/// Shuffles the specified string randomly.<br/>Example: Hello -> loelH
+/// @since GRPH 1.1
+/// @param string The string to shuffle
+/// @see randomString
+/// @see shuffleArray
+#builtin function string random>shuffleString[string string]
+
+/// Shuffles the specified array randomly.<br/>Example: {"Hello", ", ", "World", "!"} -> {"World", "!", ", ", "Hello"}
+/// @since GRPH 1.8
+/// @see shuffleString
+#builtin method void {mixed}.random>shuffleArray[]
+
+/// Includes reflection tools for calling and casting.
+/// @since GRPH 1.4
+#builtin namespace reflect
+
+/// Calls the specified function in the specified namespace with the specified parameters. The parameters must be preceded by their name.<br/><strong>Example</strong>: callFunction["color" "standard" "red" 128 "green" 128 "blue" 128]
+/// @since GRPH 1.4
+/// @param funcName The name of the function
+/// @param namespace Optional. The namespace of the function, 'standard' by default
+/// @param params... Optional. The parameters, with alterned names and parameters.
+/// @see callMethod
+/// @see callConstructor
+#builtin function mixed reflect>callFunction[string funcName, string namespace?, mixed params...?]
+
+/// Calls the specified constructor with the specified parameters. The parameters must be preceded by their name.<br/><strong>Example</strong>: callConstructor["Rect" "name" "Plop" "location" 100,100 "size" 50,50 "paint" RED]
+/// @since GRPH 1.4
+/// @param constructorName The name of the function
+/// @param params... Optional. The parameters, with alterned names and parameters.
+/// @see callFunction
+/// @see callMethod
+#builtin function shape reflect>callConstructor[string constructorName, mixed params...?]
+
+/// Casts the parameter to an integer.<br/>If the parameter is an integer, returns direcly the parameter.<br/>If it is a float, returns the value floored.<br/>If it is a rotation, returns its value (GRPH 1.9).<br/>If it is a string, decodes the string with stringToInteger (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0 before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function integer reflect>castToInteger[mixed param]
+
+/// Casts the parameter to a float.<br/>If the parameter is a float, returns direcly the parameter.<br/>If it is an integer, returns the value converted.<br/>If it is a rotation, returns its value converted (GRPH 1.9).<br/>If it is a string, decodes the string with stringToFloat (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0F before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function float reflect>castToFloat[mixed param]
+
+/// Casts the parameter to a number.<br/>If the parameter is a number (integer or float), returns direcly the parameter.<br/>If it is a rotation, returns the value as an integer (GRPH 1.9).<br/>If it is a string, decodes the string with stringToInteger if possible, else stringToFloat (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0 before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function num reflect>castToNum[mixed param]
+
+/// Converts the parameter to a string.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function string reflect>castToString[mixed param]
+
+/// Casts the parameter to a rotation.<br/>If the parameter is a rotation, returns direcly the parameter.<br/>If the parameter is a number (GRPH 1.9, only integer before), returns the value converted.<br/>If it is a string, decodes the string with stringToInteger (after removing a final degree sign(°) if there is one) and converts it to a rotation (GRPH 1.9).<br/>Else throws an error (GRPH 1.9, returned 0° before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function rotation reflect>castToRotation[mixed param]
+
+/// Casts the parameter to a position.<br/>If the parameter is a pos, returns direcly the parameter.<br/>Else, throws an error (GRPH 1.9, returned 0,0 before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function pos reflect>castToPos[mixed param]
+
+/// Casts the parameter to a boolean.<br/>If the parameter is a boolean, returns direcly the parameter.<br/>If the parameter is a number, returns false if the parameter is 0, true if not.<br/>If the parameter is a string, returns false if the parameter is empty, true if not.<br/>If the parameter is a rotation, returns false if the parameter is 0°, true if not.<br/>If the parameter is a pos, returns false if the parameter is 0,0, true i not.<br/>Before GRPH 1.9, if the parameter is errored, returns false, else returns true.<br/>Since GRPH 1.9, returns false if the parameter is an empty optional, true otherwise.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function boolean reflect>castToBoolean[mixed param]
+
+/// Casts the parameter to a float array.<br/>If the parameter is a {float}, returns direcly the parameter,else throws an error (GRPH 1.9, returned an empty float array before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function {float} reflect>castToFarray[mixed param]
+
+/// Casts the parameter to a paint.<br/>If the parameter is a paint, returns direcly the parameter, else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function paint reflect>castToPaint[mixed param]
+
+/// Casts the parameter to a linear gradient.<br/>If the parameter is a linear, returns direcly the parameter, else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function linear reflect>castToLinear[mixed param]
+
+/// Casts the parameter to a radial gradient.<br/>If the parameter is a radial, returns direcly the parameter, else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function radial reflect>castToRadial[mixed param]
+
+/// Casts the parameter to a color.<br/>If the parameter is a color, returns direcly the parameter,if it is a string, decodes the string with stringToInteger, and then converts it to an opaque color (Format: #RRGGBB or 0xRRGGBB) (GRPH 1.9). else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function color reflect>castToColor[mixed param]
+
+/// Casts the parameter to a shape.<br/>If the parameter is a shape, returns direcly the parameter, else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function shape reflect>castToShape[mixed param]
+
+/// Casts the parameter to a direction.<br/>If the parameter is a direction, returns direcly the parameter, else throws an error (GRPH 1.9, returned 'right' before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function direction reflect>castToDirection[mixed param]
+
+/// Casts the parameter to a stroke type.<br/>If the parameter is a stroke, returns direcly the parameter, else throws an error (GRPH 1.9, returned 'elongated' before).
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function stroke reflect>castToStrokeType[mixed param]
+
+/// Casts the parameter to a file.<br/>If the parameter is a file, returns direcly the parameter, if it is a string, parses the string as a file (GRPH 1.9), else throws an error.
+/// @since GRPH 1.4
+/// @param param The value to cast
+/// @see castTo
+#builtin function file reflect>castToFile[mixed param]
+
+/// Casts the parameter to an image.<br/>If the parameter is an image, returns direcly the parameter, if the parameter is a file, it will be parsed as an image file (needs 'file-read' permission), else throws an error.
+/// @since GRPH 1.6
+/// @param param The value to cast
+/// @see castTo
+/// @see image
+#builtin function image reflect>castToImage[mixed param]
+
+/// Casts the parameter to a font.<br/>If the parameter is a font, returns direcly the parameter, if the parameter is an integer, it will create a font using the integer as the size, else throws an error.
+/// @since GRPH 1.6
+/// @param param The value to cast
+/// @see castTo
+/// @see font
+#builtin function font reflect>castToFont[mixed param]
+
+/// Casts the object to the specified type and returns it as a mixed value. It can be used to check the type or convert it.<br/>Since GRPH 1.8, this method support complex types (arrays, optionals, multitypes). If the type cannot be casted or converted, it throws an error.<br/><b>Deprecated</b> since GRPH 1.9: You can now use 'mixed as type' instead of 'castTo["type" mixed]'
+/// @since GRPH 1.4
+/// @param type The type to use
+/// @param param The value to cast
+#builtin function mixed reflect>castTo[string type, mixed param]
+
+/// Get the version of the specified plugin.<br/><strong>Example</strong>: getVersion["GRPH"] returns 1.5 in GRPH 1.5<br/>GRPH is the only possible value in GRPH 1.5
+/// @since GRPH 1.5
+/// @param of The plugin
+/// @see hasVersion
+/// @see #requires
+#builtin function string reflect>getVersion[string of]
+
+/// Returns true if the specified version or later of the specified plugin is installed.
+/// @since GRPH 1.5
+/// @param of The plugin
+/// @param min The minimum version requested
+/// @see getVersion
+/// @see #requires
+#builtin function boolean reflect>hasVersion[string of, string min]
+
+/// Returns the type of the specified parameter. If a variable is given, it is evaluated, so :<br/><pre>num x = 100
+/// log[getType[x]]</pre><br/>will print 'integer'. If you want it to print 'num', use <a href="getDeclaredType">getDeclaredType</a>
+/// @since GRPH 1.6
+/// @param of The expression to get the type from
+/// @see getDeclaredType
+/// @see castTo
+#builtin function string reflect>getType[mixed of]
+
+/// Returns the declared type for the specified variable :<br/><pre>num x = 100
+/// log[getType[x]]</pre><br/>will print 'num'. If you want it to print 'integer', use <a href="getType">getType</a>
+/// @since GRPH 1.6
+/// @param var The variable name
+/// @see getType
+/// @see castTo
+/// @see isVarDeclared
+#builtin function string reflect>getDeclaredType[string var]
+
+/// Returns the value of the variable. <code>getVarValue["back"] == back</code> is always true (if back is defined).
+/// @since GRPH 1.6
+/// @param var The variable name
+/// @see getDeclaredType
+/// @see isVarDeclared
+#builtin function mixed reflect>getVarValue[string var]
+
+/// Returns true if the specified variable exists, returns false otherwise.
+/// @since GRPH 1.6
+/// @param var The variable name
+/// @see getDeclaredType
+/// @see getVarValue
+#builtin function boolean reflect>isVarDeclared[string var]
+
+/// Returns true if the specified permission has been granted, false otherwise. If the permission has not yet been requested, returns false (except if prompt is true, in which case it prompts the user immediately)
+/// @since GRPH 1.9
+/// @param permission The permission
+/// @param prompt Optional. True to prompt the user if not already done
+/// @see requiresPermission
+#builtin function boolean reflect>hasPermission[string permission, boolean prompt?]
+
+/// Calls the specified method in the specified namespace with the specified parameters. The parameters must be preceded by their name, except the first that will be the object on which the method will be called.<br/><strong>Example</strong>: callMethod["color" "standard" "red" 128 "green" 128 "blue" 128]
+/// @since GRPH 1.5
+/// @param methodName The name of the function
+/// @param namespace Optional. The namespace of the function, 'standard' by default
+/// @param params... Optional. The parameters, where the first is the object to call the method on, and with alterned names and parameters after.
+/// @see callFunction
+/// @see callConstructor
+#builtin method void file.reflect>callMethod[string methodName, string namespace?, mixed params...?]
+
+/// Declares a new variable. There is no check whether the type and the value are compatibles, this is valid :<br/><pre>declareVar["hello" "string" 3F]</pre>but it is discouraged. If the variable already exists or if the type doesn't exists, an error is thrown.
+/// @since GRPH 1.6
+/// @param name The name of the variable
+/// @param global Optional. True if global, false if local (false by default)
+/// @param type The type, as a string
+/// @param value The value
+/// @see isVarDeclared
+/// @see getVarValue
+#builtin method void file.reflect>declareVar[string name, boolean global?, string type, mixed value]
+
+/// Prompt the user for the specified permission if not already done, and throws a NoPermissionException if the user denies.<br/>Valid values are: file, file-list, file-read, file-write, string-eval. 'file' is used to gather the other file permissions.
+/// @since GRPH 1.9
+/// @param permission The permission
+/// @see hasPermission
+#builtin method void file.reflect>requiresPermission[string permission]
+
+/// Includes string utilities and regular expressions support.
+/// @since GRPH 1.6
+#builtin namespace strutils
+
+/// Returns the length of the specified string.
+/// @since GRPH 1.6
+/// @param string The string
+/// @see substring
+/// @see indexInString
+#builtin function integer strutils>getStringLength[string string]
+
+/// Returns true if the given substring was found in the string, false otherwise.
+/// @since GRPH 1.6
+/// @param string The string
+/// @param substring The substring
+/// @see indexInString
+#builtin function boolean strutils>stringContains[string string, string substring]
+
+/// Returns the index of the first occurrence of the specified substring in the specified string. Returns -1 if the substring was not found in the string.
+/// @since GRPH 1.6
+/// @param string The string
+/// @param substring The substring
+/// @see lastIndexInString
+/// @see substring
+/// @see getStringLength
+#builtin function integer strutils>indexInString[string string, string substring]
+
+/// Returns the index of the last occurrence of the specified substring in the specified string. Returns -1 if the substring was not found in the string.
+/// @since GRPH 1.6
+/// @param string The string
+/// @param substring The substring
+/// @see indexInString
+/// @see substring
+/// @see getStringLength
+#builtin function integer strutils>lastIndexInString[string string, string substring]
+
+/// Returns the substring which starts at the given start index and ends at the given end index. Its length will always be end - start. An error will occur if start > end. If start == end, an empty string will be returned.
+/// @since GRPH 1.6
+/// @param string The string
+/// @param start The start index
+/// @param end Optional. The end index
+/// @see indexInString
+/// @see getStringLength
+/// @see setStringLength
+#builtin function string strutils>substring[string string, integer start, integer end?]
+
+/// Returns the integer associated with the first character in the string. Throws an error if the string is empty.The returned integer is the UTF-16LE codepoint of the character.
+/// @since GRPH 1.7
+/// @param char The string
+/// @see substring
+/// @see integerToChar
+#builtin function integer strutils>charToInteger[string char]
+
+/// Returns the string associated with the given code point. The given integer is the UTF-16LE codepoint of the character, the returned string's length is 1.
+/// @since GRPH 1.7
+/// @param codePoint The codepoint
+/// @see substring
+/// @see charToInteger
+#builtin function string strutils>integerToChar[integer codePoint]
+
+/// Returns the string splitted by the given substring.<br/><b>Example</b>: <pre>split["14:50:33" ":"]</pre> returns <pre>string {"14", "50", "33"}</pre>
+/// @since GRPH 1.8
+/// @param string The string to split
+/// @param substring The substring
+/// @see substring
+/// @see joinStrings
+#builtin function {string} strutils>split[string string, string substring]
+
+/// Returns the given array of strings joined with the given delimiter.<br/><b>Example</b>: <pre>joinStrings[[string {"14", "50", "33"}] ":"]</pre> returns <pre>"14:50:33"</pre>
+/// @since GRPH 1.9
+/// @param string The strings to join
+/// @param delimiter Optional. The delimiter, empty by default
+/// @see split
+/// @see substring
+#builtin function string strutils>joinStrings[{string} string, string delimiter?]
+
+/// Returns the given string modified to have the given length. If the length is smaller than the string, it is truncated. If the string is smaller than the length, the given fill string is appended to have the given length.<br/><b>Example</b>:<br/><code>setStringLength["something" 15]</code> -> "something      "<br/><code>setStringLength["something" 4]</code> -> "some"<br/><code>setStringLength["something" 12 "!"]</code> -> "something!!!"<br/><code>setStringLength["something" 20 "fill"]</code> -> "somethingfillfillfil"<br/>
+/// @since GRPH 1.9
+/// @param str The base string
+/// @param length The length
+/// @param fill The string to append to make it bigger, space by default or if empty
+/// @see substring
+#builtin function string strutils>setStringLength[string str, integer length, string fill]
+
+/// Converts a flag list string to an integer. Each character will be converted following this table :<br/>i: Case insensitive.<br/>x: Comments enabled (from # to the end of the line is ignored) and whitespaces are ignored.<br/>m: Multiline, ^ and $ matches the start and end of the line instead of the start and end of the text.<br/>u: Unicode parsing<br/>U: Enables the Unicode version of Predefined character classes and POSIX character classes.<br/>s: Dotall or single-line, a dot matches all characters including the newline.<br/>d: Unix lines, only 
+///  is recognized as a line terminator.<br/>l: Literal parsing, the pattern is not parsed as a RegEx but literally.<br/>c: Canonical equivalence, two equivalent but different characters will be considered as the same.<br/>These flags can also be used with (?ixmuUsd) in the pattern (l and c will not).
+/// @since GRPH integer
+/// @param flags The string to get the context from (The input string)
+/// @see 1.6
+/// @see replaceAll
+/// @see regexMatchReplace
+#builtin function integer strutils>regexMatchFlags[string flags]
+
+/// Finds the next match in the RegEx context of the given string, and returns true if it was successful, or false if there is no remaining matches.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @see contains
+/// @see regexMatchMatchesEntirely
+/// @see regexMatchBegin
+/// @see regexMatchEnd
+#builtin function boolean strutils>regexMatchFind[string string]
+
+/// Tries to match the entire input string from its RegEx context and returns true, or false otherwise. As with <a href="regexMatchFind">regexMatchFind</a>, groups, start indexes and end indexes can be obtained afterwards.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @see contains
+/// @see regexMatchFind
+/// @see regexMatchBegin
+/// @see regexMatchEnd
+#builtin function boolean strutils>regexMatchMatchesEntirely[string string]
+
+/// Returns the start index for the given group from the current match in the RegEx context of the given string. Group 0 is the entire match, group 1 is the first capturing group, etc.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @param group Optional. The group number, 0 by default
+/// @see regexMatchGroup
+/// @see regexMatchEndIndex
+/// @see regexMatchFind
+/// @see regexMatchMatchesEntirely
+#builtin function integer strutils>regexMatchStartIndex[string string, integer group?]
+
+/// Returns the end index for the given group from the current match in the RegEx context of the given string. Group 0 is the entire match, group 1 is the first capturing group, etc.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @param group Optional. The group number, 0 by default
+/// @see regexMatchGroup
+/// @see regexMatchStartIndex
+/// @see regexMatchFind
+/// @see regexMatchMatchesEntirely
+#builtin function integer strutils>regexMatchEndIndex[string string, integer group?]
+
+/// Returns the value of the given group from the current match in the RegEx context of the given string. Group 0 is the entire match, group 1 is the first capturing group, etc.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @param group Optional. The group number, 0 by default
+/// @see regexMatchStartIndex
+/// @see regexMatchEndIndex
+/// @see regexMatchFind
+/// @see regexMatchMatchesEntirely
+#builtin function string strutils>regexMatchGroup[string string, integer group?]
+
+/// Returns and ends the replacement in the RegEx context of the given string. This function appends the last non-matched text and returns the intern buffer. As it appends the last text, the context must be reset to restart the replacement, and it can't continue. The result shouldn't be assigned to the input variable as then it will be impossible to destroy the context.
+/// @since GRPH 1.6
+/// @param string The string to get the context from (The input string)
+/// @see regexMatchReplace
+/// @see regexMatchFind
+/// @see regexMatchMatchesEntirely
+#builtin function string strutils>regexMatchReplaceResult[string string]
+
+/// Returns the string where each match of the regex is replaced by the given string. The backslashes and dollars must be escaped because $<i>n</i> (where <i>n</i> is a number lower than the number of groups in the regex) is a backreference to the value of the <i>n</i><sup>th</sup> group, and ${<i>name</i>} is a backreference to the group named <i>name</i>. To use the dollar sign or the backslash, you must escape them with a backslash.<br/>Using NEW = replaceAll[REGEX INPUT VALUE FLAGS] is the same as :<br/><pre>regexMatchBegin INPUT: REGEX FLAGS
+/// #while regexMatchFind[INPUT]
+/// 	regexMatchReplace INPUT: VALUE
+/// NEW = regexMatchReplaceResult[INPUT]
+/// regexMatchEnd INPUT:</pre>
+/// @since GRPH 1.6
+/// @param regex The regular expression to use
+/// @param string The string
+/// @param with The string used to replace regex occurrences
+/// @param flags Optional. The flags as an integer, can be computed with <a href="regexMatchFlags">regexMatchFlags</a>
+/// @see regexMatchBegin
+/// @see regexMatchFind
+/// @see regexMatchReplace
+/// @see regexMatchReplaceResult
+/// @see regexMatchEnd
+/// @see regexMatchFlags
+#builtin function string strutils>replaceAll[string regex, string string, string with, integer flags?]
+
+/// Creates a RegEx context for the given string. It must be destroyed with <a href="regexMatchEnd">regexMatchEnd</a>.
+/// @since GRPH 1.6
+/// @param regex The regular expression
+/// @param flags Optional. The flags as an integer, can be computed with <a href="regexMatchFlags">regexMatchFlags</a>
+/// @see regexMatchEnd
+/// @see regexMatchReset
+/// @see regexMatchRegion
+#builtin method void string.strutils>regexMatchBegin[string regex, integer flags?]
+
+/// Destroys a RegEx context for the given string. The string is given as a value, so when you do a replacement, don't use the same variable, because you MUST use the same value.
+/// @since GRPH 1.6
+/// @see regexMatchBegin
+#builtin method void string.strutils>regexMatchEnd[]
+
+/// Sets the region for the RegEx context of the given string. The matching functions will never search outside of this region, unless it is changed with this function or reset with <a href="regexMatchReset">regexMatchReset</a>
+/// @since GRPH 1.6
+/// @param start The index where the search starts
+/// @param end The index where the search ends
+/// @see regexMatchReset
+/// @see regexMatchBegin
+#builtin method void string.strutils>regexMatchRegion[integer start, integer end]
+
+/// Replaces the current match in the RegEx context of the given string. This method appends the non-matched text before the match and the replacement to an intern buffer. When finished replacing, this intern buffer's content can be finalized and accessed with <a href="regexMatchReplaceResult">regexMatchReplaceResult</a>.<br/>As documented in <a href="replaceAll">replaceAll</a>, $n and ${name} can be used as backreferences and backslashes must be used to escape dollar signs and backslashes
+/// @since GRPH 1.6
+/// @param with The string to replace the match with
+/// @see regexMatchReplaceResult
+#builtin method void string.strutils>regexMatchReplace[string with]
+
+/// Resets a RegEx context for the given string. The context's state will be the same as after it's creation.It's replacement state and it's matching status will both be resetted.
+/// @since GRPH 1.6
+/// @see regexMatchBegin
+#builtin method void string.strutils>regexMatchReset[]
+
+/// Includes image manipulation tools, like drawing and filling shapes.
+/// @since GRPH 1.7
+#builtin namespace imgm
+
+/// Creates a new unicolor image of the given size.
+/// @since GRPH 1.7
+/// @param width The width of the image > 0
+/// @param height The height of the image > 0
+/// @param background Optional. The color of the image, ALPHA by default
+/// @see getWidth
+/// @see getHeight
+/// @see getSize
+#builtin function image imgm>createImage[integer width, integer height, paint background?]
+
+/// Returns the size of the given image as a pos.
+/// @since GRPH 1.7
+/// @see createImage
+/// @see getWidth
+/// @see getHeight
+#builtin function pos imgm>getImageSize[image img]
+
+/// Returns the width of the given image.
+/// @since GRPH 1.7
+/// @see createImage
+/// @see getHeight
+/// @see getSize
+#builtin function integer imgm>getImageWidth[image img]
+
+/// Returns the height of the given image.
+/// @since GRPH 1.7
+/// @see createImage
+/// @see getWidth
+/// @see getSize
+#builtin function integer imgm>getImageHeight[image img]
+
+/// Paints the given shape, using the shape's paint, stroke, position, size, etc. The set paint and stroke are ignored, and reset.
+/// @since GRPH 1.7
+/// @param shape The shape to paint
+/// @see paintWith
+/// @see paintWithStroke
+#builtin method void image.imgm>paintShape[shape shape]
+
+/// Changes the current paint. On next draw/fill, if no paint is given, the given paint will be used.
+/// @since GRPH 1.7
+/// @param paint The paint to use next times
+/// @see paintWithStroke
+#builtin method void image.imgm>paintWith[paint paint]
+
+/// Changes the current stroke. On next draw, the given stroke will be used.
+/// @since GRPH 1.7
+/// @param size The stroke to use next times
+/// @see paintWith
+#builtin method void image.imgm>paintWithStroke[float size, {float} dashArray, stroke type]
+
+/// Fills the given rectangle with the given paint.
+/// @since GRPH 1.7
+/// @param position The position of the rectangle in the image, in pixels
+/// @param size The size of the rectangle in pixels
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWith
+/// @see drawRect
+/// @see fillRoundRect
+#builtin method void image.imgm>fillRect[pos position, pos size, paint paint?]
+
+/// Fills the given oval/circle with the given paint.
+/// @since GRPH 1.7
+/// @param position The position of the oval's bounds in the image
+/// @param size The bounds of the oval in pixels
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWith
+/// @see drawOval
+#builtin method void image.imgm>fillOval[pos position, pos size, paint paint?]
+
+/// Fills the given rounded rectangle with the given paint.
+/// @since GRPH 1.7
+/// @param position The position of the rectangle in the image
+/// @param size The size of the rectangle in pixels
+/// @param arc The arc of the round rect, the size of the circles/ovals in the corners
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWith
+/// @see drawRoundRect
+/// @see fillRect
+#builtin method void image.imgm>fillRoundRect[pos position, pos size, pos arc, paint paint?]
+
+/// Fills the given polygon with the given paint, using the given points.
+/// @since GRPH 1.7
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @param points... The points to use
+/// @see paintWith
+/// @see drawPolygon
+#builtin method void image.imgm>fillPolygon[paint paint?, pos points...]
+
+/// Fills the given arc with the given paint.
+/// @since GRPH 1.7
+/// @param position The position of the oval's bounds in the image
+/// @param size The bounds of the oval in pixels
+/// @param startAngle The starting angle, where 0 is at the 3 o'clock position
+/// @param arcAngle The extent angle
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWith
+/// @see drawArc
+/// @see fillOval
+#builtin method void image.imgm>fillArc[pos position, pos size, rotation startAngle, rotation arcAngle, paint paint?]
+
+/// Draws the given rectangle with the given paint and the latest stroke.
+/// @since GRPH 1.7
+/// @param position The position of the rectangle in the image, in pixels
+/// @param size The size of the rectangle in pixels
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWithStroke
+/// @see fillRect
+/// @see drawRoundRect
+#builtin method void image.imgm>drawRect[pos position, pos size, paint paint?]
+
+/// Draws the given oval/circle with the given paint and the latest stroke.
+/// @since GRPH 1.7
+/// @param position The position of the oval's bounds in the image
+/// @param size The bounds of the oval in pixels
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWithStroke
+/// @see fillOval
+#builtin method void image.imgm>drawOval[pos position, pos size, paint paint?]
+
+/// Draws the given round rectangle with the given paint and the latest stroke.
+/// @since GRPH 1.7
+/// @param position The position of the rectangle in the image
+/// @param size The size of the rectangle in pixels
+/// @param arc The arc of the round rect, the size of the circles/ovals in the corners
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWithStroke
+/// @see fillRoundRect
+#builtin method void image.imgm>drawRoundRect[pos position, pos size, pos arc, paint paint?]
+
+/// Draws the given polygon with the given paint and the latest stroke, using the given points.
+/// @since GRPH 1.7
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @param points... The points to use
+/// @see paintWithStroke
+/// @see fillPolygon
+/// @see drawPolyline
+#builtin method void image.imgm>drawPolygon[paint paint?, pos points...]
+
+/// Draws the given polyline with the given paint and the latest stroke, using the given points. If the first and last points are equal, it is the same as drawing a polygon.
+/// @since GRPH 1.7
+/// @param points... The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @param points... The points to use
+/// @see paintWithStroke
+/// @see drawPolygon
+#builtin method void image.imgm>drawPolyline[pos points...]
+
+/// Draws the given arc with the given paint and the latest stroke.
+/// @since GRPH 1.7
+/// @param position The position of the oval's bounds in the image
+/// @param size The bounds of the oval in pixels
+/// @param startAngle The starting angle, where 0 is at the 3 o'clock position
+/// @param arcAngle The extent angle
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWithStroke
+/// @see fillArc
+/// @see drawOval
+#builtin method void image.imgm>drawArc[pos position, pos size, rotation startAngle, rotation arcAngle, paint paint?]
+
+/// Draws the given line with the given paint and the latest stroke.
+/// @since GRPH 1.7
+/// @param pos1 The position of the first point
+/// @param pos2 The position of the second point
+/// @param paint Optional. The paint to use. If not specified, the last used paint is used (in a fillXXX or drawXXX method, or in paintWith)
+/// @see paintWithStroke
+#builtin method void image.imgm>drawLine[pos pos1, pos pos2, paint paint?]
+
+/// Draws the given image on this image.
+/// @since GRPH 1.7
+/// @param position The position of the image
+/// @param size The size of the image, if not equal to the real size of the image, it is resized. If negative, the image is mirrored.
+/// @param img Optional. The image to draw
+/// @see paintShape
+/// @see fillRect
+#builtin method void image.imgm>drawImage[pos position, pos size, image img?]
+
+/// Draws the given string on this image.
+/// @since GRPH 1.7
+/// @param str The string to draw
+/// @param position The position of the baseline of the first character
+/// @param font The font to draw with
+/// @see paintWith
+/// @see paintShape
+#builtin method void image.imgm>drawString[string str, pos position, font font]
+
+/// A rectangle with specified position and size.<br/><strong>Aliases:</strong> Square, Rect and R.
+/// @since GRPH 1.0
+/// @param name Optional. The name of the shape
+/// @param location The position of the top left point
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param size The size of the shape
+/// @param rotation Optional. The rotation of the shape
+/// @param paint The paint used to fill or stroke the shape.
+/// @param strokeWidth Optional. The stroke width. If specified, the shape becomes stroked.
+/// @param strokeType Optional. The stroke type (cut, elongated or rounded). If specified, the shape becomes stroked.
+/// @param strokeDashArray Optional. The stroke dash array. If specified, the shape becomes stroked.
+#builtin constructor Rectangle
+
+/// An ellipse with specified position and size.<br/><strong>Aliases:</strong> Ellipse, E and C.
+/// @since GRPH 1.0
+/// @param name Optional. The name of the shape
+/// @param location The frame's the top left point
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param size The size of the shape's frame
+/// @param rotation Optional. The rotation of the shape
+/// @param paint The paint used to fill or stroke the shape.
+/// @param strokeWidth Optional. The stroke width. If specified, the shape becomes stroked.
+/// @param strokeType Optional. The stroke type (cut, elongated or rounded). If specified, the shape becomes stroked.
+/// @param strokeDashArray Optional. The stroke dash array. If specified, the shape becomes stroked.
+#builtin constructor Circle
+
+/// A line with specified point positions. The positions can be edited with setLocation for the first point and setSize for the second pos. 'translate' will translate the two points. 'resize' will translate the second position.<br/><strong>Alias:</strong> L.
+/// @since GRPH 1.0
+/// @param name Optional. The name of the shape
+/// @param pos1 The first point
+/// @param pos2 The second point
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param paint The paint used stroke the shape.
+/// @param strokeWidth Optional. The stroke width.
+/// @param strokeType Optional. The stroke type (cut, elongated or rounded).
+/// @param strokeDashArray Optional. The stroke dash array.
+#builtin constructor Line
+
+/// A polygon with specified point positions.<br/><strong>Aliases:</strong> Poly and P.
+/// @since GRPH 1.0
+/// @param name Optional. The name of the shape
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param paint The paint used fill or stroke the shape.
+/// @param strokeWidth Optional. The stroke width. If specified, the shape becomes stroked.
+/// @param strokeType Optional. The stroke type (cut, elongated or rounded). If specified, the shape becomes stroked.
+/// @param strokeDashArray Optional. The stroke dash array. If specified, the shape becomes stroked.
+/// @param points... Optional. The list of points.
+#builtin constructor Polygon
+
+/// A sprite with specified position and size.<br/><strong>Aliases:</strong> Sprite (since GRPH 1.11), Img and I.
+/// @since GRPH 1.0
+/// @param name Optional. The name of the shape
+/// @param location The position of the top left point
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param size Optional. The size of the shape, by default it is the size of the given image (optional since GRPH 1.7)
+/// @param rotation Optional. The rotation of the shape
+/// @param fileOrImage The file to read. Creates an infinite loop if <i>this</i> is specified and no condition set. Creates an empty image if the file doesn't exists.
+#builtin constructor Image
+
+/// A text with specified position.<br/><strong>Alias:</strong> T.
+/// @since GRPH 1.0
+/// @param text The text shown on the screen. Can be changed with setName.
+/// @param location The position of the left-most point on the baseline.
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param textSize Optional. The size of the font. This parameter is an optional integer, like the zpos. Specify the zpos to change the size.
+/// @param rotation Optional. The rotation of the shape
+/// @param paint The paint used fill the shape.
+#builtin constructor Text
+
+/// A group of shapes. It is a list of shapes that can be moved together.
+/// @since GRPH 1.4
+/// @param name Optional. The name of the shape.
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param rotation Optional. The rotation of the shape
+/// @param shapes... Optional. The list of shapes. It can be changed with addToGroup and removeFromGroup.
+#builtin constructor Group
+
+/// The background of the image. Mustn't be used with other variables than <i>back</i>.
+/// @since GRPH 1.0
+/// @param size The size of the image
+/// @param paint The background paint
+#builtin constructor Background
+
+/// A path. It is a list of points with types. The points can be set with <a href="moveTo">moveTo</a>, <a href="lineTo">lineTo</a>, <a href="quadTo">quadTo</a>, <a href="cubicTo">cubicTo</a> and <a href="closePath">closePath</a>.
+/// @since GRPH 1.2
+/// @param name Optional. The name of the shape.
+/// @param zpos Optional. The z-position of the shape ; A lower value is in the background
+/// @param rotation Optional. The rotation of the shape
+/// @param paint The paint used fill the shape.
+/// @param strokeWidth Optional. The stroke width. If specified, the shape becomes stroked.
+/// @param strokeType Optional. The stroke type (cut, elongated or rounded). If specified, the shape becomes stroked.
+/// @param strokeDashArray Optional. The stroke dash array. If specified, the shape becomes stroked.
+#builtin constructor Path
+
+/// Current file. It is discouraged to change this variable's value.
+/// @since GRPH 1.0
+#builtin global file this
+
+/// The image's background. It must be a Background shape.<br/><strong>Warning:</strong> Changing the background after any shape validation will unvalidate them.
+/// @since GRPH 1.0
+#builtin global Background back
+
+/// The white color. It is the same as color[255 255 255]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color WHITE
+
+/// The black color. It is the same as color[0 0 0]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color BLACK
+
+/// The red color. It is the same as color[255 0 0]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color RED
+
+/// The green color. It is the same as color[0 255 0]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color GREEN
+
+/// The blue color. It is the same as color[0 0 255]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color BLUE
+
+/// The orange color. It is the same as color[255 200 0]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color ORANGE
+
+/// The yellow color. It is the same as color[255 255 0]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color YELLOW
+
+/// The pink color. It is the same as color[255 175 175]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color PINK
+
+/// The purple color. It is the same as color[255 0 255]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color PURPLE
+
+/// The aqua color. It is the same as color[0 255 255]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color AQUA
+
+/// A fully transparent color. It is the same as color[0 0 0 0F]
+/// @since GRPH 1.0
+/// @see color
+#builtin global color ALPHA
+
+/// Imports the given namespace so you can use its functions and methods.It should be at the beginning of the file.
+/// @since GRPH 1.0
+#builtin command #import
+
+/// Executes the indented block only if the condition is true.
+/// @since GRPH 1.0
+/// @see #elseif
+/// @see #else
+#builtin command #if
+
+/// Executes the indented block only if the condition is true and no previous if or elseif has been executed.
+/// @since GRPH 1.0
+/// @see #if
+/// @see #else
+#builtin command #elseif
+
+/// Executes the indented block only if no previous if or elseif has been executed.
+/// @since GRPH 1.0
+/// @see #if
+/// @see elseif
+#builtin command #else
+
+/// Executes in loop the indented block until the condition is evaluated to false.
+/// @since GRPH 1.0
+#builtin command #while
+
+/// Goes to the given line.<br/><strong>Warning</strong>: If you are actually in a loop, it is possible that it will continue looping instead of going to the given line.<br/>If the given line is in a loop and/or a condition, it will be ignored, since they are not read.
+/// @since GRPH 1.0
+#builtin command #goto
+
+/// Simple block, without condition. Read once.<br/>Used to create a new scope.
+/// @since GRPH 1.5
+#builtin command #block
+
+/// Used to specify that a specific version of GRPH or a plugin is needed.<br/>Like #imports, there is no quotes around the parameters.<br/>If the current version of the plugin/GRPH is lower than the specified one, a dialog will ask the user to update Graphism / Download the plugin / Update the plugin
+/// @since GRPH 1.5
+/// @param plugin The plugin, or 'GRPH'
+/// @param minVersion The minimum version needed
+/// @see getVersion
+/// @see hasVersion
+#builtin command #requires
+
+/// Executes the indented block for each value in the array. The current value is stored in the variable, which is created in the block's scope.
+/// @since GRPH 1.8
+/// @param varName The variable
+/// @param array The array
+/// @see getArrayLength
+/// @see #while
+#builtin command #foreach
+
+/// Executes the indented block. If a runtime error occurs in the block, the correct catch clause is executed.
+/// @since GRPH 1.9
+/// @see #catch
+#builtin command #try
+
+/// Executed when the #try block fails. The first #catch clause with the correct type is invoked.<br/>Valid types are: InvalidTypeException, CastException, IOException, ReflectionException, InvalidArgumentException, UnexpectedException and Exception.<br/>The first catch clause with the correct type is executed. For 'Exception', it is executed when there is no more specific catch clause, whatever the order.<br/><b>Example</b>: <pre>#try
+/// 	integer x = getName[back] as integer
+/// 	log[0]
+/// #catch message : InvalidArgumentException
+/// 	log[1]
+/// #catch message : Exception
+/// 	log[2]
+/// #catch message : CastException
+/// 	log[3]</pre>This prints '3', because it is a 'CastException'. If the last catch clause were removed, it would print '2'.<br/>If no appropriate catch clause is found for the Exception, the script crashes, like if there were no #try or #catch, except if there is another #try-#catch further.
+/// @since GRPH 1.9
+/// @param varName The variable
+/// @param errTypes The types to catch, separated by a pipe '|'
+/// @see #try
+#builtin command #catch
+
+/// Throws immediately the given exception.
+/// @since GRPH 1.9
+/// @param errType The type of the exception
+/// @param message It's message
+/// @see #catch
+#builtin command #throw
+
+/// Creates a function using the given return type, name and parameters. It can then be called with 'name[value1]'.<br/>The parameters are separated by a comma ','.<br/>To use a vararg parameter, add '...' at the end of the last parameter's name, the variable will be of type '{type}'.<br/>To make a parameter optional, either add a default value by adding ' = value' after the parameter's name, either add '?' at the end of the parameter's name, and then the variable will be of type 'type?'.
+/// @since GRPH 1.10
+/// @param type The return type
+/// @param name The name
+/// @param type1 First parameter's type
+/// @param name1 First parameter's name
+/// @see #return
+#builtin command #function
+
+/// Returns from the current function, with the given return value. It must be an instance of the return type of the function.
+/// @since GRPH 1.10
+/// @param value The return value
+/// @see #function
+/// @see #break
+#builtin command #return
+
+/// Breaks out of the current block. Stops reading the current block, and continues outside.<br/><b>Example</b>:<pre>#block
+/// 	log[1]
+/// 	#break
+/// 	log[2]
+/// log[3]</pre>This will log 1 and 3.
+/// @since GRPH 1.10
+/// @see #continue
+#builtin command #break
+
+/// Breaks the current block, but in case of a loop, it continues looping and continues to the next iteration.<br/><b>Example</b>:<pre>#foreach i : range[0 1]
+/// 	log[1 i]
+/// 	#continue
+/// 	log[2]
+/// log[3]</pre>This will log '1 0', '1 1' and '3'.
+/// @since GRPH 1.10
+/// @see #break
+#builtin command #continue
+
+/// The X coordinate (or the width if this pos is a size)
+/// @since GRPH 1.10
+/// @see getXForPos
+#builtin property pos.x
+
+/// The Y coordinate (or the height if this pos is a size)
+/// @since GRPH 1.10
+/// @see getYForPos
+#builtin property pos.y
+
+/// The red component of this color, 0-255 inclusive
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.red
+
+/// The green component of this color, 0-255 inclusive
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.green
+
+/// The blue component of this color, 0-255 inclusive
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.blue
+
+/// The alpha component of this color, 0-255 inclusive
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.alpha
+
+/// The color to start from
+/// @since GRPH 1.10
+/// @see linear
+/// @see linear.toColor
+#builtin property linear.fromColor
+
+/// The color to end with
+/// @since GRPH 1.10
+/// @see linear
+/// @see linear.fromColor
+#builtin property linear.toColor
+
+/// The direction of the linear gradient
+/// @since GRPH 1.10
+/// @see linear
+#builtin property linear.direction
+
+/// The color to start from, which is at the center point
+/// @since GRPH 1.10
+/// @see radial
+/// @see radial.toColor
+#builtin property radial.fromColor
+
+/// The color to end with, which is around the center
+/// @since GRPH 1.10
+/// @see radial
+/// @see radial.fromColor
+#builtin property radial.toColor
+
+/// The center of the radial gradient, '0.5,0.5' is at the center
+/// @since GRPH 1.10
+/// @see radial
+/// @see radial.focus
+/// @see radial.radius
+#builtin property radial.center
+
+/// The focus point of the radial gradient
+/// @since GRPH 1.10
+/// @see radial
+/// @see radial.center
+#builtin property radial.focus
+
+/// The radius of the radial gradient
+/// @since GRPH 1.10
+/// @see radial
+/// @see radial.center
+#builtin property radial.radius
+
+/// The size of the font, in points
+/// @since GRPH 1.10
+/// @see font
+/// @see font.style
+/// @see font.name
+#builtin property font.size
+
+/// The style of the font, which is PLAIN, BOLD, ITALIC or BOLD|ITALIC.
+/// @since GRPH 1.10
+/// @see font
+/// @see font.size
+/// @see font.name
+#builtin property font.style
+
+/// The logical name of the font
+/// @since GRPH 1.10
+/// @see font
+/// @see font.size
+/// @see font.style
+#builtin property font.name
+
+/// The width of this image, in pixels
+/// @since GRPH 1.10
+/// @see getImageWidth
+/// @see image.height
+#builtin property image.width
+
+/// The height of this image, in pixels
+/// @since GRPH 1.10
+/// @see getImageHeight
+/// @see image.width
+#builtin property image.height
+
+/// The value of this rotation as an integer
+/// @since GRPH 1.10
+/// @see rotationToInteger
+#builtin property rotation.value
+
+/// The length of this string
+/// @since GRPH 1.10
+/// @see getStringLength
+#builtin property string.length
+
+/// The size of this array
+/// @since GRPH 1.10
+/// @see getArrayLength
+#builtin property {mixed}.length
+
+/// The name of the shape
+/// @since GRPH 1.10
+/// @see getName
+#builtin property shape.name
+
+/// The position of the shape
+/// @since GRPH 1.10
+/// @see getPosition
+#builtin property shape.location
+
+/// The size of the shape
+/// @since GRPH 1.10
+/// @see getSize
+#builtin property shape.size
+
+/// The rotation center of the shape. If not changed, changes automatically to the center of the shape.
+/// @since GRPH 1.10
+/// @see getRotationCenter
+#builtin property shape.rotationCenter
+
+/// The rotation of the shape
+/// @since GRPH 1.10
+/// @see getRotation
+#builtin property shape.rotation
+
+/// The paint of the shape (color, linear or radial)
+/// @since GRPH 1.10
+/// @see getPaint
+#builtin property shape.paint
+
+/// The stroke width of the shape, have no effect if filling is true.
+/// @since GRPH 1.10
+/// @see shape.filling
+/// @see getStrokeWidth
+#builtin property shape.strokeWidth
+
+/// The stroke of the shape, have no effect if filling is true.
+/// @since GRPH 1.10
+/// @see shape.filling
+/// @see getStrokeType
+#builtin property shape.strokeType
+
+/// The stroke dash array of the shape, have no effect if filling is true. An even value is the length of the stroke, an odd value is the length of the blank.
+/// @since GRPH 1.10
+/// @see shape.filling
+/// @see getStrokeDashArray
+#builtin property shape.strokeDashArray
+
+/// True if this shape is filled, false if it is stroked.
+/// @since GRPH 1.10
+/// @see isFilled
+#builtin property shape.filling
+
+/// The z-position of the shape, a greater value goes to the front.
+/// @since GRPH 1.10
+/// @see getZPosition
+#builtin property shape.zPos
+
+/// The blur level of the shape. By default, the blur level is not shown, the user must enable it.
+/// @since GRPH 1.10
+/// @see getBlurLevel
+#builtin property shape.blurLevel
+
+/// The shown image
+/// @since GRPH 1.10
+/// @see getImage
+#builtin property Image.img
+
+/// The font of the text
+/// @since GRPH 1.10
+/// @see getFont
+#builtin property Text.font
+
+/// The points of the polygon. This value is computed, so editing the given array will not affect this polygon. Assign this property to the edited array to edit the points.
+/// @since GRPH 1.10
+/// @see getPoint
+#builtin property Polygon.points
+
+/// The shapes in the group. This value is computed, so editing the given array will not affect this group. Assign this property to the edited array to edit the shapes.
+/// @since GRPH 1.10
+/// @see addToGroup
+#builtin property Group.shapes
+
+/// The white color. It is the same as color[255 255 255]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.WHITE
+
+/// The black color. It is the same as color[192 192 192]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.LIGHT_GRAY
+
+/// The black color. It is the same as color[128 128 128]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.GRAY
+
+/// The black color. It is the same as color[64 64 64]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.DARK_GRAY
+
+/// The black color. It is the same as color[0 0 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.BLACK
+
+/// The red color. It is the same as color[255 0 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.RED
+
+/// The green color. It is the same as color[0 255 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.GREEN
+
+/// The blue color. It is the same as color[0 0 255]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.BLUE
+
+/// The cyan color. It is the same as color[0 255 255]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.CYAN
+
+/// The orange color. It is the same as color[255 0 255]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.MAGENTA
+
+/// The yellow color. It is the same as color[255 255 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.YELLOW
+
+/// The orange color. It is the same as color[255 200 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.ORANGE
+
+/// The orange color. It is the same as color[153 51 0]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.BROWN
+
+/// The pink color. It is the same as color[255 175 175]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.PINK
+
+/// A fully transparent color. It is the same as color[0 0 0 0F]
+/// @since GRPH 1.10
+/// @see color
+#builtin property color.ALPHA
+
+/// A float that corresponds to 'Infinity', same as 1F/0F
+/// @since GRPH 1.10
+/// @see float.NEGATIVE_INFINITY
+/// @see float.NOT_A_NUMBER
+#builtin property float.POSITIVE_INFINITY
+
+/// A float that corresponds to '-Infinity', same as -1F/0F
+/// @since GRPH 1.10
+/// @see float.POSITIVE_INFINITY
+/// @see float.NOT_A_NUMBER
+#builtin property float.NEGATIVE_INFINITY
+
+/// A float that corresponds to 'NaN', same as 0F/0F
+/// @since GRPH 1.10
+/// @see float.POSITIVE_INFINITY
+/// @see float.NEGATIVE_INFINITY
+#builtin property float.NOT_A_NUMBER
+
+/// Highest possible integer, '2147483647'
+/// @since GRPH 1.10
+/// @see integer.MIN
+#builtin property integer.MAX
+
+/// Lowest possible integer, '-2147483648'
+/// @since GRPH 1.10
+/// @see integer.MAX
+#builtin property integer.MIN
+
+/// The plain style
+/// @since GRPH 1.10
+/// @see font.BOLD
+/// @see font.ITALIC
+#builtin property font.PLAIN
+
+/// The bold style, can be combined with ITALIC
+/// @since GRPH 1.10
+/// @see font.ITALIC
+/// @see font.PLAIN
+#builtin property font.BOLD
+
+/// The italic style, can be combined with BOLD
+/// @since GRPH 1.10
+/// @see font.BOLD
+/// @see font.PLAIN
+#builtin property font.ITALIC
+
+/// The origin position (0,0)
+/// @since GRPH 1.10
+/// @see createPos
+#builtin property pos.ORIGIN
+
+/// The elongated stroke type, which adds a square at the end of the strokes.
+/// @since GRPH 1.10
+/// @see stroke.ROUNDED
+/// @see stroke.CUT
+#builtin property stroke.ELONGATED
+
+/// The elongated stroke type, which adds nothing on strokes.
+/// @since GRPH 1.10
+/// @see stroke.ROUNDED
+/// @see stroke.ELONGATED
+#builtin property stroke.CUT
+
+/// The rounded stroke type, which adds a circle at the end of the strokes.
+/// @since GRPH 1.10
+/// @see stroke.ELONGATED
+/// @see stroke.CUT
+#builtin property stroke.ROUNDED
+
+/// The direction which goes from the left to the right.
+/// @since GRPH 1.10
+/// @see direction.UP_RIGHT
+/// @see direction.DOWN_RIGHT
+/// @see direction.LEFT
+#builtin property direction.RIGHT
+
+/// The direction which goes from the top left to the bottom right.
+/// @since GRPH 1.10
+/// @see direction.DOWN
+/// @see direction.RIGHT
+/// @see direction.TOP_LEFT
+#builtin property direction.DOWN_RIGHT
+
+/// The direction which goes from the top to the bottom.
+/// @since GRPH 1.10
+/// @see direction.DOWN_LEFT
+/// @see direction.DOWN_RIGHT
+/// @see direction.UP
+#builtin property direction.DOWN
+
+/// The direction which goes from the top right to the bottom left.
+/// @since GRPH 1.10
+/// @see direction.DOWN
+/// @see direction.LEFT
+/// @see direction.UP_RIGHT
+#builtin property direction.DOWN_LEFT
+
+/// The direction which goes from the right to the left.
+/// @since GRPH 1.10
+/// @see direction.UP_LEFT
+/// @see direction.DOWN_LEFT
+/// @see direction.RIGHT
+#builtin property direction.LEFT
+
+/// The direction which goes from the bottom right to the top left.
+/// @since GRPH 1.10
+/// @see direction.UP
+/// @see direction.LEFT
+/// @see direction.DOWN_RIGHT
+#builtin property direction.UP_LEFT
+
+/// The direction which goes from the bottom to the top.
+/// @since GRPH 1.10
+/// @see direction.UP_LEFT
+/// @see direction.UP_RIGHT
+/// @see direction.DOWN
+#builtin property direction.UP
+
+/// The direction which goes from the bottom left to the top right.
+/// @since GRPH 1.10
+/// @see direction.UP
+/// @see direction.RIGHT
+/// @see direction.DOWN_LEFT
+#builtin property direction.UP_RIGHT
