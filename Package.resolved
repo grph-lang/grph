@@ -3,11 +3,11 @@
     "pins": [
       {
         "package": "Rainbow",
-        "repositoryURL": "https://github.com/onevcat/Rainbow",
+        "repositoryURL": "https://github.com/Snowy1803/Rainbow",
         "state": {
-          "branch": null,
-          "revision": "7c3dad0e918534c6d19dd1048bde734c246d05fe",
-          "version": "4.0.0"
+          "branch": "master",
+          "revision": "c190f5aad55458a6322fcae698b56cdf115d4b8a",
+          "version": null
         }
       },
       {

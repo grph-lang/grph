@@ -12,6 +12,7 @@
 import Foundation
 import Rainbow
 import GRPHLexer
+import GRPHGenerator
 
 extension Token {
     func dumpAST(indent: String = "") -> String {
@@ -21,32 +22,49 @@ extension Token {
     }
     
     // semantic tokens must all be on the correct line
-    func highlighted(semanticTokens: [Token] = []) -> String {
-        
+    func highlighted(semanticTokens: [SemanticToken] = []) -> String {
         // matches are either exact same, or bigger
         if let match = semanticTokens.last(where: { sem in
-            return sem.lineOffset <= self.lineOffset && self.literal.endIndex <= sem.literal.endIndex
-        }), let color = match.tokenType.color {
-            return description[keyPath: color]
+            return sem.token.lineOffset <= self.lineOffset && self.literal.endIndex <= sem.token.literal.endIndex
+        }) {
+            return highlighted(content: description, type: match.token.tokenType, modifiers: match.modifiers)
+        } else if children.isEmpty,
+                  case let newChildren = semanticTokens.filter({ sem in
+                      return self.lineOffset <= sem.token.lineOffset && sem.token.literal.endIndex <= self.literal.endIndex
+                  }),
+                  !newChildren.isEmpty {
+            var copy = self
+            copy.children = newChildren.map { $0.token }
+            return copy.highlighted(semanticTokens: semanticTokens)
         }
         
-        if let color = tokenType.color {
-            return description[keyPath: color]
-        } else {
-            var str = ""
-            var i = lineOffset
-            for child in children {
-                if i < child.lineOffset {
-                    str += literal[i..<child.lineOffset]
-                }
-                str += child.highlighted(semanticTokens: semanticTokens)
-                i = child.literal.endIndex
+        var str = ""
+        var i = lineOffset
+        for child in children {
+            if i < child.lineOffset {
+                str += literal[i..<child.lineOffset]
             }
-            if i < literal.endIndex {
-                str += literal[i..<literal.endIndex]
-            }
-            return str
+            str += child.highlighted(semanticTokens: semanticTokens)
+            i = child.literal.endIndex
         }
+        if i < literal.endIndex {
+            str += literal[i..<literal.endIndex]
+        }
+        return highlighted(content: str, type: tokenType, modifiers: [])
+    }
+    
+    private func highlighted(content: String, type: TokenType, modifiers: SemanticToken.Modifiers) -> String {
+        var content = content
+        if type == .keyword && modifiers.contains(.documentation) {
+            return content.bold
+        }
+        if let color = type.color {
+            content = content[keyPath: color]
+        }
+        if modifiers.contains(.deprecated) {
+            content = content.applyingStyle(.strikethrough)
+        }
+        return content
     }
 }
 

@@ -100,7 +100,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-s /Users/emil/Library/Mobile\ Documents/com\~apple\~CloudDocs/Graphism/TestFuncCall.grph"
+            argument = "-s /Users/emil/Library/Mobile\ Documents/com\~apple\~CloudDocs/Graphism/Dictionary.grph"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

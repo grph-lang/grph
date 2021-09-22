@@ -29,7 +29,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     public var context: CompilingContext!
     
-    public private(set) var diagnostics: [Notice] = []
+    public var diagnostics: [Notice] = []
     
     /// To start capturing semantic tokens, set this to an empty array. If nil, none will be captured.
     public var resolvedSemanticTokens: [SemanticToken]?

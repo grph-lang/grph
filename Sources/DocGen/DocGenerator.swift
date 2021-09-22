@@ -28,7 +28,7 @@ public struct DocGenerator {
     }
     
     public mutating func generate() {
-        for symbol in semanticTokens where symbol.modifiers.contains(.declaration) {
+        for symbol in semanticTokens where symbol.modifiers.contains(.declaration) && symbol.token.tokenType != .parameter {
             generateDocumentation(declaration: symbol)
         }
         // For use of deprecated symbols, add the appropriate Semantic Modifier (for the IDE to strikethrough), and issue a warning
@@ -49,6 +49,9 @@ public struct DocGenerator {
         switch st.token.tokenType {
         case .parameter:
             // always a declaration, same line as the function definition
+            if st.modifiers.contains(.documentation) {
+                return nil
+            }
             guard let f = semanticTokens.firstIndex(where: { $0.token.lineNumber == st.token.lineNumber && $0.token.tokenType == .function }) else {
                 assertionFailure("parameters must be on the same line as functions")
                 return nil
@@ -88,18 +91,23 @@ public struct DocGenerator {
             let docContent = stripped[1].children[0]
             let content = docContent.literal.drop(while: { $0.isWhitespace })
             if content.hasPrefix("@since ") {
+                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(6), tokenType: .keyword), modifiers: .documentation, data: .none))
                 since = String(content.dropFirst(7))
             } else if content.hasPrefix("@deprecated ") {
+                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(11), tokenType: .keyword), modifiers: .documentation, data: .none))
                 deprecation = String(content.dropFirst(12))
             } else if content.hasPrefix("@see ") {
+                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(4), tokenType: .keyword), modifiers: .documentation, data: .none))
                 see.append(String(content.dropFirst(5)))
             } else if content.hasPrefix("@param ") && !params.isEmpty {
+                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(6), tokenType: .keyword), modifiers: .documentation, data: .none))
                 let cnt = content.dropFirst(7).drop(while: { $0.isWhitespace })
                 guard let space = cnt.firstIndex(of: " ") else {
                     diagnostics.append(Notice(token: docContent, severity: .warning, source: .docgen, message: "Could not parse doc keyword, expected syntax '@param paramName Your documentation'"))
                     continue
                 }
                 let name = cnt[..<space]
+                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: name.startIndex, literal: name, tokenType: .parameter), modifiers: .documentation, data: .none))
                 guard let index = params.firstIndex(where: { $0.name == name }) else {
                     diagnostics.append(Notice(token: Token(lineNumber: line.lineNumber, lineOffset: name.startIndex, literal: name, tokenType: .keyword), severity: .warning, source: .docgen, message: "Function has no parameter '\(name)'"))
                     continue

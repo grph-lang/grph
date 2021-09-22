@@ -16,6 +16,8 @@ import GRPHLexer
 import GRPHGenerator
 import GRPHRuntime
 import GRPHValues
+import DocGen
+import Rainbow
 
 struct GraphismCLI: ParsableCommand {
     
@@ -39,6 +41,9 @@ struct GraphismCLI: ParsableCommand {
     
     @Flag(help: "Enables step-by-step debugging, printing the current line")
     var debug = false
+    
+    @Flag(inversion: .prefixedNo, help: "Toggles doc comment parsing (related warnings won't be diagnosed)")
+    var doc = true
     
     @Option(name: [.long, .customLong("wait")], help: "Step time between instructions, in seconds (0 by default, or infinity when debugging)")
     var step: TimeInterval?
@@ -82,13 +87,25 @@ struct GraphismCLI: ParsableCommand {
         let compiler = GRPHGenerator(lines: lines)
         if highlight {
             compiler.ignoreErrors = true
+        }
+        if highlight || doc {
             compiler.resolvedSemanticTokens = []
         }
         let result = compiler.compile()
         
+        let semtokens: [SemanticToken]!
+        if doc {
+            var docgen = DocGenerator(lines: lines, semanticTokens: compiler.resolvedSemanticTokens!)
+            docgen.generate()
+            semtokens = docgen.semanticTokens
+            compiler.diagnostics.append(contentsOf: docgen.diagnostics)
+        } else {
+            semtokens = compiler.resolvedSemanticTokens
+        }
+        
         if highlight {
             for line in lines {
-                print(line.highlighted(semanticTokens: compiler.resolvedSemanticTokens!.map { $0.token }.filter({ $0.lineNumber == line.lineNumber })))
+                print(line.highlighted(semanticTokens: semtokens.filter({ $0.token.lineNumber == line.lineNumber })))
             }
             throw ExitCode.success
         }
