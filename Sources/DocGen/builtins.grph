@@ -220,8 +220,9 @@
 /// @see intToRotation
 #builtin function integer rotationToInteger[rotation rotation]
 
-/// Gets the n<sup>th</sup> float in the float array.<br/><em><strong>Deprecated :</strong> As of GRPH 1.8, use <code>array{index}</code> instead of <code>getValueInArray[array index]</code>. The new syntax is compatible with all types of arrays, whereas this function only works with float arrays.</em>
+/// Gets the n<sup>th</sup> float in the float array.
 /// @since GRPH 1.1
+/// @deprecated As of GRPH 1.8, use <code>array{index}</code> instead of <code>getValueInArray[array index]</code>. The new syntax is compatible with all types of arrays, whereas this function only works with float arrays.
 /// @param farray The farray to explore
 /// @param index The index in the array to get
 /// @see getArrayLength
@@ -656,8 +657,9 @@
 /// @see appendInFile
 #builtin function string stdio>getFileContents[file file]
 
-/// Splits the given string and returns its n<sup>th</sup> result.<br/><b>Deprecated</b>: Since GRPH 1.8, you can use <code>split[string "\n"]{line}</code> instead.
+/// Splits the given string and returns its n<sup>th</sup> result.
 /// @since GRPH 1.0
+/// @deprecated Since GRPH 1.8, you can use <code>split[string "\n"]{line}</code> instead.
 /// @param string The string to split
 /// @param line The line to get
 /// @see getFileContents
@@ -962,102 +964,119 @@
 
 /// Casts the parameter to an integer.<br/>If the parameter is an integer, returns direcly the parameter.<br/>If it is a float, returns the value floored.<br/>If it is a rotation, returns its value (GRPH 1.9).<br/>If it is a string, decodes the string with stringToInteger (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0 before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as integer'
 /// @param param The value to cast
 /// @see castTo
 #builtin function integer reflect>castToInteger[mixed param]
 
 /// Casts the parameter to a float.<br/>If the parameter is a float, returns direcly the parameter.<br/>If it is an integer, returns the value converted.<br/>If it is a rotation, returns its value converted (GRPH 1.9).<br/>If it is a string, decodes the string with stringToFloat (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0F before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as float'
 /// @param param The value to cast
 /// @see castTo
 #builtin function float reflect>castToFloat[mixed param]
 
 /// Casts the parameter to a number.<br/>If the parameter is a number (integer or float), returns direcly the parameter.<br/>If it is a rotation, returns the value as an integer (GRPH 1.9).<br/>If it is a string, decodes the string with stringToInteger if possible, else stringToFloat (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0 before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as number'
 /// @param param The value to cast
 /// @see castTo
 #builtin function num reflect>castToNum[mixed param]
 
 /// Converts the parameter to a string.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as string'
 /// @param param The value to cast
 /// @see castTo
 #builtin function string reflect>castToString[mixed param]
 
 /// Casts the parameter to a rotation.<br/>If the parameter is a rotation, returns direcly the parameter.<br/>If the parameter is a number (GRPH 1.9, only integer before), returns the value converted.<br/>If it is a string, decodes the string with stringToInteger (after removing a final degree sign(°) if there is one) and converts it to a rotation (GRPH 1.9).<br/>Else throws an error (GRPH 1.9, returned 0° before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as rotation'
 /// @param param The value to cast
 /// @see castTo
 #builtin function rotation reflect>castToRotation[mixed param]
 
 /// Casts the parameter to a position.<br/>If the parameter is a pos, returns direcly the parameter.<br/>Else, throws an error (GRPH 1.9, returned 0,0 before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as pos'
 /// @param param The value to cast
 /// @see castTo
 #builtin function pos reflect>castToPos[mixed param]
 
 /// Casts the parameter to a boolean.<br/>If the parameter is a boolean, returns direcly the parameter.<br/>If the parameter is a number, returns false if the parameter is 0, true if not.<br/>If the parameter is a string, returns false if the parameter is empty, true if not.<br/>If the parameter is a rotation, returns false if the parameter is 0°, true if not.<br/>If the parameter is a pos, returns false if the parameter is 0,0, true i not.<br/>Before GRPH 1.9, if the parameter is errored, returns false, else returns true.<br/>Since GRPH 1.9, returns false if the parameter is an empty optional, true otherwise.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as boolean'
 /// @param param The value to cast
 /// @see castTo
 #builtin function boolean reflect>castToBoolean[mixed param]
 
 /// Casts the parameter to a float array.<br/>If the parameter is a {float}, returns direcly the parameter,else throws an error (GRPH 1.9, returned an empty float array before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as {float}'
 /// @param param The value to cast
 /// @see castTo
 #builtin function {float} reflect>castToFarray[mixed param]
 
 /// Casts the parameter to a paint.<br/>If the parameter is a paint, returns direcly the parameter, else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as paint'
 /// @param param The value to cast
 /// @see castTo
 #builtin function paint reflect>castToPaint[mixed param]
 
 /// Casts the parameter to a linear gradient.<br/>If the parameter is a linear, returns direcly the parameter, else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as linear'
 /// @param param The value to cast
 /// @see castTo
 #builtin function linear reflect>castToLinear[mixed param]
 
 /// Casts the parameter to a radial gradient.<br/>If the parameter is a radial, returns direcly the parameter, else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as radial'
 /// @param param The value to cast
 /// @see castTo
 #builtin function radial reflect>castToRadial[mixed param]
 
 /// Casts the parameter to a color.<br/>If the parameter is a color, returns direcly the parameter,if it is a string, decodes the string with stringToInteger, and then converts it to an opaque color (Format: #RRGGBB or 0xRRGGBB) (GRPH 1.9). else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as color'
 /// @param param The value to cast
 /// @see castTo
 #builtin function color reflect>castToColor[mixed param]
 
 /// Casts the parameter to a shape.<br/>If the parameter is a shape, returns direcly the parameter, else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as shape'
 /// @param param The value to cast
 /// @see castTo
 #builtin function shape reflect>castToShape[mixed param]
 
 /// Casts the parameter to a direction.<br/>If the parameter is a direction, returns direcly the parameter, else throws an error (GRPH 1.9, returned 'right' before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as direction'
 /// @param param The value to cast
 /// @see castTo
 #builtin function direction reflect>castToDirection[mixed param]
 
 /// Casts the parameter to a stroke type.<br/>If the parameter is a stroke, returns direcly the parameter, else throws an error (GRPH 1.9, returned 'elongated' before).
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as stroke'
 /// @param param The value to cast
 /// @see castTo
 #builtin function stroke reflect>castToStrokeType[mixed param]
 
 /// Casts the parameter to a file.<br/>If the parameter is a file, returns direcly the parameter, if it is a string, parses the string as a file (GRPH 1.9), else throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as file'
 /// @param param The value to cast
 /// @see castTo
 #builtin function file reflect>castToFile[mixed param]
 
 /// Casts the parameter to an image.<br/>If the parameter is an image, returns direcly the parameter, if the parameter is a file, it will be parsed as an image file (needs 'file-read' permission), else throws an error.
 /// @since GRPH 1.6
+/// @deprecated Since GRPH 1.9, you can use 'mixed as image'
 /// @param param The value to cast
 /// @see castTo
 /// @see image
@@ -1065,13 +1084,15 @@
 
 /// Casts the parameter to a font.<br/>If the parameter is a font, returns direcly the parameter, if the parameter is an integer, it will create a font using the integer as the size, else throws an error.
 /// @since GRPH 1.6
+/// @deprecated Since GRPH 1.9, you can use 'mixed as font'
 /// @param param The value to cast
 /// @see castTo
 /// @see font
 #builtin function font reflect>castToFont[mixed param]
 
-/// Casts the object to the specified type and returns it as a mixed value. It can be used to check the type or convert it.<br/>Since GRPH 1.8, this method support complex types (arrays, optionals, multitypes). If the type cannot be casted or converted, it throws an error.<br/><b>Deprecated</b> since GRPH 1.9: You can now use 'mixed as type' instead of 'castTo["type" mixed]'
+/// Casts the object to the specified type and returns it as a mixed value. It can be used to check the type or convert it.<br/>Since GRPH 1.8, this method support complex types (arrays, optionals, multitypes). If the type cannot be casted or converted, it throws an error.
 /// @since GRPH 1.4
+/// @deprecated Since GRPH 1.9, you can use 'mixed as type' instead of 'castTo["type" mixed]'
 /// @param type The type to use
 /// @param param The value to cast
 #builtin function mixed reflect>castTo[string type, mixed param]

@@ -31,6 +31,15 @@ public struct DocGenerator {
         for symbol in semanticTokens where symbol.modifiers.contains(.declaration) {
             generateDocumentation(declaration: symbol)
         }
+        // For use of deprecated symbols, add the appropriate Semantic Modifier (for the IDE to strikethrough), and issue a warning
+        for (i, token) in semanticTokens.enumerated() {
+            if let depr = findDocumentation(index: i)?.deprecation {
+                semanticTokens[i].modifiers.insert(.deprecated)
+                if !token.modifiers.contains(.declaration) {
+                    diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)"))
+                }
+            }
+        }
     }
     
     /// Finds the documentation for the symbol at the given index in `semanticTokens`
@@ -65,6 +74,7 @@ public struct DocGenerator {
         
         var documentation: [String] = []
         var since: String? = nil
+        var deprecation: String? = nil
         var see: [String] = []
         var params = generateParams(declaration: symbol)
         var valid = false
@@ -79,6 +89,8 @@ public struct DocGenerator {
             let content = docContent.literal.drop(while: { $0.isWhitespace })
             if content.hasPrefix("@since ") {
                 since = String(content.dropFirst(7))
+            } else if content.hasPrefix("@deprecated ") {
+                deprecation = String(content.dropFirst(12))
             } else if content.hasPrefix("@see ") {
                 see.append(String(content.dropFirst(5)))
             } else if content.hasPrefix("@param ") && !params.isEmpty {
@@ -100,7 +112,7 @@ public struct DocGenerator {
         guard valid else { // empty
             return
         }
-        self.documentation[symbol.documentationIdentifier] = Documentation(symbol: symbol, info: documentation.reversed().joined(separator: "\n"), since: since, seeAlso: see.reversed(), paramDoc: params)
+        self.documentation[symbol.documentationIdentifier] = Documentation(symbol: symbol, info: documentation.reversed().joined(separator: "\n"), since: since, deprecation: deprecation, seeAlso: see.reversed(), paramDoc: params)
     }
     
     func generateParams(declaration symbol: SemanticToken) -> [Documentation.Parameter] {
