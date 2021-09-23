@@ -45,7 +45,19 @@ extension DocGenerator {
                 let gen = GRPHGenerator(lines: lines)
                 gen.imports = NameSpaces.instances
                 data = GRPHTypes.parse(context: TopLevelCompilingContext(compiler: gen), literal: line.children[5].description)?.constructor.map { .constructor($0) } ?? .none
+            case "property":
+                let gen = GRPHGenerator(lines: lines)
+                gen.imports = NameSpaces.instances
+                guard let type = GRPHTypes.parse(context: TopLevelCompilingContext(compiler: gen), literal: Token(squash: line.children[5..<(line.children.count - 2)], type: .type).description),
+                      let prop = (type.staticConstants + type.fields as [Property]).first(where: { $0.name == line.children.last!.literal }) else {
+                    data = .none
+                    break
+                }
+                data = .property(prop, in: type)
+            case "namespace", "global", "command":
+                data = .identifier(id.description)
             default:
+                print("No data for \(line.description)")
                 data = .identifier(id.description)
             }
             if case .none = data {

@@ -48,7 +48,7 @@ public struct SemanticToken {
         case function(Function)
         case method(GRPHValues.Method)
         case variable(Variable)
-        case property(Property)
+        case property(Property, in: GRPHType)
         case constructor(Constructor)
         case identifier(String)
         

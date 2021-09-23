@@ -73,6 +73,14 @@ public struct DocGenerator {
         return documentation[symbol.documentationIdentifier]
     }
     
+    func findDocumentation(sloppyName: String) -> Documentation? {
+        return findInternalDocumentation(sloppyName: sloppyName) ?? DocGenerator.builtins.findInternalDocumentation(sloppyName: sloppyName)
+    }
+    
+    private func findInternalDocumentation(sloppyName: String) -> Documentation? {
+        return documentation.values.first(where: { $0.symbol.documentationNames.contains(sloppyName) })
+    }
+    
     /// Searches above the given symbol for doc comments, parses it, and adds it to the documentation.
     /// - Parameter symbol: a semantic token from a declaration, of type 'variable' or 'function'
     mutating func generateDocumentation(declaration symbol: SemanticToken) {

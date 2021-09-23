@@ -16,12 +16,20 @@ import GRPHGenerator
 typealias Method = GRPHValues.Method
 
 protocol DocumentedMember {
+    /// The unique identifier for this member
     var documentationIdentifier: String { get }
+    
+    /// The different names which may link to this member when using `@see`
+    var documentationNames: [String] { get }
 }
 
 extension Function: DocumentedMember {
     var documentationIdentifier: String {
         "function \(signature)"
+    }
+    
+    var documentationNames: [String] {
+        [documentationIdentifier, signature, fullyQualifiedName, name]
     }
 }
 
@@ -29,11 +37,19 @@ extension Method: DocumentedMember {
     var documentationIdentifier: String {
         "method \(signature)"
     }
+    
+    var documentationNames: [String] {
+        [documentationIdentifier, signature, fullyQualifiedName, name]
+    }
 }
 
 extension Constructor: DocumentedMember {
     var documentationIdentifier: String {
         "constructor \(signature)"
+    }
+    
+    var documentationNames: [String] {
+        [documentationIdentifier, signature, name, "constructor \(name)"]
     }
 }
 
@@ -45,16 +61,24 @@ extension Variable: DocumentedMember {
             return ObjectIdentifier(self).debugDescription
         }
     }
+    
+    var documentationNames: [String] {
+        [documentationIdentifier, name]
+    }
 }
 
-extension Property/*: DocumentedMember*/ { // humpf
-    var documentationIdentifier: String {
-        "property \(type).\(name)"
+extension Property/*: DocumentedMember*/ { // humpf (can't for two reasons)
+    func documentationIdentifier(in inType: GRPHType) -> String {
+        "property \(inType).\(name)"
+    }
+    
+    func documentationNames(in inType: GRPHType) -> [String] {
+        [documentationIdentifier(in: inType), "\(inType).\(name)", name]
     }
 }
 
 extension SemanticToken {
-    var documentationIdentifier: String! {
+    var documentationIdentifier: String {
         switch data {
         case .identifier(let id):
             return id
@@ -63,8 +87,8 @@ extension SemanticToken {
              .variable(let member as DocumentedMember),
           .constructor(let member as DocumentedMember):
             return member.documentationIdentifier
-        case .property(let member):
-            return member.documentationIdentifier
+        case .property(let member, in: let type):
+            return member.documentationIdentifier(in: type)
         case .none:
             switch token.tokenType {
             case .commandName:
@@ -75,6 +99,31 @@ extension SemanticToken {
                 return "case \(token.literal)"
             default:
                 return "_unresolvedCompilerError"
+            }
+        }
+    }
+    
+    var documentationNames: [String] {
+        switch data {
+        case .identifier(let id): // namespaces, variables, commands
+            return [id, id.components(separatedBy: " ").last!]
+        case .function(let member as DocumentedMember),
+               .method(let member as DocumentedMember),
+             .variable(let member as DocumentedMember),
+          .constructor(let member as DocumentedMember):
+            return member.documentationNames
+        case .property(let member, in: let type):
+            return member.documentationNames(in: type)
+        case .none:
+            switch token.tokenType {
+            case .commandName:
+                return ["command \(token.literal)", token.description]
+            case .namespace:
+                return ["namespace \(token.literal)", token.description]
+            case .enumCase:
+                return ["case \(token.literal)", token.description]
+            default:
+                return []
             }
         }
     }

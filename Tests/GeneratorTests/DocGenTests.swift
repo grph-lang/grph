@@ -22,10 +22,15 @@ final class DocGenTests: XCTestCase {
         for diag in DocGenerator.builtins.diagnostics {
             record(XCTIssue(type: .assertionFailure, compactDescription: diag.message, sourceCodeContext: XCTSourceCodeContext(location: XCTSourceCodeLocation(filePath: String(DocGenerator._builtinsSourcePath), lineNumber: diag.token.lineNumber + 1))))
         }
+        for doc in DocGenerator.builtins.documentation.values {
+            print(doc.symbol.documentationNames)
+            for see in doc.seeAlso {
+                XCTAssertNotNil(DocGenerator.builtins.findDocumentation(sloppyName: see), "\(see) not found in doc for \(doc.symbol.token.literal)")
+            }
+        }
         print(DocGenerator.builtins.documentation)
         for f in NameSpaces.instances.flatMap({ $0.exportedFunctions }) {
             let doc = DocGenerator.builtins.findDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: f.name.startIndex, literal: f.name[...], tokenType: .function), modifiers: .none, data: .function(f)))
-            print(doc)
             XCTAssertNotNil(doc, "missing function \(f.signature)")
         }
     }

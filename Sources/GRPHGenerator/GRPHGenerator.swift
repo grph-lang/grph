@@ -944,7 +944,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     resolveSemanticToken(field.withType(.keyword).withModifiers([]))
                     return TypeValueExpression(type: type)
                 } else if let const = type.staticConstants.first(where: { $0.name == field.literal }) {
-                    resolveSemanticToken(field.withType(.property).withModifiers(.readonly, data: .property(const)))
+                    resolveSemanticToken(field.withType(.property).withModifiers(.readonly, data: .property(const, in: type)))
                     return ConstantPropertyExpression(property: const, inType: type)
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find property '\(field.literal)' in type \(type)"))
@@ -957,7 +957,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 let type = try exp.getType(context: context, infer: SimpleType.mixed)
                 if let property = GRPHTypes.field(named: String(field.literal), in: type) {
-                    resolveSemanticToken(field.withType(.property).withModifiers(property.writeable ? .none : .readonly, data: .property(property)))
+                    resolveSemanticToken(field.withType(.property).withModifiers(property.writeable ? .none : .readonly, data: .property(property, in: type)))
                     return FieldExpression(on: exp, field: property)
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find field '\(field.literal)' in type \(type)"))

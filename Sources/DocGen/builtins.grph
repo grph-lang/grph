@@ -153,7 +153,7 @@
 /// Gets the Z position of the shape. A low value will be in the background and a high value will be in the foreground. When two shapes has the same Z position, the last validated shape is on the top.
 /// @since GRPH 1.6
 /// @param shape The shape
-/// @see setZPosition
+/// @see setZPos
 #builtin function integer getZPos[shape shape]
 
 /// Gets the image of the Image.
@@ -210,13 +210,13 @@
 /// Creates a rotation from the given int in degrees.
 /// @since GRPH 1.1
 /// @param integer The integer
-/// @see rotationToInt
+/// @see rotationToInteger
 #builtin function rotation integerToRotation[integer integer]
 
 /// Creates an integer from the given rotation
 /// @since GRPH 1.1
 /// @param rotation The rotation
-/// @see intToRotation
+/// @see integerToRotation
 #builtin function integer rotationToInteger[rotation rotation]
 
 /// Gets the n<sup>th</sup> float in the float array.
@@ -526,7 +526,7 @@
 /// Sets the Z position of the shape. A low value will be in the background and a high value will be in the foreground. When two shapes has the same Z position, the last validated shape is on the top.
 /// @since GRPH 1.6
 /// @param zpos The Z position
-/// @see getZPosition
+/// @see getZPos
 #builtin method void shape.setZPos[integer zpos]
 
 /// Sets the image for an Image. The file of the Image will be reset.
@@ -631,14 +631,14 @@
 /// Adds the given shape to this group.
 /// @since GRPH 1.4
 /// @param shape The shape to add
-/// @see removeShapeFromGroup
+/// @see removeFromGroup
 /// @see isInGroup
 #builtin method void Group.addToGroup[shape shape]
 
 /// Removes the given shape from this group.
 /// @since GRPH 1.4
 /// @param shape The shape to remove
-/// @see addShapeToGroup
+/// @see addToGroup
 /// @see isInGroup
 #builtin method void Group.removeFromGroup[shape shape]
 
@@ -678,14 +678,13 @@
 /// @see validate
 #builtin function void update[]
 
-/// Waits for a time. Can be used to do animations. Mustn't be called on other files than <i>this</i>.
+/// Waits for a time. Can be used to do animations.
 /// @since GRPH 1.0
 /// @param time The time in milliseconds to wait.
 #builtin function void wait[integer time]
 
-/// Ends the reading of the file. Can't be called on other files than <i>this</i>.
-/// @since GRPH file
-/// @see 1.0
+/// Ends the reading of the file.
+/// @since GRPH 1.0
 #builtin function void end[]
 
 /// Standard Input/Output namespace with file creation, modification and creation, but also exporting tools and user input querying.
@@ -1845,7 +1844,7 @@
 /// Executes the indented block only if no previous if or elseif has been executed.
 /// @since GRPH 1.0
 /// @see #if
-/// @see elseif
+/// @see #elseif
 #builtin command #else
 
 /// Executes in loop the indented block until the condition is evaluated to false.
@@ -2118,7 +2117,7 @@
 
 /// The z-position of the shape, a greater value goes to the front.
 /// @since GRPH 1.10
-/// @see getZPosition
+/// @see getZPos
 #builtin property shape.zPos
 
 /// The blur level of the shape. By default, the blur level is not shown, the user must enable it.
@@ -2145,6 +2144,10 @@
 /// @since GRPH 1.10
 /// @see addToGroup
 #builtin property Group.shapes
+
+/// A debug description for the funcref, specifying what it is pointing to. Should only be used for debugging.
+/// @since GRPH 1.11
+#builtin property funcref._funcName
 
 /// The white color. It is the same as color[255 255 255]
 /// @since GRPH 1.10
@@ -2301,7 +2304,7 @@
 /// @since GRPH 1.10
 /// @see direction.DOWN
 /// @see direction.RIGHT
-/// @see direction.TOP_LEFT
+/// @see direction.UP_LEFT
 #builtin property direction.DOWN_RIGHT
 
 /// The direction which goes from the top to the bottom.

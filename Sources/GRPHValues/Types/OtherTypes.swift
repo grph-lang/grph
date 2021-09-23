@@ -117,10 +117,6 @@ public struct FuncRefType: GRPHType {
         return false
     }
     
-    public var fields: [Field] {
-        return [VirtualField<FuncRef>(name: "_funcName", type: SimpleType.string, getter: { $0.funcName })]
-    }
-    
     public var constructor: Constructor? {
         Constructor(parameters: [Parameter(name: "constant", type: returnType, optional: returnType.isTheVoid)], type: self, storage: .generic(signature: "funcref<T><>(T wrapped)"))
     }

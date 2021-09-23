@@ -182,6 +182,8 @@ public enum SimpleType: String, GRPHType, CaseIterable {
                     VirtualField<Rotation>(name: "radians", type: SimpleType.float, getter: { Float($0.value) * (Float.pi / 180) }, setter: { $0.value = Int(($1 as! Float) * (180 / Float.pi)) })]
         case .string:
             return [VirtualField<String>(name: "length", type: SimpleType.integer, getter: { $0.count })]
+        case .funcref:
+            return [VirtualField<FuncRef>(name: "_funcName", type: SimpleType.string, getter: { $0.funcName })]
         case .shape:
             return [ErasedField(name: "name", type: SimpleType.string, getter: { ($0 as! GShape).effectiveName }, setter: {
                 let shape = ($0 as! GShape)
