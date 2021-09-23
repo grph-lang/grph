@@ -985,6 +985,7 @@
 /// Shuffles the specified string randomly.<br/>Example: Hello -> loelH
 /// @since GRPH 1.1
 /// @param string The string to shuffle
+/// @see shuffled
 /// @see randomString
 /// @see shuffleArray
 #builtin function string random>shuffleString[string string]
@@ -993,6 +994,13 @@
 /// @since GRPH 1.8
 /// @see shuffleString
 #builtin method void {mixed}.random>shuffleArray[]
+
+/// Returns a shuffled version of itself.
+/// Example: "abcde" -> "bceda"
+/// @since GRPH 1.11
+/// @see shuffleString
+/// @see shuffleArray
+#builtin method string string.random>shuffled[]
 
 /// Includes reflection tools for calling and casting.
 /// @since GRPH 1.4
