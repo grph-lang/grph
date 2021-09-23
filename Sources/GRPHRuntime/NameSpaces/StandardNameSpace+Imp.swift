@@ -19,7 +19,7 @@ extension StandardNameSpace: ImplementedNameSpace {
         registerConstructorLegacyFunction(reg: reg, type: SimpleType.linear)
         registerConstructorLegacyFunction(reg: reg, type: SimpleType.radial)
         registerConstructorLegacyFunction(reg: reg, type: SimpleType.font)
-        reg.implement(function: exportedFunctions[named: "colorFromInt"]) { context, params in
+        reg.implement(function: exportedFunctions[named: "colorFromInteger"]) { context, params in
             let value = params[0] as! Int
             return ColorPaint(integer: value, alpha: true)
         }
@@ -47,6 +47,12 @@ extension StandardNameSpace: ImplementedNameSpace {
                 throw GRPHRuntimeError(type: .typeMismatch, message: "Shape has no concept of rotation")
             }
             return shape.rotation
+        }
+        reg.implement(function: exportedFunctions[named: "getRotationCenter"]) { context, params in
+            guard let shape = params[0] as? RotatableShape else {
+                throw GRPHRuntimeError(type: .typeMismatch, message: "Shape has no concept of rotation")
+            }
+            return GRPHOptional(shape.rotationCenter)
         }
         reg.implement(function: exportedFunctions[named: "getPosition"]) { context, params in
             guard let shape = params[0] as? PositionableShape else {
@@ -375,6 +381,12 @@ extension StandardNameSpace: ImplementedNameSpace {
         reg.implement(method: exportedMethods[named: "setZPos", inType: SimpleType.shape]) { context, on, params in
             let shape = on as! GShape
             shape.positionZ = params[0] as! Int
+            context.runtime.triggerAutorepaint()
+            return GRPHVoid.void
+        }
+        reg.implement(method: exportedMethods[named: "setFont", inType: SimpleType.Text]) { context, on, params in
+            let shape = on as! GText
+            shape.font = params[0] as! JFont
             context.runtime.triggerAutorepaint()
             return GRPHVoid.void
         }

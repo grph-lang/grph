@@ -7,7 +7,7 @@
 /// @param green Green component beetween 0 and 255 inclusive.
 /// @param blue Blue component beetween 0 and 255 inclusive.
 /// @param alpha Optional. Alpha as a float. Its default value is 1F.
-/// @see colorFromInt
+/// @see colorFromInteger
 /// @see linear
 /// @see radial
 #builtin function color color[integer red, integer green, integer blue, float alpha?]
@@ -312,7 +312,7 @@
 /// @param shape The shape
 /// @see setRotationCenter
 /// @see getCenterPoint
-#builtin function pos getRotationCenter[shape shape]
+#builtin function pos? getRotationCenter[shape shape]
 
 /// Creates an image from an image file or a shape.<br/>If a file is provided, it will be read as an image (PNG, JPEG, GIF, BMP or WBMP) and returned.<br/>If a shape is provided, it will painted in a transparent image, which size is the size of the shape. If the shape is rotated, a part of it may miss.<br/>If 'this' is provided, it will fail, as 'this' is NOT an image file. Use <a href="createCurrentImage">stdio&gt;createCurrentImage</a> instead.
 /// @since GRPH 1.6
@@ -422,11 +422,55 @@
 /// @see setTopAligned
 #builtin method void shape.setBottomAligned[]
 
+/// Changes the position of the shape to center it horizontally.
+/// @since GRPH 1.2
+/// @param shape The shape to center
+/// @see setVCentered
+/// @see setLeftAligned
+/// @see setRightAligned
+#builtin function void setHCentered[shape shape]
+
+/// Changes the position of the shape to left-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setRightAligned
+#builtin function void setLeftAligned[shape shape]
+
+/// Changes the position of the shape to right-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setLeftAligned
+#builtin function void setRightAligned[shape shape]
+
+/// Changes the position of the shape to center it vertically.
+/// @since GRPH 1.2
+/// @param shape The shape to center
+/// @see setHCentered
+/// @see setTopAligned
+/// @see setBottomAligned
+#builtin function void setVCentered[shape shape]
+
+/// Changes the position of the shape to top-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setBottomAligned
+#builtin function void setTopAligned[shape shape]
+
+/// Changes the position of the shape to bottom-align it.
+/// @since GRPH 1.2
+/// @param shape The shape to align
+/// @see setHCentered
+/// @see setTopAligned
+#builtin function void setBottomAligned[shape shape]
+
 /// Mirrors the shape horizontally. Is only effective on polygons, paths and images.
 /// @since GRPH shape
 /// @see 1.9
 /// @see verticalMirror
-#builtin method void shape.horizontalMirror[]
+#builtin method void horizontalMirror[]
 
 /// Mirrors the shape vertically. Is only effective on polygons, paths and images.
 /// @since GRPH shape
@@ -611,14 +655,14 @@
 /// @see setSelectedShape
 #builtin method void file.resetSelectedShape[]
 
-/// Validates the shape. This means it will be rendered. Must be called only once by shape. All the modifications done after the validate are visible.
+/// Validates the shape. This means it will be rendered. Must be called only once by shape. All the modifications done after validation are visible.
 /// @since GRPH 1.0
 /// @param shape The shape to validate
 /// @see validateAll
 /// @see unvalidate
 #builtin function void validate[shape shape]
 
-/// Validates all the shapes on the file. See <a href="validate">validate</a> for more informations.
+/// Validates all the shapes stored in variables. See <a href="validate">validate</a> for more information.
 /// @since GRPH 1.0
 /// @see validate
 #builtin function void validateAll[]
@@ -628,6 +672,11 @@
 /// @param shape The shape to unvalidate
 /// @see validate
 #builtin function void unvalidate[shape shape]
+
+/// Updates the content on screen. This is only necessary if the `autoupdate` runtime setting has been set to `false`. It is true by default, which means all changes are instantly shown on screen.
+/// @since GRPH 1.11
+/// @see validate
+#builtin function void update[]
 
 /// Waits for a time. Can be used to do animations. Mustn't be called on other files than <i>this</i>.
 /// @since GRPH 1.0
@@ -651,14 +700,22 @@
 /// @see appendInFile
 #builtin function string stdio>getFileContents[file file]
 
-/// Splits the given string and returns its n<sup>th</sup> result.
+/// Splits the given string by lines and returns its n<sup>th</sup> result.
 /// @since GRPH 1.0
-/// @deprecated Since GRPH 1.8, you can use <code>split[string "\n"]{line}</code> instead.
+/// @deprecated Since GRPH 1.8, you can use <code>split[string "\n"]{line}</code> instead. Since GRPH 1.11, you can use `stdio>getLinesInString`
 /// @param string The string to split
 /// @param line The line to get
 /// @see getFileContents
+/// @see getLinesInString
 /// @see split
 #builtin function string stdio>getLineInString[string string, integer line]
+
+/// Splits the given string by lines and returns the result in an array.
+/// @since GRPH 1.11
+/// @param string The string to split
+/// @see getLineInString
+/// @see split
+#builtin function {string} stdio>getLinesInString[string string]
 
 /// Gets the canonical file. It represents the same file, but there is only one canonical path per file.<br/>Needs file-list permission.
 /// @since GRPH 1.9
@@ -947,9 +1004,29 @@
 /// @param funcName The name of the function
 /// @param namespace Optional. The namespace of the function, 'standard' by default
 /// @param params... Optional. The parameters, with alterned names and parameters.
+/// @see callFunctionAsync
+/// @see callFuncref
 /// @see callMethod
 /// @see callConstructor
 #builtin function mixed reflect>callFunction[string funcName, string namespace?, mixed params...?]
+
+/// Calls the specified function in the specified namespace with the specified parameters, asynchronisously. This means that this function will return instantly, while the given function will execute in the background. There is thus no way to get the return value of the async function. There is no way to know if and when it will return. If the main script comes at its ends, if `end:` is called, or if an unhandled exception ends the main script, all background tasks will be terminated instantly. If an unhandled exception ends the async function, it will also terminate the main script and all async tasks, so make sure to catch them all unless you want your script to crash.
+/// The function must be a local function, defined with `#function`, if passing a function name in. You may also use a function reference (`^nameOfMyFunction` instead of `"nameOfMyFunction"`), or a lambda (`^[nameOfMyFunction[]]`)
+/// *Note*: The parameter names for a funcref will always be "$0", "$1", etc.
+/// @since GRPH 1.11
+/// @param funcName The name of the function
+/// @param params... Optional. The parameters, with alterned names and parameters.
+/// @see callFunction
+#builtin function void reflect>callFunctionAsync[string|funcref funcName, mixed params...?]
+
+/// Calls the specified function, with the specified arguments.
+/// The funcref may be a function `^nameOfMyFunction`, or a lambda such as `[^[$0 + $1] as funcref<integer><integer+integer>]`
+/// You can then use it like this: `log: reflect>callFuncref[someFuncrefInAVariable 1 2] // 3 for the above lambda`
+/// @since GRPH 1.11
+/// @param function The function to call
+/// @param params... Optional. The arguments, unlabelled.
+/// @see callFunction
+#builtin function mixed reflect>callFuncref[funcref function, mixed params...?]
 
 /// Calls the specified constructor with the specified parameters. The parameters must be preceded by their name.<br/><strong>Example</strong>: callConstructor["Rect" "name" "Plop" "location" 100,100 "size" 50,50 "paint" RED]
 /// @since GRPH 1.4
@@ -1139,6 +1216,37 @@
 /// @see getDeclaredType
 /// @see getVarValue
 #builtin function boolean reflect>isVarDeclared[string var]
+
+/// Returns true if the specified variable is final, false if it can be modified. Throws an exception if the variable cannot be found.
+/// @since GRPH 1.11
+/// @param var The variable name
+/// @see isVarDeclared
+/// @see getVarValue
+#builtin function boolean reflect>isVarFinal[string var]
+
+/// Modifies the value of the variable. The variable must be non-final.
+/// @since GRPH 1.11
+/// @param name The variable name
+/// @param value The value to store in the variable
+/// @see getVarValue
+/// @see isVarFinal
+/// @see isVarDeclared
+#builtin function void reflect>setVarValue[string name, mixed value]
+
+/// Returns the names of the variables in the capture list of a lambda. Returns an empty array if the funcref isn't a lambda.
+/// @since GRPH 1.11
+/// @param lambda The funcref to lookup
+/// @see getLambdaCapturedVar
+/// @see funcref._funcName
+#builtin function {string} reflect>getLambdaCaptureList[funcref lambda]
+
+/// Returns and optionally modifies the content of a captured variable in a lambda. The variable being passed by reference, the original variable, and all captures will be affected by changes. If replacing the content, the previous value will be returned.
+/// @since GRPH 1.11
+/// @param lambda The funcref to lookup
+/// @param name The name of the captured variable
+/// @param replaceContentWith If given, the variable's content will be set to this value
+/// @see getLambdaCaptureList
+#builtin function mixed reflect>getLambdaCapturedVar[funcref lambda, string name, mixed replaceContentWith?]
 
 /// Returns true if the specified permission has been granted, false otherwise. If the permission has not yet been requested, returns false (except if prompt is true, in which case it prompts the user immediately)
 /// @since GRPH 1.9

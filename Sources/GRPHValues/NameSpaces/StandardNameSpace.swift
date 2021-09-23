@@ -44,7 +44,7 @@ public struct StandardNameSpace: NameSpace {
             constructorLegacyFunction(type: SimpleType.linear),
             constructorLegacyFunction(type: SimpleType.radial),
             constructorLegacyFunction(type: SimpleType.font),
-            Function(ns: self, name: "colorFromInt", parameters: [Parameter(name: "value", type: SimpleType.integer)], returnType: SimpleType.color),
+            Function(ns: self, name: "colorFromInteger", parameters: [Parameter(name: "value", type: SimpleType.integer)], returnType: SimpleType.color),
             // file manipulation functions removed
             Function(ns: self, name: "stringToInteger", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.integer.optional),
             Function(ns: self, name: "stringToFloat", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.float.optional),
@@ -53,6 +53,7 @@ public struct StandardNameSpace: NameSpace {
             Function(ns: self, name: "log", parameters: [Parameter(name: "text...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
             // getters for fields removed
             Function(ns: self, name: "getRotation", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.rotation),
+            Function(ns: self, name: "getRotationCenter", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.pos.optional),
             Function(ns: self, name: "getPosition", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.pos),
             Function(ns: self, name: "getSize", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.pos),
             Function(ns: self, name: "getCenterPoint", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.pos),
@@ -118,6 +119,7 @@ public struct StandardNameSpace: NameSpace {
             Method(ns: self, name: "setStroke", inType: SimpleType.shape, parameters: [.strokeWidth, .strokeType, .strokeDashArray]),
             Method(ns: self, name: "filling", inType: SimpleType.shape, parameters: [Parameter(name: "fill", type: SimpleType.boolean)]),
             Method(ns: self, name: "setZPos", inType: SimpleType.shape, parameters: [Parameter(name: "zpos", type: SimpleType.integer)]),
+            Method(ns: self, name: "setFont", inType: SimpleType.Text, parameters: [Parameter(name: "font", type: SimpleType.font)]),
             // Polygons
             Method(ns: self, name: "addPoint", inType: SimpleType.Polygon, parameters: [Parameter(name: "point", type: SimpleType.pos)]),
             Method(ns: self, name: "setPoint", inType: SimpleType.Polygon, parameters: [Parameter(name: "index", type: SimpleType.integer), Parameter(name: "point", type: SimpleType.pos)]),
