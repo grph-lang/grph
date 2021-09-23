@@ -22,6 +22,9 @@ public struct DocGenerator {
     public var diagnostics: [Notice] = []
     public var documentation: [String: Documentation] = [:]
     
+    /// If set to true, the generator will issue warnings if a symbol's documentation is incomplete. This will not trigger warnings if a symbol has no documentation at all.
+    public var warnOnIncompleteDocumentation: Bool = false
+    
     public init(lines: [Token], semanticTokens: [SemanticToken]) {
         self.lines = lines
         self.semanticTokens = semanticTokens
@@ -119,6 +122,10 @@ public struct DocGenerator {
         }
         guard valid else { // empty
             return
+        }
+        if warnOnIncompleteDocumentation,
+           documentation.isEmpty || since == nil || params.contains(where: { $0.doc == nil}) {
+            diagnostics.append(Notice(token: symbol.token, severity: .warning, source: .docgen, message: "This symbol's documentation is incomplete"))
         }
         self.documentation[symbol.documentationIdentifier] = Documentation(symbol: symbol, info: documentation.reversed().joined(separator: "\n"), since: since, deprecation: deprecation, seeAlso: see.reversed(), paramDoc: params)
     }

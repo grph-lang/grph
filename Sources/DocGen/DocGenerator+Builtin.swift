@@ -23,6 +23,9 @@ extension DocGenerator {
         let lines = lexer.parseDocument(content: try! String(contentsOf: Bundle.module.url(forResource: "builtins", withExtension: "grph")!))
         // no token detection needed
         var builtins = DocGenerator(lines: lines, semanticTokens: [])
+        #if DEBUG
+        builtins.warnOnIncompleteDocumentation = true
+        #endif
         builtins.populateBuiltins()
         return builtins
     }()
