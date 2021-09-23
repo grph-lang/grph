@@ -107,7 +107,7 @@ extension ReflectNameSpace: ImplementedNameSpace {
             throw GRPHRuntimeError(type: .reflection, message: "Impossible cast from '\(GRPHTypes.type(of: ab).string)' to '\(type.string)'")
         }
         reg.implement(function: exportedFunctions[named: "getVersion"]) { context, params in
-            if let v = RequiresInstruction.currentVersion(plugin: params[0] as? String ?? "GRPH") {
+            if let v = RequiresInstruction.currentVersion(plugin: params[safe: 0] as? String ?? "GRPH") {
                 return v.description
             }
             throw GRPHRuntimeError(type: .reflection, message: "Unknown plugin '\(params[0]!)'")

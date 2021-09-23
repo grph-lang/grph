@@ -59,6 +59,6 @@ public extension Function {
     }
     
     var signature: String {
-        "\(returnType) \(fullyQualifiedName)[\(parameters.map { $0.string }.joined(separator: ", "))\(varargs ? "..." : "")]"
+        "\(returnType) \(fullyQualifiedName)[\(parameters.map { $0.string }.joined(separator: ", "))\(varargs && !(parameters.last?.name.hasSuffix("...") ?? false) ? "..." : "")]"
     }
 }

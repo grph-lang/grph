@@ -48,8 +48,8 @@ public struct StandardNameSpace: NameSpace {
             // file manipulation functions removed
             Function(ns: self, name: "stringToInteger", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.integer.optional),
             Function(ns: self, name: "stringToFloat", parameters: [Parameter(name: "string", type: SimpleType.string)], returnType: SimpleType.float.optional),
-            Function(ns: self, name: "toString", parameters: [Parameter(name: "text...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
-            Function(ns: self, name: "concat", parameters: [Parameter(name: "text...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
+            Function(ns: self, name: "toString", parameters: [Parameter(name: "values...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
+            Function(ns: self, name: "concat", parameters: [Parameter(name: "values...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
             Function(ns: self, name: "log", parameters: [Parameter(name: "text...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
             // getters for fields removed
             Function(ns: self, name: "getRotation", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.rotation),
@@ -77,7 +77,7 @@ public struct StandardNameSpace: NameSpace {
             Function(ns: self, name: "getNumberOfShapes", parameters: [], returnType: SimpleType.integer),
             Function(ns: self, name: "createPos", parameters: [Parameter(name: "x", type: SimpleType.num), Parameter(name: "y", type: SimpleType.num)], returnType: SimpleType.pos),
             Function(ns: self, name: "clippedShape", parameters: [Parameter(name: "shape", type: SimpleType.shape), Parameter(name: "clip", type: SimpleType.shape)], returnType: SimpleType.shape),
-            Function(ns: self, name: "isInGroup", parameters: [Parameter(name: "group", type: SimpleType.shape), Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.boolean),
+            Function(ns: self, name: "isInGroup", parameters: [Parameter(name: "group", type: SimpleType.Group), Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.boolean),
             Function(ns: self, name: "range", parameters: [Parameter(name: "first", type: SimpleType.integer), Parameter(name: "last", type: SimpleType.integer), Parameter(name: "step", type: SimpleType.integer, optional: true)], returnType: SimpleType.integer.inArray),
             // == Migrated methods ==
             Function(ns: self, name: "validate", parameters: [Parameter(name: "shape", type: SimpleType.shape)]),

@@ -81,6 +81,6 @@ public extension Method {
     }
     
     var signature: String {
-        "\(returnType) \(inType).\(fullyQualifiedName)[\(parameters.map { $0.string }.joined(separator: ", "))\(varargs ? "..." : "")]"
+        "\(returnType) \(inType).\(fullyQualifiedName)[\(parameters.map { $0.string }.joined(separator: ", "))\(varargs && !(parameters.last?.name.hasSuffix("...") ?? false)  ? "..." : "")]"
     }
 }

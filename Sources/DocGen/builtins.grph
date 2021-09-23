@@ -33,10 +33,9 @@
 /// @param center The center position as floats of the shape
 /// @param externalColor The outer color
 /// @param radius The radius as a float ; 0.5 for a balanced gradient.
-/// @param focus Optional. The position of the centerColor as floats of the shape
 /// @see color
 /// @see linear
-#builtin function radial radial[color centerColor, pos center, color externalColor, float radius, pos focus?]
+#builtin function radial radial[color centerColor, pos center?, color externalColor, float radius]
 
 /// Returns whether the file exists.
 /// @since GRPH 1.0
@@ -58,12 +57,12 @@
 /// Creates an integer from a string. The content of the string must only contain the integer.<br/>As of 1.4, It can be in hexadecimal by adding a '0x' or a '#' at the beginning, in octal if it begins with '0' or in decimal by default. To make it negative, add a minus as first character.
 /// @since GRPH 1.0
 /// @param string The string to decode
-#builtin function integer stringToInteger[string string]
+#builtin function integer? stringToInteger[string string]
 
 /// Creates an float from a string. The string may contain a trailing F.
 /// @since GRPH 1.0
 /// @param string The string to parse
-#builtin function float stringToFloat[string string]
+#builtin function float? stringToFloat[string string]
 
 /// Returns the string representation of the parameters, separated with spaces. If you want no separation, use concat.
 /// @since GRPH 1.0
@@ -192,7 +191,7 @@
 /// @see setPoint
 /// @see setPoints
 /// @see addPoint
-#builtin function pos getPoint[shape shape, integer index]
+#builtin function pos getPoint[Polygon shape, integer index]
 
 /// Gets the x position in the given point.
 /// @since GRPH 1.0
@@ -236,33 +235,29 @@
 
 /// Gets the shape with the index. The index is ordered by z-position and then by time.
 /// @since GRPH 1.1
-/// @param file Optional. The file of shapes, must be <i>this</i>
 /// @param index The index of the shape
 /// @see getShapeAt
 /// @see getNumberOfShapes
-#builtin function shape getShape[file file?, integer index]
+#builtin function shape getShape[integer index]
 
 /// Gets the upper shape shown at the given position.
 /// @since GRPH 1.1
-/// @param file Optional. The file of shapes, must be <i>this</i>
 /// @param pos The position of the shape
 /// @see getShape
 /// @see getShapeWithName
-#builtin function shape getShapeAt[file file?, pos pos]
+#builtin function shape getShapeAt[pos pos]
 
-/// Returns the number of shapes stored in variables of the specified file.
+/// Returns the number of shapes currently validated.
 /// @since GRPH 1.1
-/// @param file Optional. The file to search in, may be this
 /// @see getShape
-#builtin function integer getNumberOfShapes[file file?]
+#builtin function integer getNumberOfShapes[]
 
-/// Gets the first shape in the list with the specified name.
+/// Gets the first validated shape with the specified name.
 /// @since GRPH 1.1
-/// @param file Optional. The file of shapes, must be <i>this</i>
 /// @param name The name of the shape
 /// @see getShapeAt
 /// @see getShape
-#builtin function shape getShapeNamed[file file?, string name]
+#builtin function shape? getShapeNamed[string name]
 
 /// Creates a pos from the given floats.
 /// @since GRPH 1.1
@@ -344,10 +339,9 @@
 
 /// Returns the currently selected shape, or back if no shape is selected.
 /// @since GRPH 1.2
-/// @param file Optional. The file of shapes, must be <i>this</i>
 /// @see setSelectedShape
 /// @see resetSelectedShape
-#builtin function shape getSelectedShape[file file?]
+#builtin function shape getSelectedShape[]
 
 /// Rotates the shape by adding the value to the current rotation.
 /// @since GRPH 1.0
@@ -363,12 +357,12 @@
 /// @see getRotation
 #builtin method void shape.setRotation[rotation newRotation]
 
-/// Sets the rotation center of the shape. When set, the rotation center of the shape changes only when this method is called again. If not set, the center point of the shape is used. The center point can change.
+/// Sets the rotation center of the shape. When set, the rotation center of the shape changes only when this method is called again. If null, the center point of the shape is used. The center point can change.
 /// @since GRPH 1.5
-/// @param rotationCenter The rotation center
+/// @param rotationCenter The rotation center, null to reset
 /// @see getRotationCenter
 /// @see getCenterPoint
-#builtin method void shape.setRotationCenter[pos rotationCenter]
+#builtin method void shape.setRotationCenter[pos? rotationCenter]
 
 /// Translates the shape by adding the value to the current position
 /// @since GRPH 1.0
@@ -390,21 +384,21 @@
 /// @see setVCentered
 /// @see setLeftAligned
 /// @see setRightAligned
-#builtin method void file.setHCentered[shape shape]
+#builtin method void shape.setHCentered[]
 
 /// Changes the position of the shape to left-align it.
 /// @since GRPH 1.2
 /// @param shape The shape to align
 /// @see setHCentered
 /// @see setRightAligned
-#builtin method void file.setLeftAligned[shape shape]
+#builtin method void shape.setLeftAligned[]
 
 /// Changes the position of the shape to right-align it.
 /// @since GRPH 1.2
 /// @param shape The shape to align
 /// @see setHCentered
 /// @see setLeftAligned
-#builtin method void file.setRightAligned[shape shape]
+#builtin method void shape.setRightAligned[]
 
 /// Changes the position of the shape to center it vertically.
 /// @since GRPH 1.2
@@ -412,21 +406,21 @@
 /// @see setHCentered
 /// @see setTopAligned
 /// @see setBottomAligned
-#builtin method void file.setVCentered[shape shape]
+#builtin method void shape.setVCentered[]
 
 /// Changes the position of the shape to top-align it.
 /// @since GRPH 1.2
 /// @param shape The shape to align
 /// @see setHCentered
 /// @see setBottomAligned
-#builtin method void file.setTopAligned[shape shape]
+#builtin method void shape.setTopAligned[]
 
 /// Changes the position of the shape to bottom-align it.
 /// @since GRPH 1.2
 /// @param shape The shape to align
 /// @see setHCentered
 /// @see setTopAligned
-#builtin method void file.setBottomAligned[shape shape]
+#builtin method void shape.setBottomAligned[]
 
 /// Mirrors the shape horizontally. Is only effective on polygons, paths and images.
 /// @since GRPH shape
@@ -471,13 +465,13 @@
 
 /// Sets the stroke of the shape and disable filling if it is activated. It is ineffective on images.
 /// @since GRPH 1.0
-/// @param newStrokeWidth Optional. The new stroke width
-/// @param newStrokeType Optional. The new stroke type.
-/// @param newStrokeDashArray Optional. The new dash array.
+/// @param strokeWidth Optional. The new stroke width
+/// @param strokeType Optional. The new stroke type.
+/// @param strokeDashArray Optional. The new dash array.
 /// @see getStrokeWidth
 /// @see getStrokeType
 /// @see getStrokeDashArray
-#builtin method void shape.setStroke[float newStrokeWidth?, stroke newStrokeType?, {float} newStrokeDashArray?]
+#builtin method void shape.setStroke[float strokeWidth?, stroke strokeType?, {float} strokeDashArray?]
 
 /// Enables or disables filling. It is ineffective on images or lines.
 /// @since GRPH 1.0
@@ -529,11 +523,11 @@
 /// Replace the requested point with a new on this polygon. If executed on a non-polygon shape, it crashes.
 /// @since GRPH 1.0
 /// @param index The point's index. The first is 0, the last is the number of points minus one.
-/// @param points The new point
+/// @param point The new point
 /// @see setPoints
 /// @see getPoint
 /// @see addPoint
-#builtin method void Polygon.setPoint[integer index, pos points]
+#builtin method void Polygon.setPoint[integer index, pos point]
 
 /// Sets all the points of this polygon. If executed on a non-polygon shape, it crashes.
 /// @since GRPH 1.0
@@ -622,28 +616,28 @@
 /// @param shape The shape to validate
 /// @see validateAll
 /// @see unvalidate
-#builtin method void file.validate[shape shape]
+#builtin function void validate[shape shape]
 
 /// Validates all the shapes on the file. See <a href="validate">validate</a> for more informations.
 /// @since GRPH 1.0
 /// @see validate
-#builtin method void file.validateAll[]
+#builtin function void validateAll[]
 
 /// Unvalidates the shape by removing it from the image. This means it will not be rendered until validate is called again.
 /// @since GRPH 1.1
 /// @param shape The shape to unvalidate
 /// @see validate
-#builtin method void file.unvalidate[shape shape]
+#builtin function void unvalidate[shape shape]
 
 /// Waits for a time. Can be used to do animations. Mustn't be called on other files than <i>this</i>.
 /// @since GRPH 1.0
 /// @param time The time in milliseconds to wait.
-#builtin method void file.wait[integer time]
+#builtin function void wait[integer time]
 
 /// Ends the reading of the file. Can't be called on other files than <i>this</i>.
 /// @since GRPH file
 /// @see 1.0
-#builtin method void file.end[]
+#builtin function void end[]
 
 /// Standard Input/Output namespace with file creation, modification and creation, but also exporting tools and user input querying.
 /// @since GRPH 1.0
@@ -716,57 +710,56 @@
 /// @see createFile
 #builtin function boolean stdio>fileExists[file file]
 
-/// <strong>Doesn't work currently</strong><br/>Converts the file to an SVG string, encoded in ISO-8859-1. It can then be writen to a file. Everything is transformed to javascript.
+/// <strong>Doesn't work currently</strong><br/>Converts the file to an SVG string, encoded in ISO-8859-1. It can then be written to a file. Everything is transformed to javascript.
 /// @since GRPH Future
 /// @param file Optional. The GRPH file to convert
 #builtin function string stdio>convertToSVG[file file?]
 
 /// Gets the current rendered image and converts it to PNG format. Returns it as an ISO-8859-1 string.
 /// @since GRPH 1.0
-/// @param file Optional. The file to convert, should be <i>this</i>
 /// @see getJPEGFromCurrentImage
 /// @see createCurrentImage
-#builtin function string stdio>getPNGFromCurrentImage[file file?]
+#builtin function string stdio>getPNGFromCurrentImage[]
 
 /// Gets the current rendered image and converts it to JPEG format. Returns it as an ISO-8859-1 string.
 /// @since GRPH 1.0
-/// @param file Optional. The file to convert, should be <i>this</i>
 /// @see getPNGFromCurrentImage
 /// @see createCurrentImage
-#builtin function string stdio>getJPEGFromCurrentImage[file file?]
+#builtin function string stdio>getJPEGFromCurrentImage[]
+
+/// Gets the current rendered image and converts it to the SVG format. Returns it as an ISO-8859-1 string.
+/// @since GRPH 1.11
+/// @see getPNGFromCurrentImage
+/// @see createCurrentImage
+#builtin function string stdio>getSVGFromCurrentImage[]
 
 /// Gets the current rendered image and returns it.
 /// @since GRPH 1.6
-/// @param file Optional. The file to convert, should be <i>this</i>
 /// @see getPNGFromCurrentImage
 /// @see getJPEGFromCurrentImage
-#builtin function image stdio>createCurrentImage[file file?]
+#builtin function image stdio>createCurrentImage[]
 
-/// Returns the mouse position in the frame.
+/// Returns the mouse position in the frame. Returns nil if the cursor is not hovering the image, or if there is no cursor.
 /// @since GRPH 1.1
-/// @param file Optional. The file containing the image
 /// @see getXForPos
 /// @see getYForPos
-#builtin function pos stdio>getMousePos[file file?]
+#builtin function pos? stdio>getMousePos[]
 
 /// Returns the time in milliseconds since the loading of the file.
 /// @since GRPH 1.2
-/// @param file Optional. The current file, must be <i>this</i>
-#builtin function integer stdio>getTimeInMillisSinceLoad[file file?]
+#builtin function integer stdio>getTimeInMillisSinceLoad[]
 
 /// Returns if the key is pressed. The key numbers can be found <a href="https://docs.oracle.com/javase/7/docs/api/constant-values.html#java.awt.event.KeyEvent.VK_0">here</a>.
 /// @since GRPH 1.2
-/// @param file Optional. The current file, must be <i>this</i>
 /// @param keyCode The VK_ key number
 /// @see isKeyPressedWithString
-#builtin function boolean stdio>isKeyPressedWithKeyCode[file file?, integer keyCode]
+#builtin function boolean stdio>isKeyPressedWithKeyCode[integer keyCode]
 
-/// Returns if the key with the given character as a string is pressed. For example, to check if A is pressed,write <code>isKeyPressedWithString[this "A"]</code>
+/// Returns if the key with the given character as a string is pressed. For example, to check if A is pressed, write <code>isKeyPressedWithString["A"]</code>
 /// @since GRPH 1.2
-/// @param file Optional. The current file, must be <i>this</i>
 /// @param keyChar The character
 /// @see isKeyPressedWithKeyCode
-#builtin function boolean stdio>isKeyPressedWithString[file file?, string keyChar]
+#builtin function boolean stdio>isKeyPressedWithString[string keyChar]
 
 /// Creates the given file. If it already exists, it will just outputs a warning.<br/>Needs file-write permission.
 /// @since GRPH 1.0
@@ -809,21 +802,21 @@
 /// @param numbers... The numbers
 /// @see difference
 /// @see multiply
-#builtin function num math>sum[num numbers...]
+#builtin function float math>sum[num numbers...]
 
 /// Calculates the difference of the parameters by performing substractions.
 /// @since GRPH 1.0
 /// @param numbers... The numbers
 /// @see sum
 /// @see divide
-#builtin function num math>difference[num numbers...]
+#builtin function float math>difference[num numbers...]
 
 /// Multiplies the parameters
 /// @since GRPH 1.0
 /// @param numbers... The numbers
 /// @see divide
 /// @see sum
-#builtin function num math>multiply[num numbers...]
+#builtin function float math>multiply[num numbers...]
 
 /// Divide the parameters.
 /// @since GRPH 1.0
@@ -831,27 +824,27 @@
 /// @see multiply
 /// @see difference
 /// @see modulo
-#builtin function num math>divide[num numbers...]
+#builtin function float math>divide[num numbers...]
 
 /// Returns the remainder of the division of the parameters.
 /// @since GRPH 1.0
 /// @param numbers... The numbers
 /// @see modulo
-#builtin function num math>modulo[num numbers...]
+#builtin function float math>modulo[num numbers...]
 
 /// Calculates the square root of the parameter.
 /// @since GRPH 1.0
 /// @param number The number
 /// @see cbrt
 /// @see pow
-#builtin function float math>sqrt[integer number]
+#builtin function float math>sqrt[num number]
 
 /// Calculates the cubic root of the parameter.
 /// @since GRPH 1.0
 /// @param number The number
 /// @see sqrt
 /// @see pow
-#builtin function float math>cbrt[integer number]
+#builtin function float math>cbrt[num number]
 
 /// Calculates the first number power the second.
 /// @since GRPH 1.0
@@ -859,7 +852,7 @@
 /// @param power The power
 /// @see sqrt
 /// @see cbrt
-#builtin function num math>pow[num number, integer power]
+#builtin function float math>pow[num number, num power]
 
 /// Returns PI, with a float precision.
 /// @since GRPH 1.0
@@ -888,12 +881,15 @@
 
 /// Creates a float with the given number.
 /// @since GRPH 1.0
+/// @deprecated Use `number as float`
 /// @param number The number
 #builtin function float math>asFloat[num number]
 
 /// Creates a string with the char represented by the given number.
 /// @since GRPH 1.0
+/// @deprecated Use strutils>integerToChar
 /// @param number The integer
+/// @see integerToChar
 #builtin function string math>asChar[integer number]
 
 /// Includes functions for getting random values.
@@ -915,12 +911,13 @@
 /// @see randomBoolean
 #builtin function float random>randomFloat[]
 
-/// Generates a random alphanumeric string with specified length.
+/// Generates a random string with specified length, taking characters randomly from `characters`. Unlike shuffleString, a same character can appear multiple times in the result.
 /// @since GRPH 1.1
 /// @param length The length of the string
+/// @param characters The character set to use, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" by default
 /// @see shuffleString
 /// @see randomInteger
-#builtin function string random>randomString[integer length]
+#builtin function string random>randomString[integer length, string characters?]
 
 /// Generates a random boolean.
 /// @since GRPH 1.1
@@ -956,11 +953,11 @@
 
 /// Calls the specified constructor with the specified parameters. The parameters must be preceded by their name.<br/><strong>Example</strong>: callConstructor["Rect" "name" "Plop" "location" 100,100 "size" 50,50 "paint" RED]
 /// @since GRPH 1.4
-/// @param constructorName The name of the function
+/// @param type The name of the function
 /// @param params... Optional. The parameters, with alterned names and parameters.
 /// @see callFunction
 /// @see callMethod
-#builtin function shape reflect>callConstructor[string constructorName, mixed params...?]
+#builtin function mixed reflect>callConstructor[string type, mixed params...?]
 
 /// Casts the parameter to an integer.<br/>If the parameter is an integer, returns direcly the parameter.<br/>If it is a float, returns the value floored.<br/>If it is a rotation, returns its value (GRPH 1.9).<br/>If it is a string, decodes the string with stringToInteger (GRPH 1.9).<br/>Else, throws an error (GRPH 1.9, returned 0 before).
 /// @since GRPH 1.4
@@ -1099,18 +1096,18 @@
 
 /// Get the version of the specified plugin.<br/><strong>Example</strong>: getVersion["GRPH"] returns 1.5 in GRPH 1.5<br/>GRPH is the only possible value in GRPH 1.5
 /// @since GRPH 1.5
-/// @param of The plugin
+/// @param of The plugin, "GRPH" by default
 /// @see hasVersion
 /// @see #requires
-#builtin function string reflect>getVersion[string of]
+#builtin function string reflect>getVersion[string of?]
 
 /// Returns true if the specified version or later of the specified plugin is installed.
 /// @since GRPH 1.5
 /// @param of The plugin
-/// @param min The minimum version requested
+/// @param min The minimum version requested (0 by default)
 /// @see getVersion
 /// @see #requires
-#builtin function boolean reflect>hasVersion[string of, string min]
+#builtin function boolean reflect>hasVersion[string of, string min?]
 
 /// Returns the type of the specified parameter. If a variable is given, it is evaluated, so :<br/><pre>num x = 100
 /// log[getType[x]]</pre><br/>will print 'integer'. If you want it to print 'num', use <a href="getDeclaredType">getDeclaredType</a>
@@ -1150,16 +1147,17 @@
 /// @see requiresPermission
 #builtin function boolean reflect>hasPermission[string permission, boolean prompt?]
 
-/// Calls the specified method in the specified namespace with the specified parameters. The parameters must be preceded by their name, except the first that will be the object on which the method will be called.<br/><strong>Example</strong>: callMethod["color" "standard" "red" 128 "green" 128 "blue" 128]
+/// Calls the specified method in the specified namespace with the specified parameters. The parameters must be preceded by their name.<br/><strong>Example</strong>: callMethod["moveTo" "standard" somePath "point" 100,100]
 /// @since GRPH 1.5
 /// @param methodName The name of the function
-/// @param namespace Optional. The namespace of the function, 'standard' by default
+/// @param namespace The namespace of the function
+/// @param on The value on which to execute the method
 /// @param params... Optional. The parameters, where the first is the object to call the method on, and with alterned names and parameters after.
 /// @see callFunction
 /// @see callConstructor
-#builtin method void file.reflect>callMethod[string methodName, string namespace?, mixed params...?]
+#builtin function mixed reflect>callMethod[string methodName, string namespace, mixed on, mixed params...?]
 
-/// Declares a new variable. There is no check whether the type and the value are compatibles, this is valid :<br/><pre>declareVar["hello" "string" 3F]</pre>but it is discouraged. If the variable already exists or if the type doesn't exists, an error is thrown.
+/// Declares a new variable. The value is type checked against the type, so this will cause a ReflectionException: <br/><pre>declareVar["hello" "string" 3F]</pre>. If the variable already exists or if the type cannot be found, an error is also thrown.
 /// @since GRPH 1.6
 /// @param name The name of the variable
 /// @param global Optional. True if global, false if local (false by default)
@@ -1167,7 +1165,7 @@
 /// @param value The value
 /// @see isVarDeclared
 /// @see getVarValue
-#builtin method void file.reflect>declareVar[string name, boolean global?, string type, mixed value]
+#builtin function void reflect>declareVar[string name, boolean global?, string type, mixed value]
 
 /// Prompt the user for the specified permission if not already done, and throws a NoPermissionException if the user denies.<br/>Valid values are: file, file-list, file-read, file-write, string-eval. 'file' is used to gather the other file permissions.
 /// @since GRPH 1.9
@@ -1245,19 +1243,19 @@
 
 /// Returns the given array of strings joined with the given delimiter.<br/><b>Example</b>: <pre>joinStrings[[string {"14", "50", "33"}] ":"]</pre> returns <pre>"14:50:33"</pre>
 /// @since GRPH 1.9
-/// @param string The strings to join
+/// @param strings The strings to join
 /// @param delimiter Optional. The delimiter, empty by default
 /// @see split
 /// @see substring
-#builtin function string strutils>joinStrings[{string} string, string delimiter?]
+#builtin function string strutils>joinStrings[{string} strings, string delimiter?]
 
 /// Returns the given string modified to have the given length. If the length is smaller than the string, it is truncated. If the string is smaller than the length, the given fill string is appended to have the given length.<br/><b>Example</b>:<br/><code>setStringLength["something" 15]</code> -> "something      "<br/><code>setStringLength["something" 4]</code> -> "some"<br/><code>setStringLength["something" 12 "!"]</code> -> "something!!!"<br/><code>setStringLength["something" 20 "fill"]</code> -> "somethingfillfillfil"<br/>
 /// @since GRPH 1.9
-/// @param str The base string
+/// @param string The base string
 /// @param length The length
 /// @param fill The string to append to make it bigger, space by default or if empty
 /// @see substring
-#builtin function string strutils>setStringLength[string str, integer length, string fill]
+#builtin function string strutils>setStringLength[string string, integer length, string fill?]
 
 /// Converts a flag list string to an integer. Each character will be converted following this table :<br/>i: Case insensitive.<br/>x: Comments enabled (from # to the end of the line is ignored) and whitespaces are ignored.<br/>m: Multiline, ^ and $ matches the start and end of the line instead of the start and end of the text.<br/>u: Unicode parsing<br/>U: Enables the Unicode version of Predefined character classes and POSIX character classes.<br/>s: Dotall or single-line, a dot matches all characters including the newline.<br/>d: Unix lines, only 
 ///  is recognized as a line terminator.<br/>l: Literal parsing, the pattern is not parsed as a RegEx but literally.<br/>c: Canonical equivalence, two equivalent but different characters will be considered as the same.<br/>These flags can also be used with (?ixmuUsd) in the pattern (l and c will not).
@@ -1627,7 +1625,7 @@
 /// @param text The text shown on the screen. Can be changed with setName.
 /// @param location The position of the left-most point on the baseline.
 /// @param zpos Optional. The z-position of the shape ; A lower value is in the background
-/// @param textSize Optional. The size of the font. This parameter is an optional integer, like the zpos. Specify the zpos to change the size.
+/// @param font Optional. The font to use (or the font size as an integer). If you want to specify it as an integer, make sure to also specify the zpos.
 /// @param rotation Optional. The rotation of the shape
 /// @param paint The paint used fill the shape.
 #builtin constructor Text
