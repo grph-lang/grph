@@ -14,6 +14,7 @@ import Foundation
 import LanguageServerProtocol
 import LanguageServerProtocolJSONRPC
 import LSPLogging
+import GRPHLexer
 import GRPHGenerator
 
 class GRPHServer: MessageHandler {
@@ -40,6 +41,8 @@ class GRPHServer: MessageHandler {
                 didChangeDocument(notif)
             case let notif as DidCloseTextDocumentNotification:
                 didCloseDocument(notif)
+            case is DidSaveTextDocumentNotification, is InitializedNotification:
+                break // ignore
             default:
                 log("unknown notif \(notif)", level: .warning)
             }
@@ -97,16 +100,33 @@ class GRPHServer: MessageHandler {
     // MARK: - Text sync
     
     func didOpenDocument(_ notif: DidOpenTextDocumentNotification) {
-        documents[notif.textDocument.uri] = Document(item: notif.textDocument)
+        let doc = Document(item: notif.textDocument)
+        documents[notif.textDocument.uri] = doc
+        doc.ensureTokenized(publisher: self)
     }
     
     func didChangeDocument(_ notif: DidChangeTextDocumentNotification) {
-        documents[notif.textDocument.uri]?.handle(notif)
+        guard let doc = documents[notif.textDocument.uri] else {
+            log("change text in closed document", level: .error)
+            return
+        }
+        doc.handle(notif)
+        queue.asyncAfter(deadline: .now() + 1) { [weak doc] in
+            doc?.ensureTokenized(publisher: self)
+        }
     }
     
     func didCloseDocument(_ notif: DidCloseTextDocumentNotification) {
         documents[notif.textDocument.uri] = nil
     }
+    
+    // MARK: Diagnostics
+    
+    func publishDiagnostics(_ diag: [Notice], for doc: Document) {
+        client.send(PublishDiagnosticsNotification(uri: doc.item.uri, version: doc.item.version, diagnostics: diag.map { $0.toLSP(doc: doc.item.uri) }))
+    }
+    
+    // MARK: - Requests
     
     func hover(_ request: Request<HoverRequest>) {
         guard let doc = documents[request.params.textDocument.uri] else {
@@ -114,7 +134,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        doc.ensureTokenized()
+        doc.ensureTokenized(publisher: self)
         
         guard let tokenized = doc.tokenized,
               let doc = tokenized.documentatation else {

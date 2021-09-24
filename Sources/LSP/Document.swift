@@ -26,6 +26,9 @@ class Document {
     }
     
     func handle(_ notif: DidChangeTextDocumentNotification) {
+        if let version = notif.textDocument.version {
+            item.version = version
+        }
         for change in notif.contentChanges {
             if change.range != nil {
                 log("Text change range shouldn't be specified as we only accept full files", level: .error)
@@ -35,9 +38,10 @@ class Document {
         tokenized = nil
     }
     
-    func ensureTokenized() {
+    func ensureTokenized(publisher: GRPHServer) {
         if tokenized == nil {
             tokenized = TokenizedDocument(text: item.text)
+            publisher.publishDiagnostics(tokenized!.diagnostics, for: self)
         }
     }
 }
