@@ -29,7 +29,7 @@ extension Function: DocumentedMember {
     }
     
     var documentationNames: [String] {
-        [documentationIdentifier, signature, fullyQualifiedName, name]
+        [documentationIdentifier, fullyQualifiedName, name, signature]
     }
 }
 
@@ -39,7 +39,7 @@ extension Method: DocumentedMember {
     }
     
     var documentationNames: [String] {
-        [documentationIdentifier, signature, fullyQualifiedName, name]
+        [documentationIdentifier, fullyQualifiedName, name, signature]
     }
 }
 
@@ -49,7 +49,7 @@ extension Constructor: DocumentedMember {
     }
     
     var documentationNames: [String] {
-        [documentationIdentifier, signature, name, "constructor \(name)"]
+        [documentationIdentifier, name, "constructor \(name)", signature]
     }
 }
 
@@ -73,12 +73,12 @@ extension Property/*: DocumentedMember*/ { // humpf (can't for two reasons)
     }
     
     func documentationNames(in inType: GRPHType) -> [String] {
-        [documentationIdentifier(in: inType), "\(inType).\(name)", name]
+        [documentationIdentifier(in: inType), name, "\(inType).\(name)"]
     }
 }
 
 extension SemanticToken {
-    var documentationIdentifier: String {
+    var documentationIdentifier: String? {
         switch data {
         case .identifier(let id):
             return id
@@ -98,7 +98,7 @@ extension SemanticToken {
             case .enumCase:
                 return "case \(token.literal)"
             default:
-                return "_unresolvedCompilerError"
+                return nil
             }
         }
     }

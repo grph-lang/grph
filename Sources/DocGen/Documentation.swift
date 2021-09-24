@@ -39,7 +39,13 @@ public struct Documentation {
 
 public extension Documentation {
     var markdown: String {
-        var doc = info + "\n\n"
+        var doc = ""
+        
+        if let name = symbol.documentationNames.last {
+            doc += "**\(name)**\n\n"
+        }
+        
+        doc += info + "\n\n"
         if let since = since {
             doc += "**Since**: \(since)  \n"
         }

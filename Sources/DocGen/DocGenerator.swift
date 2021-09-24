@@ -69,7 +69,7 @@ public struct DocGenerator {
     }
     
     func findLocalDocumentation(symbol: SemanticToken) -> Documentation? {
-        return documentation[symbol.documentationIdentifier]
+        return symbol.documentationIdentifier.flatMap { documentation[$0] }
     }
     
     public func findDocumentation(sloppyName: String) -> Documentation? {
@@ -127,14 +127,14 @@ public struct DocGenerator {
                 documentation.append(content.trimmingCharacters(in: .whitespaces))
             }
         }
-        guard valid else { // empty
+        guard valid, let id = symbol.documentationIdentifier else { // empty
             return
         }
         if warnOnIncompleteDocumentation,
            documentation.isEmpty || since == nil || params.contains(where: { $0.doc == nil}) {
             diagnostics.append(Notice(token: symbol.token, severity: .warning, source: .docgen, message: "This symbol's documentation is incomplete"))
         }
-        self.documentation[symbol.documentationIdentifier] = Documentation(symbol: symbol, info: documentation.reversed().joined(separator: "\n"), since: since, deprecation: deprecation, seeAlso: see.reversed(), paramDoc: params)
+        self.documentation[id] = Documentation(symbol: symbol, info: documentation.reversed().joined(separator: "\n"), since: since, deprecation: deprecation, seeAlso: see.reversed(), paramDoc: params)
     }
     
     func generateParams(declaration symbol: SemanticToken) -> [Documentation.Parameter] {
