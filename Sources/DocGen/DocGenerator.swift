@@ -24,6 +24,8 @@ public struct DocGenerator {
     
     /// If set to true, the generator will issue warnings if a symbol's documentation is incomplete. This will not trigger warnings if a symbol has no documentation at all.
     public var warnOnIncompleteDocumentation: Bool = false
+    /// If set to true, the generator will issue new semantic tokens for all command name and enum cases tokens.
+    public var generateSemanticTokensForDefaults: Bool = false
     
     public init(lines: [Token], semanticTokens: [SemanticToken]) {
         self.lines = lines
@@ -42,6 +44,25 @@ public struct DocGenerator {
                     diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)"))
                 }
             }
+        }
+        if generateSemanticTokensForDefaults {
+            for line in lines {
+                generateDefaultTokens(in: line)
+            }
+        }
+    }
+    
+    mutating func generateDefaultTokens(in token: Token) {
+        switch token.tokenType {
+        case .commandName:
+            semanticTokens.append(SemanticToken(token: token, modifiers: .defaultLibrary, data: .none))
+        case .enumCase:
+            semanticTokens.append(SemanticToken(token: token, modifiers: .defaultLibrary, data: .none))
+        default:
+            break
+        }
+        for child in token.children {
+            generateDefaultTokens(in: child)
         }
     }
     

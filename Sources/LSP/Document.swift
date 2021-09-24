@@ -63,6 +63,7 @@ struct TokenizedDocument {
             diagnostics.append(contentsOf: gen.diagnostics)
             
             var doc = DocGenerator(lines: lexed, semanticTokens: gen.resolvedSemanticTokens!)
+            doc.generateSemanticTokensForDefaults = true
             doc.generate()
             diagnostics.append(contentsOf: doc.diagnostics)
             self.documentatation = doc

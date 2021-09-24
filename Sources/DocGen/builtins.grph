@@ -2356,3 +2356,58 @@
 /// @see direction.RIGHT
 /// @see direction.DOWN_LEFT
 #builtin property direction.UP_RIGHT
+
+/// The elongated stroke type, which adds a square at the end of the strokes.
+/// @since GRPH 1.0
+/// @see stroke.ELONGATED
+#builtin case elongated
+
+/// The elongated stroke type, which adds nothing on strokes.
+/// @since GRPH 1.0
+/// @see stroke.CUT
+#builtin case cut
+
+/// The rounded stroke type, which adds a circle at the end of the strokes.
+/// @since GRPH 1.0
+/// @see stroke.ROUNDED
+#builtin case rounded
+
+/// The direction which goes from the left to the right.
+/// @since GRPH 1.0
+/// @see direction.RIGHT
+#builtin case right
+
+/// The direction which goes from the top left to the bottom right.
+/// @since GRPH 1.0
+/// @see direction.DOWN_RIGHT
+#builtin case downRight
+
+/// The direction which goes from the top to the bottom.
+/// @since GRPH 1.0
+/// @see direction.DOWN
+#builtin case down
+
+/// The direction which goes from the top right to the bottom left.
+/// @since GRPH 1.0
+/// @see direction.DOWN_LEFT
+#builtin case downLeft
+
+/// The direction which goes from the right to the left.
+/// @since GRPH 1.0
+/// @see direction.LEFT
+#builtin case left
+
+/// The direction which goes from the bottom right to the top left.
+/// @since GRPH 1.0
+/// @see direction.UP_LEFT
+#builtin case upLeft
+
+/// The direction which goes from the bottom to the top.
+/// @since GRPH 1.0
+/// @see direction.UP
+#builtin case up
+
+/// The direction which goes from the bottom left to the top right.
+/// @since GRPH 1.0
+/// @see direction.UP_RIGHT
+#builtin case upRight
