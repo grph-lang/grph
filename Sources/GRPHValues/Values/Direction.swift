@@ -11,7 +11,7 @@
 
 import Foundation
 
-public enum Direction: String, StatefulValue {
+public enum Direction: String, StatefulValue, CaseIterable {
     case right, downRight, down, downLeft, left, upLeft, up, upRight
     
     public var reverse: Direction {

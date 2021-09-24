@@ -47,5 +47,12 @@ final class DocGenTests: XCTestCase {
             XCTAssertNotNil(doc, "missing method \(f.signature)")
         }
     }
+    
+    func testEnumCompleteness() throws {
+        for rawValue in (Direction.allCases.map { $0.rawValue } + Stroke.allCases.map { $0.rawValue }) {
+            let doc = DocGenerator.builtins.findLocalDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: rawValue.startIndex, literal: rawValue[...], tokenType: .enumCase), modifiers: .none, data: .none))
+            XCTAssertNotNil(doc, "missing case \(rawValue)")
+        }
+    }
 }
 

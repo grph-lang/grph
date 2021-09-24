@@ -11,7 +11,7 @@
 
 import Foundation
 
-public enum Stroke: String, StatefulValue {
+public enum Stroke: String, StatefulValue, CaseIterable {
     case elongated, cut, rounded
     
     public var state: String { rawValue }

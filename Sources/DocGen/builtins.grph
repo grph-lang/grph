@@ -2289,7 +2289,7 @@
 /// @see stroke.CUT
 #builtin property stroke.ELONGATED
 
-/// The elongated stroke type, which adds nothing on strokes.
+/// The cut stroke type, which adds nothing on strokes.
 /// @since GRPH 1.10
 /// @see stroke.ROUNDED
 /// @see stroke.ELONGATED
@@ -2362,7 +2362,7 @@
 /// @see stroke.ELONGATED
 #builtin case elongated
 
-/// The elongated stroke type, which adds nothing on strokes.
+/// The cut stroke type, which adds nothing on strokes.
 /// @since GRPH 1.0
 /// @see stroke.CUT
 #builtin case cut
