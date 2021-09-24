@@ -36,7 +36,7 @@ public struct DocGenerator {
         }
         // For use of deprecated symbols, add the appropriate Semantic Modifier (for the IDE to strikethrough), and issue a warning
         for (i, token) in semanticTokens.enumerated() {
-            if let depr = findDocumentation(index: i)?.deprecation {
+            if let depr = findDocumentation(token: token)?.deprecation {
                 semanticTokens[i].modifiers.insert(.deprecated)
                 if !token.modifiers.contains(.declaration) {
                     diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)"))
@@ -45,35 +45,34 @@ public struct DocGenerator {
         }
     }
     
-    /// Finds the documentation for the symbol at the given index in `semanticTokens`
-    /// - Parameter index: the index of the symbol in the given `semanticTokens` array
-    mutating func findDocumentation(index: Int) -> Documentation? {
-        let st = semanticTokens[index]
+    /// Finds the documentation for the given symbol
+    /// - Parameter token: the sematic token, from the `semanticTokens` array
+    public func findDocumentation(token st: SemanticToken) -> Documentation? {
         switch st.token.tokenType {
         case .parameter:
             // always a declaration, same line as the function definition
             if st.modifiers.contains(.documentation) {
                 return nil
             }
-            guard let f = semanticTokens.firstIndex(where: { $0.token.lineNumber == st.token.lineNumber && $0.token.tokenType == .function }) else {
+            guard let f = semanticTokens.first(where: { $0.token.lineNumber == st.token.lineNumber && $0.token.tokenType == .function }) else {
                 assertionFailure("parameters must be on the same line as functions")
                 return nil
             }
-            return findDocumentation(index: f)?.paramDoc.first(where: { $0.name == st.token.literal })?.doc.map({ Documentation(symbol: st, info: $0, since: nil, seeAlso: [], paramDoc: []) })
+            return findDocumentation(token: f)?.paramDoc.first(where: { $0.name == st.token.literal })?.doc.map({ Documentation(symbol: st, info: $0, since: nil, seeAlso: [], paramDoc: []) })
         case .commandName, .namespace, .property, .enumCase, .method:
-            return DocGenerator.builtins.findDocumentation(symbol: st)
+            return DocGenerator.builtins.findLocalDocumentation(symbol: st)
         case .variable, .function, .type:
-            return findDocumentation(symbol: st) ?? DocGenerator.builtins.findDocumentation(symbol: st)
+            return findLocalDocumentation(symbol: st) ?? DocGenerator.builtins.findLocalDocumentation(symbol: st)
         default:
             return nil
         }
     }
     
-    func findDocumentation(symbol: SemanticToken) -> Documentation? {
+    func findLocalDocumentation(symbol: SemanticToken) -> Documentation? {
         return documentation[symbol.documentationIdentifier]
     }
     
-    func findDocumentation(sloppyName: String) -> Documentation? {
+    public func findDocumentation(sloppyName: String) -> Documentation? {
         return findInternalDocumentation(sloppyName: sloppyName) ?? DocGenerator.builtins.findInternalDocumentation(sloppyName: sloppyName)
     }
     

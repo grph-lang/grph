@@ -36,3 +36,34 @@ public struct Documentation {
         public var doc: String?
     }
 }
+
+public extension Documentation {
+    var markdown: String {
+        var doc = info + "\n\n"
+        if let since = since {
+            doc += "**Since**: \(since)  \n"
+        }
+        
+        if let deprecation = deprecation {
+            doc += "**Deprecated**: \(deprecation)  \n"
+        }
+        
+        if !paramDoc.isEmpty {
+            doc += "**Parameters**:\n"
+            for param in paramDoc {
+                doc += "- `\(param.name)`: \(param.doc ?? "*No documentation found*")\n"
+            }
+            doc += "\n"
+        }
+        
+        if !seeAlso.isEmpty {
+            doc += "**See Also**:\n"
+            for see in seeAlso {
+                doc += "- [\(see)](\(see))\n"
+            }
+            doc += "\n"
+        }
+        
+        return doc
+    }
+}

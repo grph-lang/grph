@@ -35,7 +35,7 @@ final class DocGenTests: XCTestCase {
     
     func testFunctionCompleteness() throws {
         for f in NameSpaces.instances.flatMap({ $0.exportedFunctions }) {
-            let doc = DocGenerator.builtins.findDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: f.name.startIndex, literal: f.name[...], tokenType: .function), modifiers: .none, data: .function(f)))
+            let doc = DocGenerator.builtins.findLocalDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: f.name.startIndex, literal: f.name[...], tokenType: .function), modifiers: .none, data: .function(f)))
             XCTAssertNotNil(doc, "missing function \(f.signature)")
         }
     }
@@ -43,7 +43,7 @@ final class DocGenTests: XCTestCase {
     func testMethodCompleteness() throws {
         // this doesn't include methods defined directly in types!
         for f in NameSpaces.instances.flatMap({ $0.exportedMethods }) {
-            let doc = DocGenerator.builtins.findDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: f.name.startIndex, literal: f.name[...], tokenType: .method), modifiers: .none, data: .method(f)))
+            let doc = DocGenerator.builtins.findLocalDocumentation(symbol: SemanticToken(token: Token(lineNumber: 0, lineOffset: f.name.startIndex, literal: f.name[...], tokenType: .method), modifiers: .none, data: .method(f)))
             XCTAssertNotNil(doc, "missing method \(f.signature)")
         }
     }

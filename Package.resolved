@@ -2,6 +2,15 @@
   "object": {
     "pins": [
       {
+        "package": "IndexStoreDB",
+        "repositoryURL": "https://github.com/apple/indexstore-db.git",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "e771994778265c2efe8d33a7ca30adf5f3d2065a",
+          "version": null
+        }
+      },
+      {
         "package": "Rainbow",
         "repositoryURL": "https://github.com/Snowy1803/Rainbow",
         "state": {
@@ -11,12 +20,66 @@
         }
       },
       {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "package": "SourceKitLSP",
+        "repositoryURL": "https://github.com/apple/sourcekit-lsp",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "1abe633602f7974bc56569c7a362b277305e73c6",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-crypto",
+        "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "6b2aa2748a7881eebb9f84fb10c01293e15b52ca",
-          "version": "0.5.0"
+          "revision": "3bea268b223651c4ab7b7b9ad62ef9b2d4143eb6",
+          "version": "1.1.6"
+        }
+      },
+      {
+        "package": "swift-driver",
+        "repositoryURL": "https://github.com/apple/swift-driver.git",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "18ab0cea26707b0a3a7d7496df67d19c1cca81c9",
+          "version": null
+        }
+      },
+      {
+        "package": "llbuild",
+        "repositoryURL": "https://github.com/apple/swift-llbuild.git",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "b5d9b4a9995c05688ae5f3b87a0d7ac0dc45c6c6",
+          "version": null
+        }
+      },
+      {
+        "package": "SwiftPM",
+        "repositoryURL": "https://github.com/apple/swift-package-manager.git",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "e54d9b7fb985ad0e709bc51a1265bfd6adbf3b5c",
+          "version": null
+        }
+      },
+      {
+        "package": "swift-tools-support-core",
+        "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
+        "state": {
+          "branch": "release/5.5",
+          "revision": "1b21e2ce36891ed4f458421a83b5d9e886acd4cd",
+          "version": null
+        }
+      },
+      {
+        "package": "Yams",
+        "repositoryURL": "https://github.com/jpsim/Yams.git",
+        "state": {
+          "branch": null,
+          "revision": "9ff1cc9327586db4e0c8f46f064b6a82ec1566fa",
+          "version": "4.0.6"
         }
       }
     ]

@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "GRPHLexer",
+    platforms: [.macOS(.v10_15)],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
@@ -25,11 +26,15 @@ let package = Package(
         .executable(
             name: "CLI",
             targets: ["CLI"]),
+        .executable(
+            name: "LSP",
+            targets: ["LSP"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.5.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.4.4"),
         .package(url: "https://github.com/Snowy1803/Rainbow", .branch("master")),
+        .package(url: "https://github.com/apple/sourcekit-lsp", .branch("release/5.5")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -50,6 +55,7 @@ let package = Package(
         .target(
             name: "GRPHRuntime",
             dependencies: ["GRPHValues"]),
+        
         .executableTarget(
             name: "CLI",
             dependencies: [
@@ -57,6 +63,14 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Rainbow", package: "Rainbow"),
             ]),
+        .executableTarget(
+            name: "LSP",
+            dependencies: [
+                "GRPHGenerator", "DocGen",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                .product(name: "LSPBindings", package: "sourcekit-lsp"),
+            ]),
+        
         .testTarget(
             name: "GRPHLexerTests",
             dependencies: ["GRPHLexer"]),
