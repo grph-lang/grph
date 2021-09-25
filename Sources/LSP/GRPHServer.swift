@@ -160,7 +160,7 @@ class GRPHServer: MessageHandler {
                   return
         }
         
-        guard let token = doc.semanticTokens.last(where: { $0.token.positionRange.contains(request.params.position) }),
+        guard let token = doc.semanticTokens.last(where: { $0.token.positionRangeClosed.contains(request.params.position) }),
               let documentation = doc.findDocumentation(token: token) else {
             request.reply(.success(nil))
             return
@@ -195,7 +195,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        guard let symbol = tokenized.documentatation?.semanticTokens.first(where: { $0.token.positionRange.contains(position) }),
+        guard let symbol = tokenized.documentatation?.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(position) }),
               let decl = tokenized.documentatation?.findDeclaration(for: symbol) else {
             request.reply(.success(nil))
             return
@@ -210,7 +210,7 @@ class GRPHServer: MessageHandler {
         }
         
         guard let doc = tokenized.documentatation,
-              let symbol = doc.semanticTokens.first(where: { $0.token.positionRange.contains(request.params.position) }) else {
+              let symbol = doc.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }) else {
             request.reply(.success([]))
             return
         }

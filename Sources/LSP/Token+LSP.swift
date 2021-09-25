@@ -27,6 +27,10 @@ extension Token {
     var positionRange: Range<Position> {
         startPosition..<endPosition
     }
+    
+    var positionRangeClosed: ClosedRange<Position> {
+        startPosition...endPosition
+    }
 }
 
 extension SemanticToken.Modifiers {
