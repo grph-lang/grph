@@ -206,7 +206,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if tokens.count == 1 {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#if requires an argument of type boolean"))
                 }
-                return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+                return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, compiler: self, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
                 
             case "#elseif", "#elif":
                 if let ctx = context as? SwitchCompilingContext {
@@ -218,7 +218,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if tokens.count == 1 {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#elseif requires an argument of type boolean"))
                 }
-                return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+                return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
             case "#else":
                 if context is SwitchCompilingContext {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected #case or #default in #switch block"))
@@ -226,12 +226,12 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if tokens.count > 1 {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "#else doesn't expect arguments"))
                 }
-                return ResolvedInstruction(instruction: ElseBlock(context: &context, lineNumber: lineNumber))
+                return ResolvedInstruction(instruction: ElseBlock(compiler: self, lineNumber: lineNumber))
             case "#while":
                 if tokens.count == 1 {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#while requires an argument of type boolean"))
                 }
-                return try ResolvedInstruction(instruction: WhileBlock(lineNumber: lineNumber, context: &context, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+                return try ResolvedInstruction(instruction: WhileBlock(lineNumber: lineNumber, compiler: self, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
             case "#foreach":
                 let split = tokens.dropFirst().split(on: .methodCallOperator)
                 guard split.count == 2 else {
@@ -252,9 +252,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 defer {
                     resolveSemanticToken(variable.withModifiers([.declaration, .definition, inOut ? .none : .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
                 }
-                return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, context: &context, inOut: inOut, varName: variable.description, array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
+                return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, compiler: self, inOut: inOut, varName: variable.description, array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
             case "#try":
-                return ResolvedInstruction(instruction: TryBlock(context: &context, lineNumber: lineNumber))
+                return ResolvedInstruction(instruction: TryBlock(compiler: self, lineNumber: lineNumber))
             case "#catch":
                 let split = tokens.dropFirst().split(on: .methodCallOperator)
                 guard split.count == 2 else {
@@ -271,7 +271,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 } else {
                     tr = instructions[instructions.count - trm] as! TryBlock
                 }
-                let block = try CatchBlock(lineNumber: lineNumber, context: &context, varName: name)
+                let block = try CatchBlock(lineNumber: lineNumber, compiler: self, varName: name)
                 
                 resolveSemanticToken(variable.withModifiers([.declaration, .definition, .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
                 
@@ -313,7 +313,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 return ResolvedInstruction(instruction: ThrowInstruction(lineNumber: lineNumber, type: error, message: msg))
             case "#function":
-                return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, context: &context, tokens: Array(tokens.dropFirst())))
+                return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, compiler: self, tokens: Array(tokens.dropFirst())))
             case "#return":
                 guard let block = context.inFunction else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#return may only be used in functions"))
@@ -348,7 +348,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case "#fallthrough":
                 return try ResolvedInstruction(instruction: BreakInstruction(lineNumber: lineNumber, type: .fallthrough, scope: .parse(tokens: tokens.dropFirst())))
             case "#block":
-                return ResolvedInstruction(instruction: SimpleBlockInstruction(context: &context, lineNumber: lineNumber))
+                return ResolvedInstruction(instruction: SimpleBlockInstruction(compiler: self, lineNumber: lineNumber))
             case "#requires":
                 let version: Version
                 if tokens.count == 2 {
@@ -414,9 +414,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 switch ctx.state {
                 case .first:
                     ctx.state = .next
-                    return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, context: &context, condition: combined))
+                    return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, compiler: self, condition: combined))
                 case .next:
-                    return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, context: &context, condition: combined))
+                    return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: combined))
                 case .last:
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case must come before the terminating #default case in a #switch"))
                 }
@@ -432,7 +432,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#default cannot be first in a #switch, it must be last"))
                 case .next:
                     ctx.state = .last
-                    return ResolvedInstruction(instruction: ElseBlock(context: &context, lineNumber: lineNumber))
+                    return ResolvedInstruction(instruction: ElseBlock(compiler: self, lineNumber: lineNumber))
                 case .last:
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Cannot put multiple #default cases in a #switch"))
                 }
@@ -546,8 +546,12 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     }
                     return try ResolvedInstruction(instruction: ArrayModificationInstruction(lineNumber: lineNumber, context: context, name: varName, op: type, index: indexExp, value: value))
                 } else if last.tokenType == .squareBrackets { // inline function
-                    var inner = context! // do not modify external context, this isn't a block
-                    return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, context: &inner, tokens: tokens), notABlock: true)
+                    let restore = context!
+                    defer {
+                        // do not modify external context, this isn't a block
+                        context = restore
+                    }
+                    return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, compiler: self, tokens: tokens), notABlock: true)
                 } else {
                     guard assignment < tokens.endIndex - 1 else {
                         throw DiagnosticCompileError(notice: Notice(token: tokens[assignment], severity: .error, source: .generator, message: "Assignment value cannot be empty"))

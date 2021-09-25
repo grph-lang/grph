@@ -45,9 +45,9 @@ public struct SimpleBlockInstruction: BlockInstruction {
     public var children: [Instruction] = []
     public var label: String?
     
-    public init(context: inout CompilingContext, lineNumber: Int) {
+    public init(compiler: GRPHCompilerProtocol, lineNumber: Int) {
         self.lineNumber = lineNumber
-        createContext(&context)
+        createContext(&compiler.context)
     }
     
     public var name: String { "block" }

@@ -20,10 +20,10 @@ public class CatchBlock: BlockInstruction {
     public let varName: String
     public var def: String = ""
     
-    public init(lineNumber: Int, context: inout CompilingContext, varName: String) throws {
+    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, varName: String) throws {
         self.varName = varName
         self.lineNumber = lineNumber
-        let ctx = createContext(&context)
+        let ctx = createContext(&compiler.context)
         
         guard VariableDeclarationInstruction.varNameRequirement.firstMatch(string: self.varName) != nil else {
             throw GRPHCompileError(type: .parse, message: "Illegal variable name \(self.varName)")

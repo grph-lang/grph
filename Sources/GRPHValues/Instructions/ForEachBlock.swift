@@ -20,14 +20,14 @@ public struct ForEachBlock: BlockInstruction {
     public let array: Expression
     public let inOut: Bool
     
-    public init(lineNumber: Int, context: inout CompilingContext, inOut: Bool, varName: String, array: Expression) throws {
+    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, inOut: Bool, varName: String, array: Expression) throws {
         self.varName = varName
         self.inOut = inOut
-        self.array = try GRPHTypes.autobox(context: context, expression: array, expected: SimpleType.mixed.inArray)
+        self.array = try GRPHTypes.autobox(context: compiler.context, expression: array, expected: SimpleType.mixed.inArray)
         self.lineNumber = lineNumber
-        let ctx = createContext(&context)
+        let ctx = createContext(&compiler.context)
         
-        let type = try self.array.getType(context: context, infer: SimpleType.mixed.inArray)
+        let type = try self.array.getType(context: compiler.context, infer: SimpleType.mixed.inArray)
         
         guard let arrtype = type as? ArrayType else {
             throw GRPHCompileError(type: .typeMismatch, message: "#foreach needs an array, a \(type) was given")
@@ -35,7 +35,7 @@ public struct ForEachBlock: BlockInstruction {
         ctx.variables.append(Variable(name: self.varName, type: arrtype.content, final: !inOut, compileTime: true))
     }
     
-    public init(lineNumber: Int, context: inout CompilingContext, varName: String, array: Expression) throws {
+    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, varName: String, array: Expression) throws {
         let inOut = varName.hasPrefix("&") // new in Swift Edition
         let name = inOut ? String(varName.dropFirst()) : varName
         
@@ -43,7 +43,7 @@ public struct ForEachBlock: BlockInstruction {
             throw GRPHCompileError(type: .parse, message: "Illegal variable name \(name)")
         }
         
-        try self.init(lineNumber: lineNumber, context: &context, inOut: inOut, varName: name, array: array)
+        try self.init(lineNumber: lineNumber, compiler: compiler, inOut: inOut, varName: name, array: array)
     }
     
     public var name: String { "foreach \(inOut ? "&" : "")\(varName) : \(array.string)" }

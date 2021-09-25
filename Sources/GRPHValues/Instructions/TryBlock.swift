@@ -17,9 +17,9 @@ public struct TryBlock: BlockInstruction {
     public var label: String?
     public var catches: [GRPHRuntimeError.RuntimeExceptionType?: CatchBlock] = [:]
     
-    public init(context: inout CompilingContext, lineNumber: Int) {
+    public init(compiler: GRPHCompilerProtocol, lineNumber: Int) {
         self.lineNumber = lineNumber
-        createContext(&context)
+        createContext(&compiler.context)
     }
     
     public var name: String { "try" }

@@ -17,12 +17,12 @@ public struct IfBlock: BlockInstruction {
     public var label: String?
     public let condition: Expression
     
-    public init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
+    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
         self.lineNumber = lineNumber
-        self.condition = try GRPHTypes.autobox(context: context, expression: condition, expected: SimpleType.boolean)
-        createContext(&context)
-        guard try self.condition.getType(context: context, infer: SimpleType.boolean) == SimpleType.boolean else {
-            throw GRPHCompileError(type: .typeMismatch, message: "#if needs a boolean, a \(try condition.getType(context: context, infer: SimpleType.boolean)) was given")
+        self.condition = try GRPHTypes.autobox(context: compiler.context, expression: condition, expected: SimpleType.boolean)
+        createContext(&compiler.context)
+        guard try self.condition.getType(context: compiler.context, infer: SimpleType.boolean) == SimpleType.boolean else {
+            throw GRPHCompileError(type: .typeMismatch, message: "#if needs a boolean, a \(try condition.getType(context: compiler.context, infer: SimpleType.boolean)) was given")
         }
     }
     
@@ -35,12 +35,12 @@ public struct ElseIfBlock: BlockInstruction {
     public var label: String?
     public let condition: Expression
     
-    public init(lineNumber: Int, context: inout CompilingContext, condition: Expression) throws {
+    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
         self.lineNumber = lineNumber
-        self.condition = try GRPHTypes.autobox(context: context, expression: condition, expected: SimpleType.boolean)
-        createContext(&context)
-        guard try self.condition.getType(context: context, infer: SimpleType.boolean) == SimpleType.boolean else {
-            throw GRPHCompileError(type: .typeMismatch, message: "#elseif needs a boolean, a \(try condition.getType(context: context, infer: SimpleType.boolean)) was given")
+        self.condition = try GRPHTypes.autobox(context: compiler.context, expression: condition, expected: SimpleType.boolean)
+        createContext(&compiler.context)
+        guard try self.condition.getType(context: compiler.context, infer: SimpleType.boolean) == SimpleType.boolean else {
+            throw GRPHCompileError(type: .typeMismatch, message: "#elseif needs a boolean, a \(try condition.getType(context: compiler.context, infer: SimpleType.boolean)) was given")
         }
     }
     
@@ -52,9 +52,9 @@ public struct ElseBlock: BlockInstruction {
     public var children: [Instruction] = []
     public var label: String?
     
-    public init(context: inout CompilingContext, lineNumber: Int) {
+    public init(compiler: GRPHCompilerProtocol, lineNumber: Int) {
         self.lineNumber = lineNumber
-        createContext(&context)
+        createContext(&compiler.context)
     }
     
     public var name: String { "else" }

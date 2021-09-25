@@ -15,9 +15,9 @@ import GRPHValues
 
 extension FunctionDeclarationBlock {
     /// - Note: Tokens must be stripped
-    convenience init(lineNumber: Int, context: inout CompilingContext, tokens: [Token]) throws {
+    convenience init(lineNumber: Int, compiler: GRPHGenerator, tokens: [Token]) throws {
         self.init(lineNumber: lineNumber)
-        let context = createContext(&context)
+        let context = createContext(&compiler.context)
         // syntax:
         // returnType funcName[]
         // returnType funcName[] = defaultValueExpr
