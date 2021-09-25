@@ -42,7 +42,7 @@ public extension Documentation {
         var doc = ""
         
         if let name = symbol.documentationNames.last {
-            doc += "**\(name)**\n\n"
+            doc += "**\(name.replacingOccurrences(of: "[", with: "\\[").replacingOccurrences(of: "]", with: "\\]"))**\n\n"
         }
         
         doc += info + "\n\n"

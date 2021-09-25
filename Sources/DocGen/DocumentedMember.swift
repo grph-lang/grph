@@ -63,7 +63,7 @@ extension Variable: DocumentedMember {
     }
     
     var documentationNames: [String] {
-        [documentationIdentifier, name]
+        [documentationIdentifier, name, "\(type) \(name)"]
     }
 }
 
@@ -73,7 +73,7 @@ extension Property/*: DocumentedMember*/ { // humpf (can't for two reasons)
     }
     
     func documentationNames(in inType: GRPHType) -> [String] {
-        [documentationIdentifier(in: inType), name, "\(inType).\(name)"]
+        [documentationIdentifier(in: inType), name, "\(inType).\(name)", "\(type) \(inType).\(name)"]
     }
 }
 
