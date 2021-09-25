@@ -71,6 +71,8 @@ class GRPHServer: MessageHandler {
                 jumpToDefinition(request, position: request.params.position)
             case let request as Request<ReferencesRequest>:
                 findReferences(request)
+            case let request as Request<DocumentHighlightRequest>:
+                highlightReferences(request)
             default:
                 log("unknown request \(request)")
             }
@@ -90,7 +92,7 @@ class GRPHServer: MessageHandler {
             definitionProvider: true, // jump to definition
             implementationProvider: .bool(true), // jump to symbol implementation
             referencesProvider: true, // view all references to symbol
-//            documentHighlightProvider: true, // view all references to symbol, for highlighting
+            documentHighlightProvider: true, // view all references to symbol, for highlighting
 //            documentSymbolProvider: true, // list all symbols
 //            workspaceSymbolProvider: false, // same, in workspace
 //            codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
@@ -215,6 +217,24 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        request.reply(.success(doc.findReferences(of: symbol).map({ Location(uri: request.params.textDocument.uri, range: $0.token.positionRange) })))
+        request.reply(.success(doc.findReferences(of: symbol).map({
+            Location(uri: request.params.textDocument.uri, range: $0.token.positionRange)
+        })))
+    }
+    
+    func highlightReferences(_ request: Request<DocumentHighlightRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let doc = tokenized.documentatation,
+              let symbol = doc.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }) else {
+            request.reply(.success([]))
+            return
+        }
+        
+        request.reply(.success(doc.findReferences(of: symbol).map({
+            DocumentHighlight(range: $0.token.positionRange, kind: $0.modifiers.contains(.modification) ? .write : .read)
+        })))
     }
 }

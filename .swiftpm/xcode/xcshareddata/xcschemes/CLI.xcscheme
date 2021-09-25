@@ -82,6 +82,7 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableThreadSanitizer = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -100,7 +101,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-s /Users/emil/Library/Mobile\ Documents/com\~apple\~CloudDocs/Graphism/Dictionary.grph"
+            argument = "/Users/emil/Documents/runtime-EclipseApplication/GRPHTest/test.grph"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
