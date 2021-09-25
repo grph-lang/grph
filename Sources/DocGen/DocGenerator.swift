@@ -166,4 +166,15 @@ public struct DocGenerator {
             return []
         }
     }
+    
+    public func findReferences(of st: SemanticToken) -> [SemanticToken] {
+        guard let id = st.documentationIdentifier else {
+            return []
+        }
+        return semanticTokens.filter({ $0.documentationIdentifier == id })
+    }
+    
+    public func findDeclaration(for st: SemanticToken) -> SemanticToken? {
+        return findReferences(of: st).first(where: { $0.modifiers.contains(.declaration) })
+    }
 }

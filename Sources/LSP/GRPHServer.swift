@@ -65,8 +65,12 @@ class GRPHServer: MessageHandler {
                 hover(request)
             case let request as Request<DocumentSemanticTokensRequest>:
                 semanticTokens(request)
-//            case let request as Request<DocumentSemanticTokensRangeRequest>:
-//                semanticTokens(request)
+            case let request as Request<DefinitionRequest>:
+                jumpToDefinition(request, position: request.params.position)
+            case let request as Request<ImplementationRequest>:
+                jumpToDefinition(request, position: request.params.position)
+            case let request as Request<ReferencesRequest>:
+                findReferences(request)
             default:
                 log("unknown request \(request)")
             }
@@ -83,9 +87,9 @@ class GRPHServer: MessageHandler {
             hoverProvider: true,
 //            completionProvider: CompletionOptions(resolveProvider: false, triggerCharacters: ["."]),
 //            signatureHelpProvider: nil, // provide parameter completion (no)
-//            definitionProvider: true, // jump to definition
-//            implementationProvider: .bool(true), // jump to symbol implementation
-//            referencesProvider: true, // view all references to symbol
+            definitionProvider: true, // jump to definition
+            implementationProvider: .bool(true), // jump to symbol implementation
+            referencesProvider: true, // view all references to symbol
 //            documentHighlightProvider: true, // view all references to symbol, for highlighting
 //            documentSymbolProvider: true, // list all symbols
 //            workspaceSymbolProvider: false, // same, in workspace
@@ -131,16 +135,27 @@ class GRPHServer: MessageHandler {
     
     // MARK: - Requests
     
-    func hover(_ request: Request<HoverRequest>) {
+    func ensureDocTokenized<T>(request: Request<T>) -> TokenizedDocument? where T: TextDocumentRequest {
         guard let doc = documents[request.params.textDocument.uri] else {
             request.reply(.failure(.unknown("document not open")))
-            return
+            return nil
         }
         
         doc.ensureTokenized(publisher: self)
         
-        guard let tokenized = doc.tokenized,
-              let doc = tokenized.documentatation else {
+        guard let tokenized = doc.tokenized else {
+            request.reply(.failure(.unknown("tokenization error")))
+            return nil
+        }
+        return tokenized
+    }
+    
+    func hover(_ request: Request<HoverRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let doc = tokenized.documentatation else {
             request.reply(.failure(.unknown("tokenization error")))
                   return
         }
@@ -155,16 +170,8 @@ class GRPHServer: MessageHandler {
     }
     
     func semanticTokens(_ request: Request<DocumentSemanticTokensRequest>) {
-        guard let doc = documents[request.params.textDocument.uri] else {
-            request.reply(.failure(.unknown("document not open")))
+        guard let tokenized = ensureDocTokenized(request: request) else {
             return
-        }
-        
-        doc.ensureTokenized(publisher: self)
-        
-        guard let tokenized = doc.tokenized else {
-            request.reply(.failure(.unknown("tokenization error")))
-                  return
         }
         
         let semtokens = tokenized.documentatation?.semanticTokens ?? []
@@ -181,5 +188,33 @@ class GRPHServer: MessageHandler {
         }
         
         request.reply(.success(DocumentSemanticTokensResponse(resultId: nil, data: collect)))
+    }
+    
+    func jumpToDefinition<T>(_ request: Request<T>, position: Position) where T: TextDocumentRequest, T.Response == LocationsOrLocationLinksResponse? {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let symbol = tokenized.documentatation?.semanticTokens.first(where: { $0.token.positionRange.contains(position) }),
+              let decl = tokenized.documentatation?.findDeclaration(for: symbol) else {
+            request.reply(.success(nil))
+            return
+        }
+        
+        request.reply(.success(.locations([Location(uri: request.params.textDocument.uri, range: decl.token.positionRange)])))
+    }
+    
+    func findReferences(_ request: Request<ReferencesRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let doc = tokenized.documentatation,
+              let symbol = doc.semanticTokens.first(where: { $0.token.positionRange.contains(request.params.position) }) else {
+            request.reply(.success([]))
+            return
+        }
+        
+        request.reply(.success(doc.findReferences(of: symbol).map({ Location(uri: request.params.textDocument.uri, range: $0.token.positionRange) })))
     }
 }
