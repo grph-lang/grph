@@ -73,6 +73,8 @@ class GRPHServer: MessageHandler {
                 findReferences(request)
             case let request as Request<DocumentHighlightRequest>:
                 highlightReferences(request)
+            case let request as Request<DocumentSymbolRequest>:
+                outline(request)
             default:
                 log("unknown request \(request)")
             }
@@ -93,7 +95,7 @@ class GRPHServer: MessageHandler {
             implementationProvider: .bool(true), // jump to symbol implementation
             referencesProvider: true, // view all references to symbol
             documentHighlightProvider: true, // view all references to symbol, for highlighting
-//            documentSymbolProvider: true, // list all symbols
+            documentSymbolProvider: true, // list all symbols
 //            workspaceSymbolProvider: false, // same, in workspace
 //            codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
 //            colorProvider: .bool(false), // could work, by parsing `color()` calls which only use int literals, and return values
@@ -236,5 +238,16 @@ class GRPHServer: MessageHandler {
         request.reply(.success(doc.findReferences(of: symbol).map({
             DocumentHighlight(range: $0.token.positionRange, kind: $0.modifiers.contains(.modification) ? .write : .read)
         })))
+    }
+    
+    /// Used for outline and breadcrumbs: Return an outline, as a tree
+    /// Our AST doesn't use indentation to make trees
+    /// Our I&E, however, can be used to populate this
+    func outline(_ request: Request<DocumentSymbolRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        request.reply(.success(.documentSymbols(tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: tokenized.documentatation?.semanticTokens ?? []))))
     }
 }

@@ -15,6 +15,7 @@ import LanguageServerProtocol
 import LSPLogging
 import GRPHLexer
 import GRPHGenerator
+import GRPHValues
 import DocGen
 
 class Document {
@@ -51,6 +52,7 @@ struct TokenizedDocument {
     var lexed: [Token]
     var diagnostics: [Notice]
     var documentatation: DocGenerator?
+    var instructions: [Instruction]
     
     var successful: Bool
     
@@ -64,6 +66,7 @@ struct TokenizedDocument {
             let gen = GRPHGenerator(lines: lexed)
             gen.resolvedSemanticTokens = []
             successful = gen.compile()
+            instructions = gen.instructions
             diagnostics.append(contentsOf: gen.diagnostics)
             
             var doc = DocGenerator(lines: lexed, semanticTokens: gen.resolvedSemanticTokens!)
@@ -71,6 +74,8 @@ struct TokenizedDocument {
             doc.generate()
             diagnostics.append(contentsOf: doc.diagnostics)
             self.documentatation = doc
+        } else {
+            instructions = []
         }
     }
 }

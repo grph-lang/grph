@@ -11,7 +11,7 @@
 
 import Foundation
 
-/// The #block instruction, but also the base class for all other blocks
+/// The protocol for all blocks, #-commands which contain child instructions
 public protocol BlockInstruction: Instruction {
     var children: [Instruction] { get set }
     var label: String? { get set }
