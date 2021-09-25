@@ -15,48 +15,7 @@ import GRPHLexer
 import GRPHGenerator
 import LanguageServerProtocol
 
-enum LSPSemanticTokenType: String, CaseIterable {
-    /// A simple or documentation comment
-    case comment
-    
-    /// A variable name
-    case variable
-    /// A function name
-    case function
-    /// A method name
-    case method
-    /// A label name
-    case label // extension to the standard LSP tokens
-    /// A type
-    case type
-    /// A direction or a stroke type
-    case enumMember
-    /// A #-command name
-    case command // extension to the standard LSP tokens
-    /// A namespace
-    case namespace
-    /// A parameter name in a function definition
-    case parameter
-    /// A property of a type
-    case property
-    
-    /// A keyword (as(?)(!), is, global, static, final, auto), or a bool/null literal
-    case keyword
-    /// An integer, a float, a rotation, or a position
-    case number
-    /// A double-quoted string or single-quoted file
-    case string
-    
-    /// Any operator
-    case `operator`
-}
-
-extension TokenType {
-    // convert & stuff
-}
-
 extension Token {
-    
     var startPosition: Position {
         Position(line: lineNumber, utf16index: literal.startIndex.utf16Offset(in: literal.base))
     }
@@ -80,4 +39,43 @@ extension SemanticToken.Modifiers {
         "documentation",
         "defaultLibrary",
     ]
+}
+
+extension Token {
+    // semantic tokens must all be on the correct line
+    func flattenedComplete(semanticTokens: [SemanticToken] = [], fallback: LSPSemanticTokenType? = nil) -> [LSPToken] {
+        // matches are either exact same, or bigger
+        if let match = semanticTokens.last(where: { sem in
+            return sem.token.lineOffset <= self.lineOffset && self.literal.endIndex <= sem.token.literal.endIndex
+        }), let type = LSPSemanticTokenType(tokenType: match.token.tokenType) {
+            return [LSPToken(lineNumber: lineNumber, literal: match.token.literal, type: type, modifiers: match.modifiers)]
+        } else if children.isEmpty,
+                  case let newChildren = semanticTokens.filter({ sem in
+                      return self.lineOffset <= sem.token.lineOffset && sem.token.literal.endIndex <= self.literal.endIndex
+                  }),
+                  !newChildren.isEmpty {
+            var copy = self
+            copy.children = newChildren.map { $0.token }
+            return copy.flattenedComplete(semanticTokens: semanticTokens, fallback: fallback)
+        }
+        
+        let mytype = LSPSemanticTokenType(tokenType: self.tokenType) ?? fallback
+        let mymodifiers: SemanticToken.Modifiers = tokenType == .docComment ? .documentation : []
+        
+        var result: [LSPToken] = []
+        var i = lineOffset
+        for child in children {
+            if i < child.lineOffset,
+               let mytype = mytype {
+                result.append(LSPToken(lineNumber: lineNumber, literal: literal[i..<child.lineOffset], type: mytype, modifiers: mymodifiers))
+            }
+            result += child.flattenedComplete(semanticTokens: semanticTokens, fallback: mytype)
+            i = child.literal.endIndex
+        }
+        if i < literal.endIndex,
+           let mytype = mytype {
+            result.append(LSPToken(lineNumber: lineNumber, literal: literal[i..<literal.endIndex], type: mytype, modifiers: mymodifiers))
+        }
+        return result
+    }
 }

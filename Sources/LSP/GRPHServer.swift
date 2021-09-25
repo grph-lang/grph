@@ -63,6 +63,10 @@ class GRPHServer: MessageHandler {
                 request.reply(VoidResponse()) // ignore
             case let request as Request<HoverRequest>:
                 hover(request)
+            case let request as Request<DocumentSemanticTokensRequest>:
+                semanticTokens(request)
+//            case let request as Request<DocumentSemanticTokensRangeRequest>:
+//                semanticTokens(request)
             default:
                 log("unknown request \(request)")
             }
@@ -76,10 +80,9 @@ class GRPHServer: MessageHandler {
                 openClose: true,
                 change: .full,
                 willSave: false),
-            hoverProvider: true//,
-            ))))
+            hoverProvider: true,
 //            completionProvider: CompletionOptions(resolveProvider: false, triggerCharacters: ["."]),
-////            signatureHelpProvider: nil, // provide parameter completion
+//            signatureHelpProvider: nil, // provide parameter completion (no)
 //            definitionProvider: true, // jump to definition
 //            implementationProvider: .bool(true), // jump to symbol implementation
 //            referencesProvider: true, // view all references to symbol
@@ -89,12 +92,12 @@ class GRPHServer: MessageHandler {
 //            codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
 //            colorProvider: .bool(false), // could work, by parsing `color()` calls which only use int literals, and return values
 //            foldingRangeProvider: .bool(true),
-//            semanticTokensProvider: SemanticTokensOptions(
-//                legend: SemanticTokensLegend(
-//                    tokenTypes: LSPSemanticTokenType.allCases.map(\.rawValue),
-//                    tokenModifiers: SemanticToken.Modifiers.legend),
-//                range: .bool(true),
-//                full: .value(.init(delta: false)))))))
+            semanticTokensProvider: SemanticTokensOptions(
+                legend: SemanticTokensLegend(
+                    tokenTypes: LSPSemanticTokenType.allCases.map(\.name),
+                    tokenModifiers: SemanticToken.Modifiers.legend),
+                range: .bool(false),
+                full: .value(.init(delta: false)))))))
     }
     
     // MARK: - Text sync
@@ -149,5 +152,34 @@ class GRPHServer: MessageHandler {
         }
         
         request.reply(.success(HoverResponse(contents: HoverResponseContents.markupContent(MarkupContent(kind: .markdown, value: documentation.markdown)), range: token.token.positionRange)))
+    }
+    
+    func semanticTokens(_ request: Request<DocumentSemanticTokensRequest>) {
+        guard let doc = documents[request.params.textDocument.uri] else {
+            request.reply(.failure(.unknown("document not open")))
+            return
+        }
+        
+        doc.ensureTokenized(publisher: self)
+        
+        guard let tokenized = doc.tokenized else {
+            request.reply(.failure(.unknown("tokenization error")))
+                  return
+        }
+        
+        let semtokens = tokenized.documentatation?.semanticTokens ?? []
+        let lspTokens = tokenized.lexed.flatMap({ token in
+            token.flattenedComplete(semanticTokens: semtokens.filter({ $0.token.lineNumber == token.lineNumber }))
+        })
+        
+        var line: Int = 0
+        var character: Int = 0
+        var collect: [UInt32] = []
+        collect.reserveCapacity(lspTokens.count * 5)
+        for lspToken in lspTokens {
+            collect.append(contentsOf: lspToken.generateData(line: &line, character: &character))
+        }
+        
+        request.reply(.success(DocumentSemanticTokensResponse(resultId: nil, data: collect)))
     }
 }

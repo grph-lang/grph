@@ -72,6 +72,5 @@ struct TokenizedDocument {
             diagnostics.append(contentsOf: doc.diagnostics)
             self.documentatation = doc
         }
-        log("Result: \(self)", level: .debug)
     }
 }
