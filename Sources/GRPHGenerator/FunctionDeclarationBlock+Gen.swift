@@ -18,6 +18,11 @@ extension FunctionDeclarationBlock {
     convenience init(lineNumber: Int, compiler: GRPHGenerator, tokens: [Token]) throws {
         self.init(lineNumber: lineNumber)
         let context = createContext(&compiler.context)
+        
+        guard !tokens.isEmpty else {
+            throw GRPHCompileError(type: .parse, message: "'#function' requires 'returnType funcName[...]' syntax, it can't be empty")
+        }
+        
         // syntax:
         // returnType funcName[]
         // returnType funcName[] = defaultValueExpr

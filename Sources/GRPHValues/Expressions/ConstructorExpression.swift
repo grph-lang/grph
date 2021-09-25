@@ -25,7 +25,7 @@ public struct ConstructorExpression: Expression {
         var ourvalues: [Expression?] = []
         for param in values {
             guard let par = try constructor.parameter(index: nextParam, context: ctx, exp: param) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: constructor.parameter(index: nextParam).type))' in constructor for '\(type.string)'")
+                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in constructor for '\(type.string)'")
             }
             nextParam += par.add
             while ourvalues.count < nextParam - 1 {

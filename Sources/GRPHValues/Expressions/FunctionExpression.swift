@@ -24,7 +24,7 @@ public struct FunctionExpression: Expression {
         var nextParam = 0
         for param in values {
             guard let par = try function.parameter(index: nextParam, context: ctx, exp: param) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: function.parameter(index: nextParam).type))' in function '\(function.name)'")
+                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in function '\(function.name)'")
             }
             nextParam += par.add
             while ourvalues.count < nextParam - 1 {
