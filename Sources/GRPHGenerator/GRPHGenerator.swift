@@ -742,7 +742,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if let infer = infer {
                     let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
                     let content = inferParametrableContent(type.constructor)
-                    return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content)})
+                    // zero-width semantic token with constructor data
+                    resolveSemanticToken(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<token.lineOffset], tokenType: .type).withModifiers([], data: type.constructor.map { .constructor($0) }))
+                    return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content) })
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
                 }
@@ -831,6 +833,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if let infer = infer {
                     let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
                     let content = inferParametrableContent(type.constructor)
+                    resolveSemanticToken(compound.withModifiers([], data: type.constructor.map { .constructor($0) }))
                     return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content)})
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: compound, severity: .error, source: .generator, message: "Constructor type could not be inferred"))

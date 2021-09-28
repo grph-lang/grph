@@ -90,14 +90,14 @@ class GRPHServer: MessageHandler {
                 willSave: false),
             hoverProvider: true,
 //            completionProvider: CompletionOptions(resolveProvider: false, triggerCharacters: ["."]),
-//            signatureHelpProvider: nil, // provide parameter completion (no)
+            signatureHelpProvider: nil, // provide parameter completion (no)
             definitionProvider: true, // jump to definition
             implementationProvider: .bool(true), // jump to symbol implementation
             referencesProvider: true, // view all references to symbol
             documentHighlightProvider: true, // view all references to symbol, for highlighting
             documentSymbolProvider: true, // list all symbols
-//            workspaceSymbolProvider: false, // same, in workspace
-//            codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
+            workspaceSymbolProvider: false, // same, in workspace
+            codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
 //            colorProvider: .bool(false), // could work, by parsing `color()` calls which only use int literals, and return values
 //            foldingRangeProvider: .bool(true),
             semanticTokensProvider: SemanticTokensOptions(
