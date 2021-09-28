@@ -77,7 +77,7 @@ extension Token {
 }
 
 extension Collection where Element == Token {
-    /// Removes all `ignoreableWhiteSpace` directly in the array
+    /// Removes all `whitespace` directly in the array
     public var stripped: [Token] {
         filter { $0.tokenType != .whitespace }
     }

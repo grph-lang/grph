@@ -75,6 +75,10 @@ class GRPHServer: MessageHandler {
                 highlightReferences(request)
             case let request as Request<DocumentSymbolRequest>:
                 outline(request)
+            case let request as Request<DocumentColorRequest>:
+                findStaticColors(request)
+            case let request as Request<ColorPresentationRequest>:
+                presentColor(request)
             default:
                 log("unknown request \(request)")
             }
@@ -98,7 +102,7 @@ class GRPHServer: MessageHandler {
             documentSymbolProvider: true, // list all symbols
             workspaceSymbolProvider: false, // same, in workspace
             codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
-//            colorProvider: .bool(false), // could work, by parsing `color()` calls which only use int literals, and return values
+            colorProvider: .bool(true), // parses `color()` constructors which only use number literals
 //            foldingRangeProvider: .bool(true),
             semanticTokensProvider: SemanticTokensOptions(
                 legend: SemanticTokensLegend(
@@ -249,5 +253,73 @@ class GRPHServer: MessageHandler {
         }
         
         request.reply(.success(.documentSymbols(tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: tokenized.documentatation?.semanticTokens ?? []))))
+    }
+    
+    func findStaticColors(_ request: Request<DocumentColorRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        var result: [ColorInformation] = []
+        for sem in tokenized.documentatation?.semanticTokens ?? [] {
+            if case .constructor(let c) = sem.data,
+               c.name == "color",
+               let line = tokenized.lexed.first(where: { $0.lineNumber == sem.token.lineNumber }) {
+                var index = sem.token.literal.endIndex
+                if let paren = searchParentheses(at: &index, in: line) {
+                    let content = paren.children.stripped
+                    if content.count == 3 || content.count == 4,
+                       content.allSatisfy({ $0.tokenType == .numberLiteral }),
+                       case .integer(let r) = content[0].data,
+                       case .integer(let g) = content[1].data,
+                       case .integer(let b) = content[2].data {
+                        let range = Token(lineNumber: line.lineNumber, lineOffset: sem.token.lineOffset, literal: sem.token.literal.base[sem.token.lineOffset..<paren.literal.endIndex], tokenType: .squareBrackets).positionRange
+                        if content.count == 4 {
+                            if case .float(let a) = content[3].data {
+                                // rgba
+                                result.append(ColorInformation(range: range, color: Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, alpha: Double(a))))
+                            } // else invalid
+                        } else {
+                            // rgb
+                            result.append(ColorInformation(range: range, color: Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, alpha: 1)))
+                        }
+                    }
+                }
+            }
+        }
+        
+        request.reply(.success(result))
+    }
+    
+     // recursively search the parentheses in the AST
+    func searchParentheses(at index: inout String.Index, in token: Token) -> Token? {
+        if index == token.lineOffset {
+            if token.tokenType == .parentheses {
+                return token
+            } else if token.tokenType == .whitespace, !token.literal.isEmpty {
+                // continue search after ignoreable whitespace
+                index = token.literal.endIndex
+                return nil // we never have children anyway
+            }
+        }
+        for child in token.children {
+            if let success = searchParentheses(at: &index, in: child) {
+                return success
+            }
+        }
+        return nil
+    }
+    
+    func presentColor(_ request: Request<ColorPresentationRequest>) {
+        let color = request.params.color
+        let r = Int(color.red * 255)
+        let g = Int(color.green * 255)
+        let b = Int(color.blue * 255)
+        var result: [ColorPresentation] = []
+        if color.alpha >= 1 {
+            result.append(ColorPresentation(label: "color(\(r) \(g) \(b))", textEdit: nil, additionalTextEdits: nil))
+        }
+        result.append(ColorPresentation(label: "color(\(r) \(g) \(b) \(color.alpha))", textEdit: nil, additionalTextEdits: nil))
+        request.reply(.success(result))
     }
 }
