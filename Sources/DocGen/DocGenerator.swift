@@ -115,11 +115,12 @@ public struct DocGenerator {
         
         for line in lines[..<symbol.token.lineNumber].reversed() {
             let stripped = line.children.stripped
-            guard stripped.count == 2, stripped[1].tokenType == .docComment else {
+            guard stripped.count == 2,
+                  stripped[1].tokenType == .docComment,
+                  let docContent = stripped[1].children.first else {
                 break
             }
             valid = true
-            let docContent = stripped[1].children[0]
             let content = docContent.literal.drop(while: { $0.isWhitespace })
             if content.hasPrefix("@since ") {
                 semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(6), tokenType: .keyword), modifiers: .documentation, data: .none))
