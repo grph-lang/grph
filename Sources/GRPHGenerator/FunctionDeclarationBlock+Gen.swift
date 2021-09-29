@@ -77,20 +77,6 @@ extension FunctionDeclarationBlock {
         for (i, param) in params.enumerated() {
             let par = try parseParam(param: param, i: i, context: context, varargs: &varargs, isLast: i == params.count - 1)
             
-            let varType: GRPHType
-            if par.optional {
-                if defaults[i] != nil {
-                    varType = par.type
-                } else {
-                    varType = par.type.optional
-                }
-            } else if varargs {
-                varType = par.type.inArray
-            } else {
-                varType = par.type
-            }
-            // NEW: the parameter is now declared constant
-            context.variables.append(Variable(name: par.name, type: varType, final: true, compileTime: true))
             pars.append(par)
         }
         
@@ -131,8 +117,6 @@ extension FunctionDeclarationBlock {
         guard name.tokenType == .identifier else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
-        // no variable data as .parameter is handled in a special way (uses function documentation)
-        context.generator.resolveSemanticToken(name.withType(.parameter).withModifiers([.declaration]))
         
         let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
         let ptypeOrAuto: GRPHType?
@@ -158,6 +142,27 @@ extension FunctionDeclarationBlock {
         } else {
             throw DiagnosticCompileError(notice: Notice(token: param[equal], severity: .error, source: .generator, message: "Expected default parameter value after the equal sign"))
         }
-        return Parameter(name: String(name.literal), type: ptype, optional: optional)
+        let par = Parameter(name: name.description, type: ptype, optional: optional)
+        
+        // variable
+        let varType: GRPHType
+        if par.optional {
+            if defaults[i] != nil {
+                varType = par.type
+            } else {
+                varType = par.type.optional
+            }
+        } else if varargs {
+            varType = par.type.inArray
+        } else {
+            varType = par.type
+        }
+        // NEW: the parameter is now declared constant
+        let pvar = Variable(name: name.description, type: varType, final: true, compileTime: true)
+        context.variables.append(pvar)
+        
+        context.generator.resolveSemanticToken(name.withType(.parameter).withModifiers([.declaration], data: .variable(pvar)))
+        
+        return par
     }
 }

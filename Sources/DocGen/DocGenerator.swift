@@ -70,19 +70,9 @@ public struct DocGenerator {
     /// - Parameter token: the sematic token, from the `semanticTokens` array
     public func findDocumentation(token st: SemanticToken) -> Documentation? {
         switch st.token.tokenType {
-        case .parameter:
-            // always a declaration, same line as the function definition
-            if st.modifiers.contains(.documentation) {
-                return nil
-            }
-            guard let f = semanticTokens.first(where: { $0.token.lineNumber == st.token.lineNumber && $0.token.tokenType == .function }) else {
-                assertionFailure("parameters must be on the same line as functions")
-                return nil
-            }
-            return findDocumentation(token: f)?.paramDoc.first(where: { $0.name == st.token.literal })?.doc.map({ Documentation(symbol: st, info: $0, since: nil, seeAlso: [], paramDoc: []) })
         case .commandName, .namespace, .property, .enumCase, .method:
             return DocGenerator.builtins.findLocalDocumentation(symbol: st)
-        case .variable, .function, .type:
+        case .variable, .function, .type, .parameter:
             return findLocalDocumentation(symbol: st) ?? DocGenerator.builtins.findLocalDocumentation(symbol: st)
         default:
             return nil
@@ -139,12 +129,20 @@ public struct DocGenerator {
                     continue
                 }
                 let name = cnt[..<space]
-                semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: name.startIndex, literal: name, tokenType: .parameter), modifiers: .documentation, data: .none))
                 guard let index = params.firstIndex(where: { $0.name == name }) else {
                     diagnostics.append(Notice(token: Token(lineNumber: line.lineNumber, lineOffset: name.startIndex, literal: name, tokenType: .keyword), severity: .warning, source: .docgen, message: "Function has no parameter '\(name)'"))
                     continue
                 }
-                params[index].doc = cnt[cnt.index(after: space)...].trimmingCharacters(in: .whitespaces)
+                let pdoc = cnt[cnt.index(after: space)...].trimmingCharacters(in: .whitespaces)
+                params[index].doc = pdoc
+                
+                let tokenData = semanticTokens.first(where: { $0.token.lineNumber == symbol.token.lineNumber && $0.token.literal == name && $0.token.tokenType == .parameter })?.data ?? SemanticToken.AssociatedData.none
+                let psem = SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: name.startIndex, literal: name, tokenType: .parameter), modifiers: .documentation, data: tokenData)
+                semanticTokens.append(psem)
+                
+                if case .variable(let v) = tokenData {
+                    self.documentation[v.documentationIdentifier] = Documentation(symbol: psem, info: pdoc, since: nil, seeAlso: [], paramDoc: [])
+                }
             } else {
                 documentation.append(content.trimmingCharacters(in: .whitespaces))
             }
