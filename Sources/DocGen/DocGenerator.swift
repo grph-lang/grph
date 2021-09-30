@@ -189,4 +189,8 @@ public struct DocGenerator {
     public func findDocumentation(constructor: Constructor) -> Documentation? {
         return documentation[constructor.documentationIdentifier] ?? DocGenerator.builtins.documentation[constructor.documentationIdentifier]
     }
+    
+    public func findDocumentation(variable: Variable) -> Documentation? {
+        return documentation[variable.documentationIdentifier] ?? DocGenerator.builtins.documentation[variable.documentationIdentifier]
+    }
 }

@@ -361,6 +361,26 @@ class GRPHServer: MessageHandler {
             }
         }
         
+        var linesOutsideFunction: [Int] = []
+        var linesLocalScope: [Int] = []
+        tokenized.instructions.collectScope(line: pos.line, outsideFunction: &linesOutsideFunction, local: &linesLocalScope)
+        
+        // handle shadowings by replacing
+        var variables: [String: Variable] = [:]
+        for global in TopLevelCompilingContext.defaultVariables {
+            variables[global.name] = global
+        }
+        for st in tokenized.documentation?.semanticTokens ?? [] {
+            if linesLocalScope.contains(st.token.lineNumber) || linesOutsideFunction.contains(st.token.lineNumber),
+               st.modifiers.contains(.declaration),
+               case .variable(let v) = st.data {
+                variables[v.name] = v
+            }
+        }
+        for v in variables.values {
+            items.append(createCompletionItem(variable: v, doc: tokenized.documentation))
+        }
+        
         request.reply(.success(CompletionList(isIncomplete: false, items: items)))
     }
     
@@ -429,6 +449,18 @@ class GRPHServer: MessageHandler {
             documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
             insertText: text,
             insertTextFormat: .snippet,
+            deprecated: documentation?.deprecation != nil
+        )
+    }
+    
+    func createCompletionItem(variable: Variable, doc: DocGenerator?) -> CompletionItem {
+        let documentation = doc?.findDocumentation(variable: variable)
+        
+        return CompletionItem(
+            label: variable.name,
+            kind: variable.final ? .constant : .variable,
+            detail: "\(variable.builtin ? "builtin " : "")\(variable.final ? "final " : "")\(variable.type) \(variable.name)",
+            documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
             deprecated: documentation?.deprecation != nil
         )
     }
