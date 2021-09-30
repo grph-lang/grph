@@ -250,7 +250,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: split[0], type: .squareBrackets), severity: .error, source: .generator, message: "Expected a variable name in '#foreach' syntax"))
                 }
                 defer {
-                    resolveSemanticToken(variable.withModifiers([.declaration, .definition, inOut ? .none : .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
+                    resolveSemanticToken(variable.withType(.variable).withModifiers([.declaration, .definition, inOut ? .none : .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
                 }
                 return try ResolvedInstruction(instruction: ForEachBlock(lineNumber: lineNumber, compiler: self, inOut: inOut, varName: variable.description, array: resolveExpression(tokens: split[1], infer: SimpleType.mixed.inArray)))
             case "#try":
