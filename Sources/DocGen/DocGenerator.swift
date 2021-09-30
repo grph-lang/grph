@@ -101,16 +101,17 @@ public struct DocGenerator {
         var deprecation: String? = nil
         var see: [String] = []
         var params = generateParams(declaration: symbol)
-        var valid = false
         
         for line in lines[..<symbol.token.lineNumber].reversed() {
             let stripped = line.children.stripped
             guard stripped.count == 2,
-                  stripped[1].tokenType == .docComment,
-                  let docContent = stripped[1].children.first else {
+                  stripped[1].tokenType == .docComment else {
                 break
             }
-            valid = true
+            guard let docContent = stripped[1].children.first else {
+                documentation.append("")
+                continue // empty line
+            }
             let content = docContent.literal.drop(while: { $0.isWhitespace })
             if content.hasPrefix("@since ") {
                 semanticTokens.append(SemanticToken(token: Token(lineNumber: line.lineNumber, lineOffset: content.startIndex, literal: content.prefix(6), tokenType: .keyword), modifiers: .documentation, data: .none))
@@ -147,7 +148,7 @@ public struct DocGenerator {
                 documentation.append(content.trimmingCharacters(in: .whitespaces))
             }
         }
-        guard valid, let id = symbol.documentationIdentifier else { // empty
+        guard let id = symbol.documentationIdentifier else { // invalid
             return
         }
         if warnOnIncompleteDocumentation,
