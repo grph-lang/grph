@@ -51,7 +51,7 @@ struct TokenizedDocument {
     
     var lexed: [Token]
     var diagnostics: [Notice]
-    var documentatation: DocGenerator?
+    var documentation: DocGenerator?
     var instructions: [Instruction]
     var imports: [Importable]
     
@@ -75,7 +75,7 @@ struct TokenizedDocument {
             doc.generateSemanticTokensForDefaults = true
             doc.generate()
             diagnostics.append(contentsOf: doc.diagnostics)
-            self.documentatation = doc
+            self.documentation = doc
         } else {
             instructions = []
             imports = []

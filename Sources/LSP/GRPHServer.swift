@@ -167,7 +167,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        guard let doc = tokenized.documentatation else {
+        guard let doc = tokenized.documentation else {
             request.reply(.failure(.unknown("tokenization error")))
                   return
         }
@@ -186,7 +186,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        let semtokens = tokenized.documentatation?.semanticTokens ?? []
+        let semtokens = tokenized.documentation?.semanticTokens ?? []
         let lspTokens = tokenized.lexed.flatMap({ token in
             token.flattenedComplete(semanticTokens: semtokens.filter({ $0.token.lineNumber == token.lineNumber }))
         })
@@ -207,8 +207,8 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        guard let symbol = tokenized.documentatation?.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(position) }),
-              let decl = tokenized.documentatation?.findDeclaration(for: symbol) else {
+        guard let symbol = tokenized.documentation?.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(position) }),
+              let decl = tokenized.documentation?.findDeclaration(for: symbol) else {
             request.reply(.success(nil))
             return
         }
@@ -221,7 +221,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        guard let doc = tokenized.documentatation,
+        guard let doc = tokenized.documentation,
               let symbol = doc.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }) else {
             request.reply(.success([]))
             return
@@ -237,7 +237,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        guard let doc = tokenized.documentatation,
+        guard let doc = tokenized.documentation,
               let symbol = doc.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }) else {
             request.reply(.success([]))
             return
@@ -256,7 +256,7 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        request.reply(.success(.documentSymbols(tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: tokenized.documentatation?.semanticTokens ?? []))))
+        request.reply(.success(.documentSymbols(tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: tokenized.documentation?.semanticTokens ?? []))))
     }
     
     func findStaticColors(_ request: Request<DocumentColorRequest>) {
@@ -265,7 +265,7 @@ class GRPHServer: MessageHandler {
         }
         
         var result: [ColorInformation] = []
-        for sem in tokenized.documentatation?.semanticTokens ?? [] {
+        for sem in tokenized.documentation?.semanticTokens ?? [] {
             if case .constructor(let c) = sem.data,
                c.name == "color",
                let line = tokenized.lexed.first(where: { $0.lineNumber == sem.token.lineNumber }) {
@@ -348,14 +348,14 @@ class GRPHServer: MessageHandler {
         
         for imp in tokenized.imports {
             for f in imp.exportedFunctions {
-                items.append(createCompletionItem(function: f, doc: tokenized.documentatation))
+                items.append(createCompletionItem(function: f, doc: tokenized.documentation))
             }
             for f in imp.exportedMethods {
-                items.append(createCompletionItem(method: f, doc: tokenized.documentatation))
+                items.append(createCompletionItem(method: f, doc: tokenized.documentation))
             }
             for t in imp.exportedTypes.map({ TypeAlias(name: $0.string, type: $0) }) + imp.exportedTypeAliases {
                 items.append(createCompletionItem(type: t))
-                if let f = createCompletionItem(constructor: t, doc: tokenized.documentatation) {
+                if let f = createCompletionItem(constructor: t, doc: tokenized.documentation) {
                     items.append(f)
                 }
             }
