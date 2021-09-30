@@ -235,7 +235,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case "#foreach":
                 let split = tokens.dropFirst().split(on: .methodCallOperator)
                 guard split.count == 2 else {
-                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve foreach syntax, '#foreach varName : array' expected"))
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Could not resolve foreach syntax, '#foreach varName : array' expected"))
                 }
                 let variable: Token
                 let inOut: Bool
@@ -258,7 +258,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case "#catch":
                 let split = tokens.dropFirst().split(on: .methodCallOperator)
                 guard split.count == 2 else {
-                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve catch syntax, '#catch varName : errortype' expected"))
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Could not resolve catch syntax, '#catch varName : errortype' expected"))
                 }
                 let variable = Token(compound: split[0], type: .variable)
                 let name = variable.description
@@ -276,7 +276,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 resolveSemanticToken(variable.withModifiers([.declaration, .definition, .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
                 
                 for rawErr in exs {
-                    let error = String(Token(compound: Array(rawErr), type: .type).literal)
+                    let terror = Token(compound: Array(rawErr), type: .type)
+                    let error = terror.description
+                    resolveSemanticToken(terror.withModifiers(.defaultLibrary))
                     if error == "Exception" {
                         tr.catches[nil] = block
                         block.addError(type: "Exception")
@@ -299,7 +301,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 return ResolvedInstruction(instruction: block)
             case "#throw":
                 guard TokenMatcher(types: .commandName, .identifier, .parentheses).matches(tokens: tokens) else {
-                    throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "Could not resolve throw syntax, '#throw errorType(message)' expected"))
+                    throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Could not resolve throw syntax, '#throw errorType(message)' expected"))
                 }
                 let err = tokens[1]
                 resolveSemanticToken(err.withType(.type).withModifiers(.defaultLibrary)) // constructor if they are changed to real ones, one day
@@ -327,7 +329,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: nil))
                 } else if params.isEmpty {
                     if block.returnDefault == nil {
-                        throw DiagnosticCompileError(notice: Notice(token: Token(compound: params, type: .squareBrackets), severity: .error, source: .generator, message: "Expected a return value in non-void function declaration"))
+                        throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected a return value in non-void function declaration"))
                     } else {
                         return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: nil))
                     }
