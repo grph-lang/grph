@@ -104,10 +104,11 @@ class GRPHServer: MessageHandler {
             referencesProvider: true, // view all references to symbol
             documentHighlightProvider: true, // view all references to symbol, for highlighting
             documentSymbolProvider: true, // list all symbols
-            workspaceSymbolProvider: false, // same, in workspace
+            workspaceSymbolProvider: false, // we are single-file
             codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
+            renameProvider: .bool(false), // *not supported by sourcekit-lsp*
             colorProvider: .bool(true), // parses `color()` constructors which only use number literals
-//            foldingRangeProvider: .bool(true),
+            foldingRangeProvider: .bool(false), // fold imports & long doc comments
             semanticTokensProvider: SemanticTokensOptions(
                 legend: SemanticTokensLegend(
                     tokenTypes: LSPSemanticTokenType.allCases.map(\.name),

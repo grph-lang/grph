@@ -54,7 +54,7 @@ extension DocGenerator {
                     break
                 }
                 data = .property(prop, in: type)
-            case "namespace", "global", "command":
+            case "namespace", "global", "command", "case":
                 data = .identifier(id.description)
             default:
                 print("No data for \(line.description)")
