@@ -53,6 +53,7 @@ struct TokenizedDocument {
     var diagnostics: [Notice]
     var documentatation: DocGenerator?
     var instructions: [Instruction]
+    var imports: [Importable]
     
     var successful: Bool
     
@@ -67,6 +68,7 @@ struct TokenizedDocument {
             gen.resolvedSemanticTokens = []
             successful = gen.compile()
             instructions = gen.instructions
+            imports = gen.imports
             diagnostics.append(contentsOf: gen.diagnostics)
             
             var doc = DocGenerator(lines: lexed, semanticTokens: gen.resolvedSemanticTokens!)
@@ -76,6 +78,7 @@ struct TokenizedDocument {
             self.documentatation = doc
         } else {
             instructions = []
+            imports = []
         }
     }
 }

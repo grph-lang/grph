@@ -15,6 +15,9 @@ import ArgumentParser
 import LanguageServerProtocol
 import LanguageServerProtocolJSONRPC
 import LSPLogging
+import GRPHValues
+
+typealias Method = GRPHValues.Method
 
 extension LogLevel: ExpressibleByArgument { }
 

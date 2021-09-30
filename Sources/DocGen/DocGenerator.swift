@@ -176,4 +176,16 @@ public struct DocGenerator {
     public func findDeclaration(for st: SemanticToken) -> SemanticToken? {
         return findReferences(of: st).first(where: { $0.modifiers.contains(.declaration) })
     }
+    
+    public func findDocumentation(function: Function) -> Documentation? {
+        return documentation[function.documentationIdentifier] ?? DocGenerator.builtins.documentation[function.documentationIdentifier]
+    }
+    
+    public func findDocumentation(method: GRPHValues.Method) -> Documentation? {
+        return documentation[method.documentationIdentifier] ?? DocGenerator.builtins.documentation[method.documentationIdentifier]
+    }
+    
+    public func findDocumentation(constructor: Constructor) -> Documentation? {
+        return documentation[constructor.documentationIdentifier] ?? DocGenerator.builtins.documentation[constructor.documentationIdentifier]
+    }
 }

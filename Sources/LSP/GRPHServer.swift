@@ -16,6 +16,8 @@ import LanguageServerProtocolJSONRPC
 import LSPLogging
 import GRPHLexer
 import GRPHGenerator
+import GRPHValues
+import DocGen
 
 class GRPHServer: MessageHandler {
     
@@ -79,6 +81,8 @@ class GRPHServer: MessageHandler {
                 findStaticColors(request)
             case let request as Request<ColorPresentationRequest>:
                 presentColor(request)
+            case let request as Request<CompletionRequest>:
+                autocomplete(request)
             default:
                 log("unknown request \(request)")
             }
@@ -93,7 +97,7 @@ class GRPHServer: MessageHandler {
                 change: .full,
                 willSave: false),
             hoverProvider: true,
-//            completionProvider: CompletionOptions(resolveProvider: false, triggerCharacters: ["."]),
+            completionProvider: CompletionOptions(resolveProvider: false, triggerCharacters: ["."]),
             signatureHelpProvider: nil, // provide parameter completion (no)
             definitionProvider: true, // jump to definition
             implementationProvider: .bool(true), // jump to symbol implementation
@@ -321,5 +325,111 @@ class GRPHServer: MessageHandler {
         }
         result.append(ColorPresentation(label: "color(\(r) \(g) \(b) \(color.alpha))", textEdit: nil, additionalTextEdits: nil))
         request.reply(.success(result))
+    }
+    
+    // MARK: Autocomplete
+    
+    func autocomplete(_ request: Request<CompletionRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        let pos = request.params.position
+//        let line = tokenized.lexed.first(where: { $0.lineNumber == pos.line })
+        
+        var items: [CompletionItem] = []
+        
+        if pos.utf16index == 0 {
+            // instructions templates
+            items.append(CompletionItem(label: "Variable Assignment", kind: .snippet, detail: "varName = expression", insertText: "${1:varName} = ${2:expression}", insertTextFormat: .snippet))
+            items.append(CompletionItem(label: "Variable Declaration", kind: .snippet, detail: "type varName = expression", insertText: "${1:type} ${2:varName} = ${3:expression}", insertTextFormat: .snippet))
+            items.append(CompletionItem(label: "Constant Declaration", kind: .snippet, detail: "final type varName = expression", insertText: "final ${1:type} ${2:varName} = ${3:expression}", insertTextFormat: .snippet))
+        }
+        
+        for imp in tokenized.imports {
+            for f in imp.exportedFunctions {
+                items.append(createCompletionItem(function: f, doc: tokenized.documentatation))
+            }
+            for f in imp.exportedMethods {
+                items.append(createCompletionItem(method: f, doc: tokenized.documentatation))
+            }
+            for t in imp.exportedTypes.map({ TypeAlias(name: $0.string, type: $0) }) + imp.exportedTypeAliases {
+                items.append(createCompletionItem(type: t))
+                if let f = createCompletionItem(constructor: t, doc: tokenized.documentatation) {
+                    items.append(f)
+                }
+            }
+        }
+        
+        request.reply(.success(CompletionList(isIncomplete: false, items: items)))
+    }
+    
+    func argumentSnippet(for item: Parametrable, plus: Int = 1) -> String {
+        item.parameters.enumerated().map { i, p in "${\(i + plus):\(p.name)}" }.joined(separator: " ")
+    }
+    
+    func createCompletionItem(function: Function, doc: DocGenerator?) -> CompletionItem {
+        let documentation = doc?.findDocumentation(function: function)
+        
+        let text: String
+        if function.returnType.isTheVoid || (function.ns.name == "standard" && function.name == "log") {
+            text = "\(function.name): \(argumentSnippet(for: function))"
+        } else {
+            text = "\(function.name)[\(argumentSnippet(for: function))]"
+        }
+        
+        return CompletionItem(
+            label: function.name,
+            kind: .function,
+            detail: function.signature,
+            documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
+            insertText: text,
+            insertTextFormat: .snippet,
+            deprecated: documentation?.deprecation != nil
+        )
+    }
+    
+    func createCompletionItem(method: Method, doc: DocGenerator?) -> CompletionItem {
+        let documentation = doc?.findDocumentation(method: method)
+        
+        // not supporting value.method[params] syntax, would be hard to parse
+        let text = "\(method.name) ${1:subject}: \(argumentSnippet(for: method, plus: 2))"
+        
+        return CompletionItem(
+            label: method.name,
+            kind: .method,
+            detail: method.signature,
+            documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
+            insertText: text,
+            insertTextFormat: .snippet,
+            deprecated: documentation?.deprecation != nil
+        )
+    }
+    
+    func createCompletionItem(type: TypeAlias) -> CompletionItem {
+        CompletionItem(
+            label: type.name,
+            kind: .class,
+            detail: type.type.string
+        )
+    }
+    
+    func createCompletionItem(constructor type: TypeAlias, doc: DocGenerator?) -> CompletionItem? {
+        guard let function = type.type.constructor else {
+            return nil
+        }
+        let documentation = doc?.findDocumentation(constructor: function)
+        
+        let text = "\(type.name)(\(argumentSnippet(for: function)))"
+        
+        return CompletionItem(
+            label: type.name,
+            kind: .constructor,
+            detail: function.signature,
+            documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
+            insertText: text,
+            insertTextFormat: .snippet,
+            deprecated: documentation?.deprecation != nil
+        )
     }
 }
