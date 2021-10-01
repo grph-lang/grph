@@ -42,6 +42,7 @@ extension SemanticToken.Modifiers {
         "modification",
         "documentation",
         "defaultLibrary",
+        "call", // extension to the default set
     ]
 }
 

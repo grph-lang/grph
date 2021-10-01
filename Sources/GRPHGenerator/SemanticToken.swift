@@ -37,14 +37,16 @@ public struct SemanticToken {
         public static let readonly = Self(rawValue: 1 << 2)
         /// This token is deprecated
         public static let deprecated = Self(rawValue: 1 << 3)
-        /// This token is currently being modified, as the left hand side of an assignment. **Warning:** this is currently not set for lvalues.
+        /// This token is currently being modified, as the left hand side of an assignment.
         public static let modification = Self(rawValue: 1 << 4)
         /// This token is inside a documentation. Example: A parameter inside a doc comment
         public static let documentation = Self(rawValue: 1 << 5)
         /// This token is part of the standard library. Builtin functions, methods, types, commands and enum cases will be annotated with this.
         public static let defaultLibrary = Self(rawValue: 1 << 6)
+        /// This token is a function/method/constructor/funcref being called.
+        public static let call = Self(rawValue: 1 << 7)
         
-        // TODO add call, access, etc
+        // TODO maybe add some others that may be useful internally
         
         public init(rawValue: UInt32) {
             self.rawValue = rawValue
@@ -72,6 +74,14 @@ extension Token {
     
     func forVariable(_ variable: Variable?) -> SemanticToken {
         withModifiers(variable?.semantic ?? [], data: variable.map( { .variable($0) }))
+    }
+}
+
+extension SemanticToken {
+    func addingModifier(_ mod: Modifiers) -> Self {
+        var copy = self
+        copy.modifiers.insert(mod)
+        return copy
     }
 }
 
