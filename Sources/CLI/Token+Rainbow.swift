@@ -64,6 +64,9 @@ extension Token {
         if modifiers.contains(.deprecated) {
             content = content.applyingStyle(.strikethrough)
         }
+        if modifiers.contains(.modification) {
+            content = content.applyingStyle(.underline)
+        }
         return content
     }
 }

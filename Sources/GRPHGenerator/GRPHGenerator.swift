@@ -98,6 +98,21 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         resolvedSemanticTokens?.append(token())
     }
     
+    func resolveSemanticTokensAsModification(_ slice: ArraySlice<Token>) {
+        assert(!slice.isEmpty, "empty lvalue should never get resolved")
+        resolvedSemanticTokens = resolvedSemanticTokens?.map { st in
+            if st.token.lineNumber == slice.first!.lineNumber,
+               slice.first!.literal.startIndex <= st.token.literal.startIndex,
+               st.token.literal.endIndex <= slice.last!.literal.endIndex {
+                var copy = st
+                copy.modifiers.insert(.modification)
+                return copy
+            } else {
+                return st
+            }
+        }
+    }
+    
     func resolveInstruction(children: [Token]) throws -> ResolvedInstruction? {
         // children is guaranteed to be non empty. it is trimmed, so stripping it only removes whitespaces in between two tokens
         let tokens = children.stripped
@@ -560,6 +575,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     }
                     // var declaration or assignment, try assignment first
                     if let assigned = try? resolveExpression(tokens: Array(tokens[..<assignment]), infer: nil) as? AssignableExpression {
+                        resolveSemanticTokensAsModification(tokens[..<assignment])
                         let type = try assigned.getType(context: context, infer: SimpleType.mixed)
                         let value = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: type)
                         return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: nil, value: value))
@@ -608,6 +624,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 guard let assigned = try resolveExpression(tokens: Array(tokens[..<compound]), infer: nil) as? AssignableExpression else {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens[..<compound]), type: .squareBrackets), severity: .error, source: .generator, message: "Left value of an assignment must be assignable"))
                 }
+                resolveSemanticTokensAsModification(tokens[..<compound])
                 let type = try assigned.getType(context: context, infer: SimpleType.mixed)
                 let value = try resolveExpression(tokens: Array(tokens[(compound + 1)...]), infer: type)
                 return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: tokens[compound].children[0].description, value: value))
