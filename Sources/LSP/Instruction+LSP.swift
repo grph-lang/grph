@@ -18,6 +18,11 @@ import GRPHGenerator
 import LSPLogging
 
 extension Array where Element == Instruction {
+    /// Generates an outline for the file: A symbol tree containing declared variables and functions
+    /// - Parameters:
+    ///   - lexedLines: An array of all lines, as fully lexed tokens. Used to calculate end of lines
+    ///   - semanticTokens: A list of semantic tokens from the generator. Used to find the position of the declaring token
+    /// - Returns: A tree of LSP document symbols, used to draw the outline & the breadcrumb client-side
     func outline(lexedLines: [Token], semanticTokens: [SemanticToken]) -> [DocumentSymbol] {
         var result: [DocumentSymbol] = []
         for inst in self {

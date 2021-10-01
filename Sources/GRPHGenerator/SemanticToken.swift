@@ -29,13 +29,22 @@ public struct SemanticToken {
     public struct Modifiers: OptionSet {
         public static let none: Self = []
         
+        /// This token is part of a declaration: the current token is here potentially given a name and a type, it is created
         public static let declaration = Self(rawValue: 1 << 0)
+        /// This token is defined, it is given a value. Will always also be a declaration.
         public static let definition = Self(rawValue: 1 << 1)
+        /// This token cannot be written to. For variables & properties only.
         public static let readonly = Self(rawValue: 1 << 2)
+        /// This token is deprecated
         public static let deprecated = Self(rawValue: 1 << 3)
+        /// This token is currently being modified, as the left hand side of an assignment. **Warning:** this is currently not set for lvalues.
         public static let modification = Self(rawValue: 1 << 4)
+        /// This token is inside a documentation. Example: A parameter inside a doc comment
         public static let documentation = Self(rawValue: 1 << 5)
+        /// This token is part of the standard library. Builtin functions, methods, types, commands and enum cases will be annotated with this.
         public static let defaultLibrary = Self(rawValue: 1 << 6)
+        
+        // TODO add call, access, etc
         
         public init(rawValue: UInt32) {
             self.rawValue = rawValue

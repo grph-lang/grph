@@ -19,6 +19,11 @@ struct LSPToken {
     var type: LSPSemanticTokenType
     var modifiers: SemanticToken.Modifiers
     
+    /// Generates the integer array required by the LSP protocol for sending semantic tokens
+    /// - Parameters:
+    ///   - line: the line number of the last token. It will be modified with the current automatically
+    ///   - character: the character index within the line of the last token. It will be modified with the current automatically
+    /// - Returns: An array of 5 integers (delta line, delta char index, length, token type, modifiers)
     func generateData(line: inout Int, character: inout Int) -> [UInt32] {
         let deltaLine: UInt32
         let deltaChar: UInt32

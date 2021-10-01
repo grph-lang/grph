@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  GRPH
+//  Document.swift
+//  GRPH LSP
 // 
 //  Created by Emil Pedersen on 24/09/2021.
 //  Copyright © 2020 Snowy_1803. All rights reserved.
@@ -18,6 +18,7 @@ import GRPHGenerator
 import GRPHValues
 import DocGen
 
+/// Represents a GRPH file
 class Document {
     var item: TextDocumentItem
     var tokenized: TokenizedDocument?
@@ -47,6 +48,7 @@ class Document {
     }
 }
 
+/// A processed (lexed, generated and documented) GRPH script
 struct TokenizedDocument {
     
     var lexed: [Token]

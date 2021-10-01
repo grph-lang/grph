@@ -15,6 +15,9 @@ import GRPHLexer
 import LanguageServerProtocol
 
 extension Notice {
+    /// Converts a GRPH Notice to an LSP Diagnostic
+    /// - Parameter doc: the document
+    /// - Returns: An LSP Diagnostic
     func toLSP(doc: DocumentURI) -> Diagnostic {
         let rel: [DiagnosticRelatedInformation]
         if let hint = hint {

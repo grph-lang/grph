@@ -13,6 +13,7 @@
 import Foundation
 import GRPHLexer
 
+/// The equivalent of GRPHLexer.TokenType, but only containing LSP Semantic Token types
 enum LSPSemanticTokenType: UInt32, CaseIterable {
     /// A simple or documentation comment
     case comment
