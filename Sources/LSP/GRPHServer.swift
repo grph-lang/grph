@@ -77,6 +77,10 @@ class GRPHServer: MessageHandler {
                 highlightReferences(request)
             case let request as Request<DocumentSymbolRequest>:
                 outline(request)
+            case let request as Request<PrepareRenameRequest>:
+                prepareRename(request)
+            case let request as Request<RenameRequest>:
+                rename(request)
             case let request as Request<DocumentColorRequest>:
                 findStaticColors(request)
             case let request as Request<ColorPresentationRequest>:
@@ -112,7 +116,7 @@ class GRPHServer: MessageHandler {
             documentSymbolProvider: true, // list all symbols
             workspaceSymbolProvider: false, // we are single-file
             codeActionProvider: .bool(false), // actions, such as refactors or quickfixes
-            renameProvider: .bool(false), // *not supported by sourcekit-lsp*
+            renameProvider: .value(RenameOptions(prepareProvider: true)),
             colorProvider: .bool(true), // parses `color()` constructors which only use number literals
             foldingRangeProvider: .bool(false), // fold imports & long doc comments
             callHierarchyProvider: .bool(true),
@@ -210,6 +214,8 @@ class GRPHServer: MessageHandler {
         request.reply(.success(DocumentSemanticTokensResponse(resultId: nil, data: collect)))
     }
     
+    // MARK: Find Requests
+    
     func jumpToDefinition<T>(_ request: Request<T>, position: Position) where T: TextDocumentRequest, T.Response == LocationsOrLocationLinksResponse? {
         guard let tokenized = ensureDocTokenized(request: request) else {
             return
@@ -266,6 +272,51 @@ class GRPHServer: MessageHandler {
         
         request.reply(.success(.documentSymbols(tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: tokenized.documentation?.semanticTokens ?? []))))
     }
+    
+    // MARK: Rename Requests
+    
+    func prepareRename(_ request: Request<PrepareRenameRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let symbol = tokenized.documentation?.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }),
+              tokenized.documentation?.findDeclaration(for: symbol) != nil else {
+            request.reply(.success(nil)) // no symbol, or symbol is builtin
+            return
+        }
+        
+        request.reply(.success(PrepareRenameResponse(range: symbol.token.positionRange)))
+    }
+    
+    func rename(_ request: Request<RenameRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let doc = tokenized.documentation,
+              let symbol = doc.semanticTokens.first(where: { $0.token.positionRangeClosed.contains(request.params.position) }),
+              doc.findDeclaration(for: symbol) != nil else {
+            request.reply(.success(nil)) // should've been catched by prepare, but maybe client doesn't support it
+            return
+        }
+        
+        // check valid identifier
+        let lexer = GRPHLexer()
+        let line = lexer.parseLine(lineNumber: 0, content: request.params.newName)
+        guard line.children.count == 2, line.children[1].tokenType == .identifier else {
+            request.reply(.failure(ResponseError(code: .invalidParams, message: "Invalid identifier given")))
+            return
+        }
+        
+        request.reply(.success(WorkspaceEdit(changes: [
+            request.params.textDocument.uri: doc.findReferences(of: symbol).map {
+                TextEdit(range: $0.token.positionRange, newText: request.params.newName)
+            }
+        ])))
+    }
+    
+    // MARK: Color Requests
     
     func findStaticColors(_ request: Request<DocumentColorRequest>) {
         guard let tokenized = ensureDocTokenized(request: request) else {

@@ -21,10 +21,10 @@
       },
       {
         "package": "SourceKitLSP",
-        "repositoryURL": "https://github.com/apple/sourcekit-lsp",
+        "repositoryURL": "https://github.com/Snowy1803/sourcekit-lsp",
         "state": {
           "branch": "main",
-          "revision": "d29d1254a4bf19e91d04eec441c56b6142b2a4c6",
+          "revision": "c56e5fb728b7c1c28725573406ecf8b7f3af6a58",
           "version": null
         }
       },
