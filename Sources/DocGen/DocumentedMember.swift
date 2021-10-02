@@ -78,7 +78,8 @@ extension Property/*: DocumentedMember*/ { // humpf (can't for two reasons)
 }
 
 extension SemanticToken {
-    var documentationIdentifier: String? {
+    /// The identifier, uniquely representing a member within a script
+    public var documentationIdentifier: String? {
         switch data {
         case .identifier(let id):
             return id

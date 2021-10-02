@@ -486,54 +486,10 @@ class GRPHServer: MessageHandler {
             return
         }
         
-        if let decl = doc.findDeclaration(for: token) {
-            let outline = tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: doc.semanticTokens)
-            
-            if let symbol = findSymbol(for: decl, in: outline)?.symbol {
-                request.reply(.success([CallHierarchyItem(symbol: symbol, uri: request.params.textDocument.uri)]))
-            } else { // should never happen
-                request.reply(.failure(.unknown("no document symbol for token")))
-            }
-        } else if let decl = DocGenerator.builtins.findDeclaration(for: token) {
-            let uri = DocumentURI(string: "grphbuiltin:///builtins.grph")
-            switch decl.data {
-            case .function(let fn):
-                request.reply(.success([CallHierarchyItem(
-                    name: fn.name,
-                    kind: .function,
-                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
-                    detail: fn.signature,
-                    uri: uri,
-                    range: decl.token.positionRange,
-                    selectionRange: decl.token.positionRange
-                )]))
-            case .method(let fn):
-                request.reply(.success([CallHierarchyItem(
-                    name: fn.name,
-                    kind: .method,
-                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
-                    detail: fn.signature,
-                    uri: uri,
-                    range: decl.token.positionRange,
-                    selectionRange: decl.token.positionRange
-                )]))
-            case .constructor(let fn):
-                request.reply(.success([CallHierarchyItem(
-                    name: fn.name,
-                    kind: .constructor,
-                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
-                    detail: fn.signature,
-                    uri: uri,
-                    range: decl.token.positionRange,
-                    selectionRange: decl.token.positionRange
-                )]))
-            case .variable(_), .property(_, in: _), .identifier(_):
-                request.reply(.success([]))
-            case .none:
-                request.reply(.failure(.unknown("could not find identifier")))
-            }
+        if let item = callHierarchyItem(token: token, document: documents[request.params.textDocument.uri]!) {
+            request.reply(.success([item]))
         } else {
-            request.reply(.failure(.unknown("could not find token in document nor builtins")))
+            request.reply(.success([])) // may be an error, but those are logged anyway
         }
     }
     
@@ -577,7 +533,7 @@ class GRPHServer: MessageHandler {
                 
                 var partial: [[Int]: CallHierarchyIncomingCall] = [:]
                 
-                let script = CallHierarchyItem(name: doc.item.uri.fileURL?.lastPathComponent ?? "script", kind: .file, tags: nil, uri: doc.item.uri, range: Position(line: 0, utf16index: 0)..<Position(line: tokenized.lexed.count, utf16index: 0), selectionRange: Position(line: 0, utf16index: 0)..<Position(line: tokenized.lexed.count, utf16index: 0))
+                let script = CallHierarchyItem(script: doc.item.uri, lines: tokenized.lexed.count)
                 
                 for st in documentation.semanticTokens.filter({ documentation.areTheSameMember(decl, $0) && $0.modifiers.contains(.call) }) {
                     let (path, symbol) = findSymbol(for: st, in: outline).map { ($0, CallHierarchyItem(symbol: $1, uri: doc.item.uri)) } ?? ([], script)
@@ -598,12 +554,104 @@ class GRPHServer: MessageHandler {
     }
     
     func outgoingCallHierarchy(_ request: Request<CallHierarchyOutgoingCallsRequest>) {
-        request.reply(.failure(.unknown("not implemented")))
+        let item = request.params.item
+        
+        if item.uri.scheme == "grphbuiltin" {
+            // a builtin doesn't call other functions
+            request.reply(.success([]))
+            return
+        }
+        
+        guard let doc = documents[item.uri],
+              let tokenized = doc.tokenized,
+              let documentation = tokenized.documentation else {
+            request.reply(.failure(.unknown("could not find document")))
+            return
+        }
+        
+        var result: [String: CallHierarchyOutgoingCall] = [:]
+        
+        for st in documentation.semanticTokens.filter({ item.range.contains($0.token.startPosition) && $0.modifiers.contains(.call) }) {
+            let range = st.token.positionRange
+            guard let id = st.documentationIdentifier,
+                  let symbol = callHierarchyItem(token: st, document: doc) else {
+                continue
+            }
+            if var parent = result[id] {
+                parent.fromRanges.append(range)
+                result[id] = parent
+            } else {
+                result[id] = CallHierarchyOutgoingCall(to: symbol, fromRanges: [range])
+            }
+        }
+        
+        request.reply(.success(Array(result.values)))
+    }
+    
+    func callHierarchyItem(token: SemanticToken, document: Document) -> CallHierarchyItem? {
+        let tokenized = document.tokenized!
+        let doc = tokenized.documentation!
+        if let decl = doc.findDeclaration(for: token) {
+            let outline = tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: doc.semanticTokens)
+            
+            if let symbol = findSymbol(for: decl, in: outline)?.symbol {
+                return CallHierarchyItem(symbol: symbol, uri: document.item.uri)
+            } else { // should never happen
+                log("no document symbol for token", level: .error)
+                return nil
+            }
+        } else if let decl = DocGenerator.builtins.findDeclaration(for: token) {
+            let uri = DocumentURI(string: "grphbuiltin:///builtins.grph")
+            switch decl.data {
+            case .function(let fn):
+                return CallHierarchyItem(
+                    name: fn.name,
+                    kind: .function,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
+                )
+            case .method(let fn):
+                return CallHierarchyItem(
+                    name: fn.name,
+                    kind: .method,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
+                )
+            case .constructor(let fn):
+                return CallHierarchyItem(
+                    name: fn.name,
+                    kind: .constructor,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
+                )
+            case .variable(_), .property(_, in: _), .identifier(_):
+                return nil // normal
+            case .none:
+                log("could not find identifier", level: .error)
+                return nil
+            }
+        } else {
+            log("could not find token in document nor builtins", level: .error)
+            return nil
+        }
     }
 }
 
 extension CallHierarchyItem {
     init(symbol: DocumentSymbol, uri: DocumentURI) {
         self.init(name: symbol.name, kind: symbol.kind, tags: symbol.deprecated == true ? [.deprecated] : [], detail: symbol.detail, uri: uri, range: symbol.range, selectionRange: symbol.selectionRange)
+    }
+    
+    init(script uri: DocumentURI, lines: Int) {
+        self.init(name: uri.fileURL?.lastPathComponent ?? "script", kind: .file, tags: nil, uri: uri, range: Position(line: 0, utf16index: 0)..<Position(line: lines, utf16index: 0), selectionRange: Position(line: 0, utf16index: 0)..<Position(line: lines, utf16index: 0))
     }
 }
