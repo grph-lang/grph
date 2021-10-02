@@ -504,8 +504,8 @@ class GRPHServer: MessageHandler {
                     tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
                     detail: fn.signature,
                     uri: uri,
-                    range: token.token.positionRange,
-                    selectionRange: token.token.positionRange
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
                 )]))
             case .method(let fn):
                 request.reply(.success([CallHierarchyItem(
@@ -514,8 +514,8 @@ class GRPHServer: MessageHandler {
                     tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
                     detail: fn.signature,
                     uri: uri,
-                    range: token.token.positionRange,
-                    selectionRange: token.token.positionRange
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
                 )]))
             case .constructor(let fn):
                 request.reply(.success([CallHierarchyItem(
@@ -524,8 +524,8 @@ class GRPHServer: MessageHandler {
                     tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
                     detail: fn.signature,
                     uri: uri,
-                    range: token.token.positionRange,
-                    selectionRange: token.token.positionRange
+                    range: decl.token.positionRange,
+                    selectionRange: decl.token.positionRange
                 )]))
             case .variable(_), .property(_, in: _), .identifier(_):
                 request.reply(.success([]))
@@ -556,7 +556,15 @@ class GRPHServer: MessageHandler {
             request.reply(.success([]))
             return
         }
-        guard let decl = documents[item.uri]?.tokenized?.documentation?.semanticTokens.first(where: { $0.token.positionRange == item.selectionRange }) else {
+        
+        let declDoc: DocGenerator?
+        if item.uri.scheme == "grphbuiltin" {
+            declDoc = DocGenerator.builtins
+        } else {
+            declDoc = documents[item.uri]?.tokenized?.documentation
+        }
+        
+        guard let decl = declDoc?.semanticTokens.first(where: { $0.token.positionRange == item.selectionRange }) else {
             request.reply(.failure(.unknown("could not find item")))
             return
         }

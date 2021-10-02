@@ -64,6 +64,7 @@ extension DocGenerator {
                 diagnostics.append(Notice(token: id, severity: .error, source: .docgen, message: "Could not find builtin with documentation identifier"))
             }
             let token = SemanticToken(token: id, modifiers: .declaration, data: data)
+            semanticTokens.append(token)
             generateDocumentation(declaration: token)
         }
     }
