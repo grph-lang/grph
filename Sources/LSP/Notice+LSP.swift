@@ -30,6 +30,7 @@ extension Notice {
             severity: .init(rawValue: severity.rawValue),
             source: source.rawValue,
             message: message,
+            tags: tags.compactMap({ $0 == .deprecated ? .deprecated : nil }),
             relatedInformation: rel
         )
     }

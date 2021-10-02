@@ -768,7 +768,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
                 }
             case .curlyBraces:
-                diagnostics.append(Notice(token: token, severity: .warning, source: .generator, message: "Array literals are deprecated", hint: "Use constructors instead"))
+                diagnostics.append(Notice(token: token, severity: .warning, source: .generator, message: "Array literals are deprecated", tags: [.deprecated], hint: "Use constructors instead"))
                 let wrapped: GRPHType
                 if let infer = infer as? ArrayType {
                     wrapped = infer.content
@@ -886,7 +886,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             }
             resolveSemanticToken(compound.withModifiers([]))
             
-            diagnostics.append(Notice(token: tokens.last!, severity: .warning, source: .generator, message: "Array literals are deprecated", hint: "Use constructors instead"))
+            diagnostics.append(Notice(token: tokens.last!, severity: .warning, source: .generator, message: "Array literals are deprecated", tags: [.deprecated], hint: "Use constructors instead"))
             
             return try ArrayLiteralExpression(wrapped: wrapped, values: tokens.last!.children.stripped.split(on: .comma).map { tokens in
                 let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)

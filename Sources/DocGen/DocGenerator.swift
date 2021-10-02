@@ -41,7 +41,7 @@ public struct DocGenerator {
             if let depr = findDocumentation(token: token)?.deprecation {
                 semanticTokens[i].modifiers.insert(.deprecated)
                 if !token.modifiers.contains(.declaration) {
-                    diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)"))
+                    diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)", tags: [.deprecated]))
                 }
             }
         }

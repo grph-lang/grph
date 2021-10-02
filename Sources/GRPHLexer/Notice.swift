@@ -21,13 +21,16 @@ public struct Notice {
     
     public var message: String
     
+    public var tags: [Tag]
+    
     public var hint: String?
     
-    public init(token: Token, severity: Notice.Severity, source: Notice.Source, message: String, hint: String? = nil) {
+    public init(token: Token, severity: Notice.Severity, source: Notice.Source, message: String, tags: [Tag] = [], hint: String? = nil) {
         self.token = token
         self.severity = severity
         self.source = source
         self.message = message
+        self.tags = tags
         self.hint = hint
     }
 }
@@ -67,5 +70,12 @@ public extension Notice {
         case generator
         /// This problem was catched by the documentation generator
         case docgen
+    }
+}
+
+public extension Notice {
+    enum Tag {
+        /// The problem is due to a deprecation
+        case deprecated
     }
 }
