@@ -18,7 +18,7 @@ extension DocGenerator {
     
     static let _builtinsSourcePath = String(#filePath.dropLast("DocGenerator+Builtin.swift".count)) + "builtins.grph"
     
-    static let builtins: DocGenerator = {
+    public static let builtins: DocGenerator = {
         let lexer = GRPHLexer()
         let lines = lexer.parseDocument(content: try! String(contentsOf: Bundle.module.url(forResource: "builtins", withExtension: "grph")!))
         // no token detection needed

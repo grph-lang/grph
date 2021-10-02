@@ -52,7 +52,7 @@ class GRPHServer: MessageHandler {
     }
     
     func handle<R>(_ params: R, id: RequestID, from clientID: ObjectIdentifier, reply: @escaping (LSPResult<R.Response>) -> Void) where R : RequestType {
-        log("received: \(params)", level: .debug)
+        log("received: \(id): \(params)", level: .debug)
         queue.async { [unowned self] in
             let cancellationToken = CancellationToken()
 
@@ -83,6 +83,12 @@ class GRPHServer: MessageHandler {
                 presentColor(request)
             case let request as Request<CompletionRequest>:
                 autocomplete(request)
+            case let request as Request<CallHierarchyPrepareRequest>:
+                prepareCallHierarchy(request)
+            case let request as Request<CallHierarchyIncomingCallsRequest>:
+                incomingCallHierarchy(request)
+            case let request as Request<CallHierarchyOutgoingCallsRequest>:
+                outgoingCallHierarchy(request)
             default:
                 log("unknown request \(request)")
             }
@@ -109,6 +115,7 @@ class GRPHServer: MessageHandler {
             renameProvider: .bool(false), // *not supported by sourcekit-lsp*
             colorProvider: .bool(true), // parses `color()` constructors which only use number literals
             foldingRangeProvider: .bool(false), // fold imports & long doc comments
+            callHierarchyProvider: .bool(true),
             semanticTokensProvider: SemanticTokensOptions(
                 legend: SemanticTokensLegend(
                     tokenTypes: LSPSemanticTokenType.allCases.map(\.name),
@@ -464,5 +471,131 @@ class GRPHServer: MessageHandler {
             documentation: documentation.map { .markupContent(MarkupContent(kind: .markdown, value: $0.markdown)) },
             deprecated: documentation?.deprecation != nil
         )
+    }
+    
+    // MARK: Call Hierarchy
+    
+    func prepareCallHierarchy(_ request: Request<CallHierarchyPrepareRequest>) {
+        guard let tokenized = ensureDocTokenized(request: request) else {
+            return
+        }
+        
+        guard let doc = tokenized.documentation,
+              let token = doc.semanticTokens.last(where: { $0.token.positionRangeClosed.contains(request.params.position) }) else {
+            request.reply(.success(nil)) // invalid selection
+            return
+        }
+        
+        if let decl = doc.findDeclaration(for: token) {
+            let outline = tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: doc.semanticTokens)
+            
+            if let symbol = findSymbol(for: decl, in: outline)?.symbol {
+                request.reply(.success([CallHierarchyItem(symbol: symbol, uri: request.params.textDocument.uri)]))
+            } else { // should never happen
+                request.reply(.failure(.unknown("no document symbol for token")))
+            }
+        } else if let decl = DocGenerator.builtins.findDeclaration(for: token) {
+            let uri = DocumentURI(string: "grphbuiltin:///builtins.grph")
+            switch decl.data {
+            case .function(let fn):
+                request.reply(.success([CallHierarchyItem(
+                    name: fn.name,
+                    kind: .function,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: token.token.positionRange,
+                    selectionRange: token.token.positionRange
+                )]))
+            case .method(let fn):
+                request.reply(.success([CallHierarchyItem(
+                    name: fn.name,
+                    kind: .method,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: token.token.positionRange,
+                    selectionRange: token.token.positionRange
+                )]))
+            case .constructor(let fn):
+                request.reply(.success([CallHierarchyItem(
+                    name: fn.name,
+                    kind: .constructor,
+                    tags: token.modifiers.contains(.deprecated) ? [.deprecated] : [],
+                    detail: fn.signature,
+                    uri: uri,
+                    range: token.token.positionRange,
+                    selectionRange: token.token.positionRange
+                )]))
+            case .variable(_), .property(_, in: _), .identifier(_):
+                request.reply(.success([]))
+            case .none:
+                request.reply(.failure(.unknown("could not find identifier")))
+            }
+        } else {
+            request.reply(.failure(.unknown("could not find token in document nor builtins")))
+        }
+    }
+    
+    func findSymbol(for token: SemanticToken, in outline: [DocumentSymbol]) -> (path: [Int], symbol: DocumentSymbol)? {
+        for (index, ds) in outline.enumerated() {
+            if ds.range.contains(token.token.startPosition) && ds.kind != .variable {
+                if let (path, result) = findSymbol(for: token, in: ds.children ?? []) {
+                    return ([index] + path, result)
+                } else {
+                    return ([index], ds)
+                }
+            }
+        }
+        return nil
+    }
+    
+    func incomingCallHierarchy(_ request: Request<CallHierarchyIncomingCallsRequest>) {
+        let item = request.params.item
+        guard item.kind != .file else {
+            request.reply(.success([]))
+            return
+        }
+        guard let decl = documents[item.uri]?.tokenized?.documentation?.semanticTokens.first(where: { $0.token.positionRange == item.selectionRange }) else {
+            request.reply(.failure(.unknown("could not find item")))
+            return
+        }
+        
+        var result: [CallHierarchyIncomingCall] = []
+        for doc in documents.values {
+            if let tokenized = doc.tokenized,
+               let documentation = tokenized.documentation {
+                let outline = tokenized.instructions.outline(lexedLines: tokenized.lexed, semanticTokens: documentation.semanticTokens)
+                
+                var partial: [[Int]: CallHierarchyIncomingCall] = [:]
+                
+                let script = CallHierarchyItem(name: doc.item.uri.fileURL?.lastPathComponent ?? "script", kind: .file, tags: nil, uri: doc.item.uri, range: Position(line: 0, utf16index: 0)..<Position(line: tokenized.lexed.count, utf16index: 0), selectionRange: Position(line: 0, utf16index: 0)..<Position(line: tokenized.lexed.count, utf16index: 0))
+                
+                for st in documentation.semanticTokens.filter({ documentation.areTheSameMember(decl, $0) && $0.modifiers.contains(.call) }) {
+                    let (path, symbol) = findSymbol(for: st, in: outline).map { ($0, CallHierarchyItem(symbol: $1, uri: doc.item.uri)) } ?? ([], script)
+                    let range = st.token.positionRange
+                    if var parent = partial[path] {
+                        parent.fromRanges.append(range)
+                        partial[path] = parent
+                    } else {
+                        partial[path] = CallHierarchyIncomingCall(from: symbol, fromRanges: [range])
+                    }
+                }
+                
+                result += partial.values
+            }
+        }
+        
+        request.reply(.success(result))
+    }
+    
+    func outgoingCallHierarchy(_ request: Request<CallHierarchyOutgoingCallsRequest>) {
+        request.reply(.failure(.unknown("not implemented")))
+    }
+}
+
+extension CallHierarchyItem {
+    init(symbol: DocumentSymbol, uri: DocumentURI) {
+        self.init(name: symbol.name, kind: symbol.kind, tags: symbol.deprecated == true ? [.deprecated] : [], detail: symbol.detail, uri: uri, range: symbol.range, selectionRange: symbol.selectionRange)
     }
 }

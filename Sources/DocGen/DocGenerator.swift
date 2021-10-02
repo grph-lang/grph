@@ -193,4 +193,8 @@ public struct DocGenerator {
     public func findDocumentation(variable: Variable) -> Documentation? {
         return documentation[variable.documentationIdentifier] ?? DocGenerator.builtins.documentation[variable.documentationIdentifier]
     }
+    
+    public func areTheSameMember(_ lhs: SemanticToken, _ rhs: SemanticToken) -> Bool {
+        return lhs.documentationIdentifier == rhs.documentationIdentifier
+    }
 }
