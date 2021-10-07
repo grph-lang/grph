@@ -19,13 +19,13 @@ import Foundation
 public extension NSRegularExpression {
     
     /// Executes the closure for every match, passing the range of the match. Use string[match] to get the substring matched. This method doesn't support capture groups.
-    func allMatches(in string: String, using block: (_ match: Range<String.Index>) -> Void) {
+    func allMatches(in string: String, using block: @escaping (_ match: Range<String.Index>) -> Void) {
         try! allMatchesThrows(in: string, using: block)
     }
     
     /// Same as allMatches, but supports a throwing closure that will rethrow.
     // Only throws if block throws, but can't use rethrows because NSRegularExpression.enumerateMatches doesn't "rethrows"
-    func allMatchesThrows(in string: String, using block: (_ match: Range<String.Index>) throws -> Void) throws {
+    func allMatchesThrows(in string: String, using block: @escaping (_ match: Range<String.Index>) throws -> Void) throws {
         var err: Error?
         self.enumerateMatches(in: string, range: NSRange(string.startIndex..., in: string)) { result, _, stop in
             if let result = result,
@@ -44,7 +44,7 @@ public extension NSRegularExpression {
     }
     
     /// Replaces all matches of a regular expression with another string. This method doesn't support capture groups.
-    func replaceMatches(in string: String, using block: (_ match: String) -> String) -> String {
+    func replaceMatches(in string: String, using block: @escaping (_ match: String) -> String) -> String {
         var builder = ""
         var last: String.Index?
         self.enumerateMatches(in: string, range: NSRange(string.startIndex..., in: string)) { result, _, _ in

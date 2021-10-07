@@ -10,7 +10,11 @@
 //
 
 import ArgumentParser
+#if os(macOS)
 import Darwin
+#else
+import Glibc
+#endif
 import Foundation
 import GRPHLexer
 import GRPHGenerator
