@@ -110,8 +110,8 @@ extension Constructor {
         reg.implement(constructorWithSignature: "{T}(T wrapped...)") { type, ctx, values in
             GRPHArray(values.compactMap { $0 }, of: (type as! ArrayType).content)
         }
-        reg.implement(constructorWithSignature: "{T}(T wrapped...)") { type, ctx, values in
-            GRPHArray(values.compactMap { $0 }, of: (type as! ArrayType).content)
+        reg.implement(constructorWithSignature: "tuple(T wrapped...)") { type, ctx, values in
+            GRPHTuple(values.compactMap { $0 }, of: type as! TupleType)
         }
         reg.implement(constructorWithSignature: "funcref<T><>(T wrapped)") { type, ctx, values in
             FuncRef(currentType: type as! FuncRefType, storage: .constant(values[safe: 0] ?? GRPHVoid.void))

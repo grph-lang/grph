@@ -1,5 +1,5 @@
 //
-//  GRPHArray.swift
+//  GRPHTuple.swift
 //  GRPH Values
 //
 //  Created by Emil Pedersen on 30/06/2020.
@@ -11,20 +11,20 @@
 
 import Foundation
 
-public class GRPHArray: StatefulValue {
-    
+// tuples, unlike arrays, are structs, and are copied around
+public struct GRPHTuple: StatefulValue {
     public var wrapped: [GRPHValue]
-    public var content: GRPHType
+    public var types: TupleType
     
-    public init(_ wrapped: [GRPHValue] = [], of content: GRPHType) {
+    public init(_ wrapped: [GRPHValue] = [], of type: TupleType) {
+        assert(type.content.count == wrapped.count, "Incompatible tuple size")
         self.wrapped = wrapped
-        self.content = content
+        self.types = type
     }
     
     public init?(byCasting value: GRPHValue) {
-        if let val = value as? GRPHArray {
-            self.wrapped = val.wrapped // Cast will effectively copy ≠ Java
-            self.content = val.content
+        if let val = value as? GRPHTuple {
+            self = val
         } else {
             return nil
         }
@@ -32,30 +32,27 @@ public class GRPHArray: StatefulValue {
     
     public var state: String {
         guard !wrapped.isEmpty else {
-            return "{}"
+            return "()"
         }
         
-        var str = "{"
+        var str = "("
         for value in wrapped {
             if let value = value as? StatefulValue {
-                str += "\(value.state), "
+                str += "\(value.state) "
             } else {
-                str += "\(value), "
+                str += "\(value) "
             }
         }
-        return "\(str.dropLast(2))}"
+        return "\(str.dropLast()))"
     }
     
     public var count: Int { wrapped.count }
     
-    public var type: GRPHType { ArrayType(content: content) }
+    public var type: GRPHType { types }
     
     public func isEqual(to other: GRPHValue) -> Bool {
-        if let other = other as? GRPHArray,
+        if let other = other as? GRPHTuple,
            other.count == self.count {
-            if self === other {
-                return true
-            }
             for i in 0..<self.count {
                 if !self.wrapped[i].isEqual(to: other.wrapped[i]) {
                     return false
@@ -67,8 +64,8 @@ public class GRPHArray: StatefulValue {
     }
 }
 
-extension GRPHArray: CustomStringConvertible {
+extension GRPHTuple: CustomStringConvertible {
     public var description: String {
-        "<\(content)>\(state)"
+        "<\(type)>\(state)"
     }
 }

@@ -112,6 +112,44 @@ public extension GRPHTypes {
                 }
             }
         }
+        // explicit tuple type
+        if literal.hasPrefix("tuple<") && literal.hasSuffix(">"),
+           let generics = parseTopLevelGenerics(in: String(literal.dropFirst(5))),
+           generics.count == 1,
+           generics[0].count >= 2 {
+            let tuple = generics[0]
+            do {
+                let types: [GRPHType] = try tuple.map {
+                    if let type = parse(context: context, literal: $0) {
+                        return type
+                    } else {
+                        throw GRPHCompileError(type: .parse, message: "error does not propagate")
+                    }
+                }
+                return TupleType(content: types)
+            } catch {
+                return nil
+            }
+        }
+        // implicit tuple type
+        if literal.contains("+"),
+           let generics = parseTopLevelGenerics(in: "<\(literal)>"),
+           generics.count == 1,
+           generics[0].count >= 2 {
+            let tuple = generics[0]
+            do {
+                let types: [GRPHType] = try tuple.map {
+                    if let type = parse(context: context, literal: $0) {
+                        return type
+                    } else {
+                        throw GRPHCompileError(type: .parse, message: "error does not propagate")
+                    }
+                }
+                return TupleType(content: types)
+            } catch {
+                return nil
+            }
+        }
         if literal.contains("|") {
             let components = literal.split(separator: "|", maxSplits: 1)
             if components.count == 2 {
