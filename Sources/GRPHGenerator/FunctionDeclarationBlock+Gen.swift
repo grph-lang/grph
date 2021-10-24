@@ -50,6 +50,17 @@ extension FunctionDeclarationBlock {
         }
         context.generator.resolveSemanticToken(typeLit.withModifiers([]))
         
+        let params = tokens[paramsIndex].children.stripped.split(on: .comma)
+        var varargs = false
+        defaults = .init(repeating: nil, count: params.count)
+        var pars: [Parameter] = []
+        pars.reserveCapacity(params.count)
+        for (i, param) in params.enumerated() {
+            let par = try parseParam(param: param, i: i, context: context, varargs: &varargs, isLast: i == params.count - 1)
+            
+            pars.append(par)
+        }
+        
         let returnType: GRPHType
         if tokens.count == paramsIndex + 1 {
             if let returnTypeOrAuto = returnTypeOrAuto {
@@ -67,17 +78,6 @@ extension FunctionDeclarationBlock {
             let drv = try context.generator.resolveExpression(tokens: Array(tokens[(paramsIndex + 2)...]), infer: returnTypeOrAuto)
             returnDefault = drv
             returnType = try returnTypeOrAuto ?? drv.getType(context: context, infer: SimpleType.mixed)
-        }
-        
-        let params = tokens[paramsIndex].children.stripped.split(on: .comma)
-        var varargs = false
-        defaults = .init(repeating: nil, count: params.count)
-        var pars: [Parameter] = []
-        pars.reserveCapacity(params.count)
-        for (i, param) in params.enumerated() {
-            let par = try parseParam(param: param, i: i, context: context, varargs: &varargs, isLast: i == params.count - 1)
-            
-            pars.append(par)
         }
         
         generated = Function(ns: NameSpaces.none, name: String(name.literal), parameters: pars, returnType: returnType, varargs: varargs, storage: .block(self))
