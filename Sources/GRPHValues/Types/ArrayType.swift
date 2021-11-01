@@ -46,7 +46,10 @@ public struct ArrayType: GRPHType {
     public var includedMethods: [Method] {
         [
             Method(ns: RandomNameSpace(), name: "shuffled", inType: self, parameters: [], returnType: self, storage: .generic(signature: "{T} {T}.random>shuffled[]")),
-            Method(ns: StandardNameSpace(), name: "copy", inType: self, parameters: [], returnType: self, storage: .generic(signature: "{T} {T}.copy[]"))
+            Method(ns: StandardNameSpace(), name: "copy", inType: self, parameters: [], returnType: self, storage: .generic(signature: "{T} {T}.copy[]")),
+            Method(ns: StandardNameSpace(), name: "map", inType: self, parameters: [
+                Parameter(name: "apply", type: FuncRefType(returnType: SimpleType.mixed, parameterTypes: [content]))
+            ], returnType: SimpleType.mixed.inArray, storage: .generic(signature: "{mixed} {T}.map[funcref<mixed><T> apply]")),
         ]
     }
 }

@@ -57,7 +57,7 @@ extension StringUtilsNameSpace: ImplementedNameSpace {
             return GRPHArray((params[0] as! String).components(separatedBy: params[1] as! String), of: SimpleType.string)
         }
         reg.implement(function: exportedFunctions[named: "joinStrings"]) { ctx, params in
-            return (params[0] as! GRPHArray).wrapped.map { $0 as! String}.joined(separator: params.count == 1 ? "" : params[1] as! String)
+            return (params[0] as! GRPHArray).wrapped.map { $0 as! String }.joined(separator: params.count == 1 ? "" : params[1] as! String)
         }
         reg.implement(function: exportedFunctions[named: "setStringLength"]) { ctx, params in
             let subject = params[0] as! String

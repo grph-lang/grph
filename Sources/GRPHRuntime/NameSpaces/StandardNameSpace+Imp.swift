@@ -466,6 +466,13 @@ extension StandardNameSpace: ImplementedNameSpace {
             let array = array as! GRPHArray
             return GRPHArray(array.wrapped, of: array.content)
         }
+        reg.implement(methodWithSignature: "{mixed} {T}.map[funcref<mixed><T> apply]") { context, array, params in
+            let array = array as! GRPHArray
+            let apply = params[0] as! FuncRef
+            return try GRPHArray(array.wrapped.map { value in
+                try apply.execute(context: context, params: [value])
+            }, of: SimpleType.mixed)
+        }
     }
     
     func typeCheck<T>(value: GRPHValue?, as: T.Type) throws -> T {
