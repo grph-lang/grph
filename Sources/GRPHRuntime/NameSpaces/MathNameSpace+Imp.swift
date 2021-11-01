@@ -53,5 +53,13 @@ extension MathNameSpace: ImplementedNameSpace {
         reg.implement(function: exportedFunctions[named: "ceil"]) { ctx, params in
             return Int(ceil(params[0] as? Float ?? Float(params[0] as! Int)))
         } // asFloat is a cast, asChar is in strutils --> Removed
+        reg.implement(function: exportedFunctions[named: "min"]) { ctx, params in
+            let params = params.map { $0 as? Float ?? Float($0 as! Int) }
+            return params.min() ?? Float.infinity
+        }
+        reg.implement(function: exportedFunctions[named: "max"]) { ctx, params in
+            let params = params.map { $0 as? Float ?? Float($0 as! Int) }
+            return params.max() ?? -Float.infinity
+        }
     }
 }

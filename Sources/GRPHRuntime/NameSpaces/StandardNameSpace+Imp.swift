@@ -41,6 +41,12 @@ extension StandardNameSpace: ImplementedNameSpace {
             printout("Log: \(result)")
             return result
         }
+        reg.implement(function: exportedFunctions[named: "assert"]) { context, params in
+            if !(params[0] as! Bool) {
+                throw GRPHRuntimeError(type: .invalidArgument, message: params[safe: 1] as? String ?? "Assertion failed")
+            }
+            return GRPHVoid.void
+        }
         // getters for fields removed
         reg.implement(function: exportedFunctions[named: "getRotation"]) { context, params in
             guard let shape = params[0] as? RotatableShape else {

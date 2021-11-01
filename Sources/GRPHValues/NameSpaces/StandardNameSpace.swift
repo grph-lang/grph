@@ -10,6 +10,7 @@
 //
 
 import Foundation
+import AppKit
 
 public struct StandardNameSpace: NameSpace {
     public var name: String { "standard" }
@@ -51,6 +52,7 @@ public struct StandardNameSpace: NameSpace {
             Function(ns: self, name: "toString", parameters: [Parameter(name: "values...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
             Function(ns: self, name: "concat", parameters: [Parameter(name: "values...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
             Function(ns: self, name: "log", parameters: [Parameter(name: "text...", type: SimpleType.mixed)], returnType: SimpleType.string, varargs: true),
+            Function(ns: self, name: "assert", parameters: [Parameter(name: "precondition", type: SimpleType.boolean), Parameter(name: "message", type: SimpleType.string, optional: true)], returnType: SimpleType.void),
             // getters for fields removed
             Function(ns: self, name: "getRotation", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.rotation),
             Function(ns: self, name: "getRotationCenter", parameters: [Parameter(name: "shape", type: SimpleType.shape)], returnType: SimpleType.pos.optional),

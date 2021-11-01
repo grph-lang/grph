@@ -28,6 +28,8 @@ public struct MathNameSpace: NameSpace {
             Function(ns: self, name: "round", parameters: [Parameter(name: "number", type: SimpleType.num)], returnType: SimpleType.integer),
             Function(ns: self, name: "floor", parameters: [Parameter(name: "number", type: SimpleType.num)], returnType: SimpleType.integer),
             Function(ns: self, name: "ceil", parameters: [Parameter(name: "number", type: SimpleType.num)], returnType: SimpleType.integer), // asFloat is a cast, asChar is in strutils --> Removed
+            Function(ns: self, name: "min", parameters: [Parameter(name: "numbers...", type: SimpleType.num)], returnType: SimpleType.float, varargs: true),
+            Function(ns: self, name: "max", parameters: [Parameter(name: "numbers...", type: SimpleType.num)], returnType: SimpleType.float, varargs: true),
         ]
     }
 }
