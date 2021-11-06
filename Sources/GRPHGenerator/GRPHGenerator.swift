@@ -454,7 +454,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Cannot put multiple #default cases in a #switch"))
                 }
             case "#compiler":
-                guard tokens.count == 3 else {
+                guard tokens.count == 3 || (tokens.count > 3 && tokens[1].literal == "indent") else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected syntax '#compiler key value'"))
                 }
                 resolveSemanticToken(tokens[1].withType(.keyword).withModifiers([]))

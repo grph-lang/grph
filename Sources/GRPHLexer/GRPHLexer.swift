@@ -363,7 +363,8 @@ public class GRPHLexer {
                     break
                 }
                 if specifier.tokenType == .stringLiteral {
-                    if case .string(let data) = specifier.data {
+                    if case .string(let data) = specifier.data,
+                       !data.isEmpty {
                         indentation = String(repeating: data, count: multiplier ?? 1)
                     } else {
                         diagnostics.append(Notice(token: specifier, severity: .error, source: .tokenDetector, message: "Invalid string literal given"))
