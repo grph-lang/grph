@@ -38,6 +38,18 @@ public struct Documentation {
 }
 
 public extension Documentation {
+    
+    var introducedInGRPH: Version? {
+        if let since = since {
+            if since.hasPrefix("GRPH ") {
+                return Version(description: String(since.dropFirst(5)))
+            } else {
+                return Version(description: since)
+            }
+        }
+        return nil
+    }
+    
     var markdown: String {
         var doc = ""
         

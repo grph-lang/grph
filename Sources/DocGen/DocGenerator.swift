@@ -36,12 +36,23 @@ public struct DocGenerator {
         for symbol in semanticTokens where symbol.modifiers.contains(.declaration) && symbol.token.tokenType != .parameter {
             generateDocumentation(declaration: symbol)
         }
+        
+        let requiredGRPH = findRequiredGRPH()
+        
         // For use of deprecated symbols, add the appropriate Semantic Modifier (for the IDE to strikethrough), and issue a warning
+        // If using newer symbols not supported by the required version, issue a warning
         for (i, token) in semanticTokens.enumerated() {
-            if let depr = findDocumentation(token: token)?.deprecation {
-                semanticTokens[i].modifiers.insert(.deprecated)
-                if !token.modifiers.contains(.declaration) {
-                    diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)", tags: [.deprecated]))
+            if let doc = findDocumentation(token: token) {
+                if let depr = doc.deprecation {
+                    semanticTokens[i].modifiers.insert(.deprecated)
+                    if !token.modifiers.contains(.declaration) {
+                        diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' is deprecated: \(depr)", tags: [.deprecated]))
+                    }
+                }
+                if let introduction = doc.introducedInGRPH,
+                   let requiredGRPH = requiredGRPH,
+                   introduction > requiredGRPH {
+                    diagnostics.append(Notice(token: token.token, severity: .warning, source: .docgen, message: "'\(token.token.literal)' was introduced in GRPH \(introduction), but the script only requires the older GRPH \(requiredGRPH)"))
                 }
             }
         }
@@ -50,6 +61,16 @@ public struct DocGenerator {
                 generateDefaultTokens(in: line)
             }
         }
+    }
+    
+    private func findRequiredGRPH() -> Version? {
+        for line in lines {
+            let content = line.children.stripped
+            if content.count >= 4, content[1].literal == "#requires", content[2].literal == "GRPH" {
+                return Version(description: Token(squash: content[3...], type: .numberLiteral).description)
+            }
+        }
+        return nil
     }
     
     mutating func generateDefaultTokens(in token: Token) {
