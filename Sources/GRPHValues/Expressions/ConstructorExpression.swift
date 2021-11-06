@@ -21,26 +21,7 @@ public struct ConstructorExpression: Expression {
         }
         self.constructor = constructor
         // Java did kinda support multiple constructor but they didn't exist
-        var nextParam = 0
-        var ourvalues: [Expression?] = []
-        for param in values {
-            guard let par = try constructor.parameter(index: nextParam, context: ctx, exp: param) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in constructor for '\(type.string)'")
-            }
-            nextParam += par.add
-            while ourvalues.count < nextParam - 1 {
-                ourvalues.append(nil)
-            }
-            ourvalues.append(try GRPHTypes.autobox(context: ctx, expression: param, expected: par.param.type))
-            // at pars[nextParam - 1] aka current param
-        }
-        while nextParam < constructor.parameters.count {
-            guard constructor.parameters[nextParam].optional else {
-                throw GRPHCompileError(type: .invalidArguments, message: "No argument passed to parameter '\(constructor.parameters[nextParam].name)' in constructor for '\(constructor.name)'")
-            }
-            nextParam += 1
-        }
-        self.values = ourvalues
+        self.values = try constructor.populateArgumentList(ctx: ctx, values: values, nameForErrors: "constructor for '\(constructor.name)'")
     }
     
     public init(ctx: CompilingContext, boxing: Expression, infer: GRPHType) throws {

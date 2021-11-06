@@ -65,3 +65,29 @@ public extension Parametrable {
         values.map { $0.bracketized }.joined(separator: " ")
     }
 }
+
+extension Parametrable {
+    func populateArgumentList(ctx: CompilingContext, values: [Expression], nameForErrors: @autoclosure () -> String) throws -> [Expression?] {
+        var ourvalues: [Expression?] = []
+        var nextParam = 0
+        
+        for param in values {
+            guard let par = try parameter(index: nextParam, context: ctx, exp: param) else {
+                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in \(nameForErrors())")
+            }
+            nextParam += par.add
+            while ourvalues.count < nextParam - 1 {
+                ourvalues.append(nil)
+            }
+            ourvalues.append(try GRPHTypes.autobox(context: ctx, expression: param, expected: par.param.type))
+            // at pars[nextParam - 1] aka current param
+        }
+        while nextParam < parameters.count {
+            guard parameters[nextParam].optional else {
+                throw GRPHCompileError(type: .invalidArguments, message: "No argument passed to parameter '\(parameters[nextParam].name)' in \(nameForErrors())")
+            }
+            nextParam += 1
+        }
+        return ourvalues
+    }
+}

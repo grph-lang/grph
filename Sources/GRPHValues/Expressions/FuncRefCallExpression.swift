@@ -30,33 +30,10 @@ public struct FuncRefCallExpression: Expression {
             }
             throw GRPHCompileError(type: .typeMismatch, message: "Funcref call on variable of type '\(variable.type)' (expected funcref)")
         }
-        
-        var ourvalues: [Expression?] = []
         guard asInstruction || !function.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
         }
-        var nextParam = 0
-        for param in values {
-            guard let par = try function.parameter(index: nextParam, context: ctx, exp: param) else {
-                if nextParam >= function.parameters.count && !function.varargs {
-                    throw GRPHCompileError(type: .typeMismatch, message: "Unexpected argument '\(param.string)' for out of bounds parameter in funcref call '\(varName)'")
-                }
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: function.parameter(index: nextParam).type))' in funcref call '\(varName)'")
-            }
-            nextParam += par.add
-            while ourvalues.count < nextParam - 1 {
-                ourvalues.append(nil)
-            }
-            ourvalues.append(try GRPHTypes.autobox(context: ctx, expression: param, expected: par.param.type))
-            // at pars[nextParam - 1] aka current param
-        }
-        while nextParam < function.parameters.count {
-            guard function.parameters[nextParam].optional else {
-                throw GRPHCompileError(type: .invalidArguments, message: "No argument passed to parameter '\(function.parameters[nextParam].name)' in funcref call '\(varName)'")
-            }
-            nextParam += 1
-        }
-        self.values = ourvalues
+        self.values = try function.populateArgumentList(ctx: ctx, values: values, nameForErrors: "funcref call '\(varName)'")
     }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {

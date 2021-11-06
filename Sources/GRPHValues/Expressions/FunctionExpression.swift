@@ -17,29 +17,10 @@ public struct FunctionExpression: Expression {
     
     public init(ctx: CompilingContext, function: Function, values: [Expression], asInstruction: Bool = false) throws {
         self.function = function
-        var ourvalues: [Expression?] = []
         guard asInstruction || !function.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
         }
-        var nextParam = 0
-        for param in values {
-            guard let par = try function.parameter(index: nextParam, context: ctx, exp: param) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in function '\(function.name)'")
-            }
-            nextParam += par.add
-            while ourvalues.count < nextParam - 1 {
-                ourvalues.append(nil)
-            }
-            ourvalues.append(try GRPHTypes.autobox(context: ctx, expression: param, expected: par.param.type))
-            // at pars[nextParam - 1] aka current param
-        }
-        while nextParam < function.parameters.count {
-            guard function.parameters[nextParam].optional else {
-                throw GRPHCompileError(type: .invalidArguments, message: "No argument passed to parameter '\(function.parameters[nextParam].name)' in function '\(function.name)'")
-            }
-            nextParam += 1
-        }
-        self.values = ourvalues
+        self.values = try function.populateArgumentList(ctx: ctx, values: values, nameForErrors: "function '\(function.name)'")
     }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
