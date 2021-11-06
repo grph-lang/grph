@@ -15,12 +15,12 @@ public struct FunctionExpression: Expression {
     public let function: Function
     public let values: [Expression?]
     
-    public init(ctx: CompilingContext, function: Function, values: [Expression], asInstruction: Bool = false) throws {
+    public init<T>(ctx: CompilingContext, function: Function, values: [T], resolver: (T, GRPHType) throws -> Expression, asInstruction: Bool = false) throws {
         self.function = function
         guard asInstruction || !function.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
         }
-        self.values = try function.populateArgumentList(ctx: ctx, values: values, nameForErrors: "function '\(function.name)'")
+        self.values = try function.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "function '\(function.name)'")
     }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {

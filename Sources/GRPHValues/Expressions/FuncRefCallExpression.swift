@@ -15,7 +15,7 @@ public struct FuncRefCallExpression: Expression {
     public let varName: String
     public let values: [Expression?]
     
-    public init(ctx: CompilingContext, varName: String, values: [Expression], asInstruction: Bool = false) throws {
+    public init<T>(ctx: CompilingContext, varName: String, values: [T], resolver: (T, GRPHType) throws -> Expression, asInstruction: Bool = false) throws {
         self.varName = varName
         
         guard let variable = ctx.findVariable(named: varName) else {
@@ -33,7 +33,7 @@ public struct FuncRefCallExpression: Expression {
         guard asInstruction || !function.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
         }
-        self.values = try function.populateArgumentList(ctx: ctx, values: values, nameForErrors: "funcref call '\(varName)'")
+        self.values = try function.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "funcref call '\(varName)'")
     }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {

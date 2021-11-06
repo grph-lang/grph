@@ -67,12 +67,16 @@ public extension Parametrable {
 }
 
 extension Parametrable {
-    func populateArgumentList(ctx: CompilingContext, values: [Expression], nameForErrors: @autoclosure () -> String) throws -> [Expression?] {
+    func populateArgumentList<T>(ctx: CompilingContext, values: [T], resolver: (T, GRPHType) throws -> Expression, nameForErrors: @autoclosure () -> String) throws -> [Expression?] {
         var ourvalues: [Expression?] = []
         var nextParam = 0
         
-        for param in values {
-            guard let par = try parameter(index: nextParam, context: ctx, exp: param) else {
+        for paramToResolve in values {
+            var param: Expression!
+            guard let par = try parameter(index: nextParam, expressionType: { infer in
+                param = try resolver(paramToResolve, infer)
+                return try param.getType(context: ctx, infer: infer)
+            })  else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in \(nameForErrors())")
             }
             nextParam += par.add

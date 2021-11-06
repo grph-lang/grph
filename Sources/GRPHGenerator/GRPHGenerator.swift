@@ -651,9 +651,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Expected method/function name"))
                 }
                 let unstrippedColon = children.firstIndex(where: { $0.tokenType == .methodCallOperator })!
-                let args = try children[(unstrippedColon + 1)...].split(on: .whitespace).map { literal in
-                    try resolveExpression(tokens: literal, infer: nil)
-                }
+                let args = children[(unstrippedColon + 1)...].split(on: .whitespace)
                 if offset < colon {
                     // A method on some subject
                     let subject = try resolveExpression(tokens: Array(tokens[offset..<colon]), infer: nil)
@@ -662,15 +660,15 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                         throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find method '\(name.literal)' in type '\(type.string)'"))
                     }
                     resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
-                    return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: subject, values: args, asInstruction: true)))
+                    return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: subject, values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
                 } else {
                     // function, or method on 'this'
                     if let function = Function(imports: imports, namespace: ns, name: name.description) {
                         resolveSemanticToken(name.withType(.function).withModifiers([function.semantic, .call], data: .function(function)))
-                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: args, asInstruction: true)))
+                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
                     } else if let method = Method(imports: imports, namespace: ns, name: name.description, inType: context.findVariable(named: "this")!.type) {
                         resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
-                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: VariableExpression(name: "this"), values: args, asInstruction: true)))
+                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: VariableExpression(name: "this"), values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
                     } else {
                         throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function or method '\(name.literal)'"))
                     }
@@ -685,17 +683,17 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function '\(name.literal)' in namespace '\(ns.name)'"))
                 }
                 resolveSemanticToken(name.withType(.function).withModifiers([function.semantic, .call], data: .function(function)))
-                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[3].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[3].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:), asInstruction: true)))
             } else if TokenMatcher(types: .identifier, .squareBrackets).matches(tokens: tokens) {
                 let name = tokens[0]
                 guard let function = Function(imports: imports, namespace: NameSpaces.none, name: name.description) else {
                     throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function '\(name.literal)' in scope"))
                 }
                 resolveSemanticToken(name.withType(.function).withModifiers([function.semantic, .call], data: .function(function)))
-                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:), asInstruction: true)))
             } else if TokenMatcher(types: .identifier, .lambdaHatOperator, .squareBrackets).matches(tokens: tokens) {
                 resolveSemanticToken(tokens[0].withType(.variable).forVariable(context.findVariable(named: tokens[0].description)).addingModifier(.call))
-                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FuncRefCallExpression(ctx: context, varName: tokens[0].description, values: tokens[2].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) }, asInstruction: true)))
+                return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FuncRefCallExpression(ctx: context, varName: tokens[0].description, values: tokens[2].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:), asInstruction: true)))
             } else if let exp = try? resolveExpression(tokens: tokens, infer: nil) as? ArrayValueExpression, exp.removing {
                 return ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: exp))
             }
@@ -760,10 +758,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case .parentheses:
                 if let infer = infer {
                     let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
-                    let content = inferParametrableContent(type.constructor)
                     // zero-width semantic token with constructor data
                     resolveSemanticToken(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<token.lineOffset], tokenType: .type).withModifiers(.call, data: type.constructor.map { .constructor($0) }))
-                    return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content) })
+                    return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: token, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
                 }
@@ -818,7 +815,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find function '\(name)'"))
             }
             resolveSemanticToken(tokens[0].withType(.function).withModifiers([function.semantic, .call], data: .function(function)))
-            return try FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) })
+            return try FunctionExpression(ctx: context, function: function, values: tokens[1].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
         case TokenMatcher(.type(.identifier), ">", .type(.identifier), .type(.squareBrackets)): // ns>funcName[...]
             guard let ns = NameSpaces.namespace(named: String(tokens[0].literal)) else {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[0], severity: .error, source: .generator, message: "Could not find namespace '\(tokens[0].literal)'"))
@@ -829,7 +826,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Could not find function '\(name)' in namespace '\(ns.name)'"))
             }
             resolveSemanticToken(tokens[2].withType(.function).withModifiers([.defaultLibrary, .call], data: .function(function)))
-            return try FunctionExpression(ctx: context, function: function, values: tokens[3].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) })
+            return try FunctionExpression(ctx: context, function: function, values: tokens[3].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
         case TokenMatcher(types: .identifier, .curlyBraces): // varName{...}
             resolveSemanticToken(tokens[0].withType(.variable).forVariable(context.findVariable(named: tokens[0].description)))
             let removing = tokens[1].children.last?.literal == "-"
@@ -837,7 +834,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             return try ArrayValueExpression(context: context, varName: String(tokens[0].literal), index: children.isEmpty ? nil : resolveExpression(tokens: Array(children), infer: SimpleType.integer), removing: removing)
         case TokenMatcher(types: .identifier, .lambdaHatOperator, .squareBrackets): // varName^[...]
             resolveSemanticToken(tokens[0].withType(.variable).forVariable(context.findVariable(named: tokens[0].description)).addingModifier(.call))
-            return try FuncRefCallExpression(ctx: context, varName: String(tokens[0].literal), values: tokens[2].children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) })
+            return try FuncRefCallExpression(ctx: context, varName: String(tokens[0].literal), values: tokens[2].children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
         default:
             break
         }
@@ -851,16 +848,14 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             if compound.literal == "auto" {
                 if let infer = infer {
                     let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
-                    let content = inferParametrableContent(type.constructor)
                     resolveSemanticToken(compound.withModifiers(.call, data: type.constructor.map { .constructor($0) }))
-                    return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content)})
+                    return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: compound, severity: .error, source: .generator, message: "Constructor type could not be inferred"))
                 }
             } else if let type = GRPHTypes.parse(context: context, literal: String(compound.literal)) {
-                let content = inferParametrableContent(type.constructor)
                 resolveSemanticToken(compound.withModifiers(.call, data: type.constructor.map { .constructor($0) }))
-                return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: content)})
+                return try ConstructorExpression(ctx: context, type: type, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
             } else if compound.validTypeIdentifier {
                 diagnostics.append(Notice(token: compound, severity: .hint, source: .generator, message: "Couldn't parse '\(compound.literal)' as a type for constructor expression"))
             }
@@ -911,7 +906,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(ns.name)>\(name.literal)'")
             }
             resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
-            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) })
+            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
         }
         
         // binary operators (by precedence)
@@ -948,7 +943,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(name.literal)'")
             }
             resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
-            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace).map { try resolveExpression(tokens: $0, infer: nil) })
+            return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
         }
         
         if TokenMatcher(types: .dot, .identifier).matches(tokens: tokens.suffix(2)) {
@@ -1041,16 +1036,6 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             }
         }
         return nil
-    }
-    
-    func inferParametrableContent(_ p: Parametrable?) -> GRPHType? {
-        if let params = p?.parameters,
-           params.count == 1,
-           let param = params.first {
-            return param.type
-        } else {
-            return nil
-        }
     }
     
     public func trimUselessStuff(children: [Token]) -> [Token] {

@@ -16,13 +16,13 @@ public struct MethodExpression: Expression {
     public let on: Expression
     public let values: [Expression?]
     
-    public init(ctx: CompilingContext, method: Method, on: Expression, values: [Expression], asInstruction: Bool = false) throws {
+    public init<T>(ctx: CompilingContext, method: Method, on: Expression, values: [T], resolver: (T, GRPHType) throws -> Expression, asInstruction: Bool = false) throws {
         self.method = method
         self.on = on
         guard asInstruction || !method.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
         }
-        self.values = try method.populateArgumentList(ctx: ctx, values: values, nameForErrors: "method '\(method.inType)>\(method.name)'")
+        self.values = try method.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "method '\(method.inType)>\(method.name)'")
     }
     
     public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {

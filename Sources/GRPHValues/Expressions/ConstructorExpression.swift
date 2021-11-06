@@ -15,13 +15,13 @@ public struct ConstructorExpression: Expression {
     public let constructor: Constructor
     public let values: [Expression?]
     
-    public init(ctx: CompilingContext, type: GRPHType, values: [Expression]) throws {
+    public init<T>(ctx: CompilingContext, type: GRPHType, values: [T], resolver: (T, GRPHType) throws -> Expression) throws {
         guard let constructor = type.constructor else {
             throw GRPHCompileError(type: .typeMismatch, message: "No constructor found in '\(type)'");
         }
         self.constructor = constructor
         // Java did kinda support multiple constructor but they didn't exist
-        self.values = try constructor.populateArgumentList(ctx: ctx, values: values, nameForErrors: "constructor for '\(constructor.name)'")
+        self.values = try constructor.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "constructor for '\(constructor.name)'")
     }
     
     public init(ctx: CompilingContext, boxing: Expression, infer: GRPHType) throws {
