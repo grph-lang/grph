@@ -94,10 +94,10 @@ public extension GRPHTypes {
         if literal.hasPrefix("funcref<") && literal.hasSuffix(">"),
            let generics = parseTopLevelGenerics(in: String(literal.dropFirst(7))),
            generics.count == 2 {
-            let returnType = generics[0]
+            let returnType = generics[0].joined(separator: "+")
             let params = generics[1]
-            if returnType.count == 1,
-               let rtype = parse(context: context, literal: returnType[0]) {
+            if !returnType.isEmpty,
+               let rtype = parse(context: context, literal: returnType) {
                 do {
                     let ptypes: [GRPHType] = try params.map {
                         if let type = parse(context: context, literal: $0) {
