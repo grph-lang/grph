@@ -82,6 +82,13 @@
 /// @see toString
 #builtin function string log[mixed text...]
 
+/// Throws an InvalidArgumentException if the precondition is false.
+/// @since GRPH 1.11
+/// @param precondition The condition that must be true
+/// @param message The error message to attach to the exception if the precondition is false
+/// @see #throw
+#builtin function void assert[boolean precondition, string message?]
+
 /// Gets the rotation of the given shape.
 /// @since GRPH 1.0
 /// @param shape The shape
@@ -934,6 +941,18 @@
 /// @see round
 /// @see floor
 #builtin function integer math>ceil[num number]
+
+/// Returns the biggest of the given numbers
+/// @since GRPH 1.11
+/// @param numbers... The numbers
+/// @see min
+#builtin function float math>max[num numbers...]
+
+/// Returns the smallest of the given numbers
+/// @since GRPH 1.11
+/// @param numbers... The numbers
+/// @see max
+#builtin function float math>min[num numbers...]
 
 /// Creates a float with the given number.
 /// @since GRPH 1.0
