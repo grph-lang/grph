@@ -55,6 +55,9 @@ struct GraphismCLI: ParsableCommand {
     @Argument(help: "The input file to read, as an utf8 encoded grph file")
     var input: String
     
+    @Argument(parsing: .unconditionalRemaining, help: "The arguments to pass to the program, if running it")
+    var arguments: [String] = []
+    
     mutating func validate() throws {
         if dumpWdiu {
             onlyCheck = true
@@ -68,6 +71,9 @@ struct GraphismCLI: ParsableCommand {
         }
         if (onlyCheck || dumpAst || highlight) && (debug || step != nil) {
             throw ValidationError("Incompatible options given, cannot have debug options when running is disabled")
+        }
+        if (onlyCheck || dumpAst || highlight) && !arguments.isEmpty {
+            throw ValidationError("Incompatible options given, cannot have arguments passed when running is disabled")
         }
     }
     
@@ -128,7 +134,7 @@ struct GraphismCLI: ParsableCommand {
         if onlyCheck {
             throw ExitCode.success
         }
-        let runtime = GRPHRuntime(instructions: compiler.instructions, globalVariables: TopLevelCompilingContext.defaultVariables.filter { !$0.compileTime }, image: GImage(delegate: {}))
+        let runtime = GRPHRuntime(instructions: compiler.instructions, globalVariables: TopLevelCompilingContext.defaultVariables.filter { !$0.compileTime }, image: GImage(delegate: {}), argv: [input] + arguments)
         runtime.localFunctions = compiler.imports.compactMap { $0 as? Function }.filter { $0.ns.isEqual(to: NameSpaces.none) }
         
         return (compiler, runtime)
