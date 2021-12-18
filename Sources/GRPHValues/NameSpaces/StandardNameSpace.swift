@@ -10,7 +10,6 @@
 //
 
 import Foundation
-import AppKit
 
 public struct StandardNameSpace: NameSpace {
     public var name: String { "standard" }
