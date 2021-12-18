@@ -32,7 +32,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(url: "https://github.com/apple/swift-argument-parser", from: "0.4.4"),
+        .package(url: "https://github.com/apple/swift-argument-parser", from: "1.0.0"),
         .package(url: "https://github.com/Snowy1803/Rainbow", .branch("master")),
         .package(url: "https://github.com/Snowy1803/sourcekit-lsp", .branch("main")),
     ],
