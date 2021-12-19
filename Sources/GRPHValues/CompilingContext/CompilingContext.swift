@@ -23,7 +23,7 @@ open class CompilingContext: GRPHContextProtocol {
     }
     
     open func assertParentNonNil() {
-        assert(parent != nil, "parent can only be nil for top level context")
+        assert(parent != nil, "parent can only be nil for builtins context")
     }
     
     open var allVariables: [Variable] {

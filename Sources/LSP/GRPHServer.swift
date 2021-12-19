@@ -426,7 +426,7 @@ class GRPHServer: MessageHandler {
         
         // handle shadowings by replacing
         var variables: [String: Variable] = [:]
-        for global in TopLevelCompilingContext.defaultVariables {
+        for global in BuiltinsCompilingContext.defaultVariables {
             variables[global.name] = global
         }
         for st in tokenized.documentation?.semanticTokens ?? [] {

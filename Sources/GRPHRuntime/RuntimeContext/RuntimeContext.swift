@@ -22,7 +22,7 @@ public class RuntimeContext: GRPHContextProtocol {
     init(runtime: GRPHRuntime, parent: RuntimeContext?) {
         self.runtime = runtime
         self.parent = parent
-        assert(parent != nil || self is TopLevelRuntimeContext, "parent can only be nil for top level context")
+        assert(parent != nil || self is BuiltinsRuntimeContext, "parent can only be nil for top level context")
     }
     
     public var allVariables: [Variable] {

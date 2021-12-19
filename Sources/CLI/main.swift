@@ -134,7 +134,7 @@ struct GraphismCLI: ParsableCommand {
         if onlyCheck {
             throw ExitCode.success
         }
-        let runtime = GRPHRuntime(instructions: compiler.instructions, globalVariables: TopLevelCompilingContext.defaultVariables.filter { !$0.compileTime }, image: GImage(delegate: {}), argv: [input] + arguments)
+        let runtime = GRPHRuntime(instructions: compiler.instructions, image: GImage(delegate: {}), argv: [input] + arguments)
         runtime.localFunctions = compiler.imports.compactMap { $0 as? Function }.filter { $0.ns.isEqual(to: NameSpaces.none) }
         
         return (compiler, runtime)

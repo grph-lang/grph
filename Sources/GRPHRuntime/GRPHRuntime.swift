@@ -40,12 +40,13 @@ public class GRPHRuntime {
     
     var settings: [RuntimeSetting: Bool] = [:]
     
-    public init(instructions: [Instruction], globalVariables: [Variable], image: GImage, argv: [String]) {
+    public init(instructions: [Instruction], image: GImage, argv: [String]) {
         self.instructions = instructions
-        self.initialGlobalVariables = globalVariables
+        self.initialGlobalVariables = [
+            Variable(name: "back", type: SimpleType.Background, content: image, final: false),
+            Variable(name: "argv", type: SimpleType.string.inArray, content: GRPHArray(argv, of: SimpleType.string), final: true),
+        ]
         self.image = image
-        self.initialGlobalVariables.append(Variable(name: "back", type: SimpleType.Background, content: image, final: false))
-        self.initialGlobalVariables.append(Variable(name: "argv", type: SimpleType.string.inArray, content: GRPHArray(argv, of: SimpleType.string), final: true))
     }
     
 //    convenience init(compiler: GRPHCompiler, image: GImage) {

@@ -11,8 +11,28 @@
 
 import Foundation
 
-/// This is the only context that doesn't have a parent
+/// This is the base context, for top level code. Its parent is always a GlobalCompilingContext
 public class TopLevelCompilingContext: VariableOwningCompilingContext {
+    
+    public init(compiler: GRPHCompilerProtocol) {
+        super.init(compiler: compiler, parent: GlobalCompilingContext(compiler: compiler))
+    }
+}
+
+/// This context contains all variables declared globals, including ones imported from other files
+public class GlobalCompilingContext: VariableOwningCompilingContext {
+    
+    public init(compiler: GRPHCompilerProtocol) {
+        super.init(compiler: compiler, parent: BuiltinsCompilingContext(compiler: compiler))
+    }
+    
+    public override func addVariable(_ variable: Variable, global: Bool) {
+        variables.append(variable)
+    }
+}
+
+/// This is the only context that doesn't have a parent. It contains all builtin variables, it can't be modified
+public class BuiltinsCompilingContext: VariableOwningCompilingContext {
     
     public init(compiler: GRPHCompilerProtocol) {
         super.init(compiler: compiler, parent: nil)
@@ -22,13 +42,9 @@ public class TopLevelCompilingContext: VariableOwningCompilingContext {
     public override func assertParentNonNil() {
         
     }
-    
-    public override func addVariable(_ variable: Variable, global: Bool) {
-        variables.append(variable)
-    }
 }
 
-public extension TopLevelCompilingContext {
+public extension BuiltinsCompilingContext {
     static var defaultVariables: [Variable] {
         [
             Variable(name: "this", type: SimpleType.rootThisType, content: "currentDocument", final: true, builtin: true),

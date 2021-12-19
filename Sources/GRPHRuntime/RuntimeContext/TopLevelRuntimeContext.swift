@@ -12,15 +12,31 @@
 import Foundation
 import GRPHValues
 
-/// This is the only context that doesn't have a parent
+/// This is the base context, for top level code. Its parent is always a GlobalCompilingContext
 class TopLevelRuntimeContext: VariableOwningRuntimeContext {
     
-    init(runtime: GRPHRuntime) {
-        super.init(runtime: runtime, parent: nil)
-        variables.append(contentsOf: runtime.initialGlobalVariables)
+    public init(runtime: GRPHRuntime) {
+        super.init(runtime: runtime, parent: GlobalRuntimeContext(runtime: runtime))
+    }
+}
+
+/// This context contains all variables declared globals, including ones imported from other files
+class GlobalRuntimeContext: VariableOwningRuntimeContext {
+    
+    public init(runtime: GRPHRuntime) {
+        super.init(runtime: runtime, parent: BuiltinsRuntimeContext(runtime: runtime))
     }
     
-    override func addVariable(_ variable: Variable, global: Bool) {
+    public override func addVariable(_ variable: Variable, global: Bool) {
         variables.append(variable)
+    }
+}
+
+/// This is the only context that doesn't have a parent. It contains all builtin variables, it can't be modified
+class BuiltinsRuntimeContext: VariableOwningRuntimeContext {
+    
+    public init(runtime: GRPHRuntime) {
+        super.init(runtime: runtime, parent: nil)
+        variables.append(contentsOf: BuiltinsCompilingContext.defaultVariables.filter { !$0.compileTime } + runtime.initialGlobalVariables)
     }
 }
