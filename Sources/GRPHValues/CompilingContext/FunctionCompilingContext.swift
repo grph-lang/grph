@@ -19,12 +19,6 @@ public class FunctionCompilingContext: VariableOwningCompilingContext {
         super.init(compiler: parent.compiler, parent: parent)
     }
     
-    public override var allVariables: [Variable] {
-        var vars = globals!.allVariables
-        vars.append(contentsOf: variables)
-        return vars
-    }
-    
     public override func findVariable(named name: String) -> Variable? {
         if let found = variables.first(where: { $0.name == name }) {
             return found

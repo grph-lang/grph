@@ -27,8 +27,6 @@ class DebuggingCompilingContext: CompilingContext {
         
     }
     
-    override var allVariables: [Variable] { adapting.allVariables }
-    
     override func findVariable(named name: String) -> Variable? {
         adapting.findVariable(named: name)
     }

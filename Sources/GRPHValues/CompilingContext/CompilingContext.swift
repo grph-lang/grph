@@ -26,10 +26,6 @@ open class CompilingContext: GRPHContextProtocol {
         assert(parent != nil, "parent can only be nil for builtins context")
     }
     
-    open var allVariables: [Variable] {
-        return parent?.allVariables ?? []
-    }
-    
     /// Returns in the correct priority. Current scope first, then next scope etc. until global scope
     /// Java version doesn't support multiple variables with the same name even in a different scope. We support it here.
     open func findVariable(named name: String) -> Variable? {
