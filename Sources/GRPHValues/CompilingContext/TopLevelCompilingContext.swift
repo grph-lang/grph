@@ -29,6 +29,10 @@ public class GlobalCompilingContext: VariableOwningCompilingContext {
     public override func addVariable(_ variable: Variable, global: Bool) {
         variables.append(variable)
     }
+    
+    public override var globals: GlobalCompilingContext? {
+        self
+    }
 }
 
 /// This is the only context that doesn't have a parent. It contains all builtin variables, it can't be modified

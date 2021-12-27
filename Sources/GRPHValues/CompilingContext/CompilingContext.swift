@@ -51,6 +51,10 @@ open class CompilingContext: GRPHContextProtocol {
         parent?.inFunction
     }
     
+    open var globals: GlobalCompilingContext? {
+        parent?.globals
+    }
+    
     public var imports: [Importable] {
         get {
             compiler.imports

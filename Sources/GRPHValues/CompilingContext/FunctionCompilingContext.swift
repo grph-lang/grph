@@ -20,7 +20,7 @@ public class FunctionCompilingContext: VariableOwningCompilingContext {
     }
     
     public override var allVariables: [Variable] {
-        var vars = parent!.allVariables.filter { $0.final }
+        var vars = globals!.allVariables
         vars.append(contentsOf: variables)
         return vars
     }
@@ -29,7 +29,11 @@ public class FunctionCompilingContext: VariableOwningCompilingContext {
         if let found = variables.first(where: { $0.name == name }) {
             return found
         }
+        if let outer = globals?.findVariable(named: name) {
+            return outer
+        }
         if let outer = parent?.findVariable(named: name), outer.final {
+            // backwards compatibility; this should at least be a warning
             return outer
         }
         return nil

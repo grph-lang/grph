@@ -69,4 +69,8 @@ public class RuntimeContext: GRPHContextProtocol {
     }
     
     public var imports: [Importable] { runtime.imports }
+    
+    var globals: GlobalRuntimeContext? {
+        parent?.globals
+    }
 }

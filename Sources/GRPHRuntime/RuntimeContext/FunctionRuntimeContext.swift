@@ -29,7 +29,11 @@ class FunctionRuntimeContext: BlockRuntimeContext {
         if let found = variables.first(where: { $0.name == name }) {
             return found
         }
+        if let outer = globals?.findVariable(named: name) {
+            return outer
+        }
         if let outer = parent?.findVariable(named: name), outer.final {
+            // backwards compatibility
             return outer
         }
         return nil

@@ -30,6 +30,10 @@ class GlobalRuntimeContext: VariableOwningRuntimeContext {
     public override func addVariable(_ variable: Variable, global: Bool) {
         variables.append(variable)
     }
+    
+    override var globals: GlobalRuntimeContext? {
+        self
+    }
 }
 
 /// This is the only context that doesn't have a parent. It contains all builtin variables, it can't be modified
