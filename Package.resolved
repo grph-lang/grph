@@ -12,20 +12,29 @@
       },
       {
         "package": "Rainbow",
-        "repositoryURL": "https://github.com/Snowy1803/Rainbow",
+        "repositoryURL": "https://github.com/onevcat/Rainbow",
         "state": {
-          "branch": "master",
-          "revision": "c190f5aad55458a6322fcae698b56cdf115d4b8a",
-          "version": null
+          "branch": null,
+          "revision": "e0dada9cd44e3fa7ec3b867e49a8ddbf543e3df3",
+          "version": "4.0.1"
         }
       },
       {
         "package": "SourceKitLSP",
-        "repositoryURL": "https://github.com/Snowy1803/sourcekit-lsp",
+        "repositoryURL": "https://github.com/apple/sourcekit-lsp",
         "state": {
           "branch": "main",
-          "revision": "7c35cc2c1c1b2bfd6493fcdc7c8f1af1efe705e9",
+          "revision": "2e260eb54cd93273dca29beec1dc6512d21fc2e7",
           "version": null
+        }
+      },
+      {
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
+        "state": {
+          "branch": null,
+          "revision": "e1465042f195f374b94f915ba8ca49de24300a0d",
+          "version": "1.0.2"
         }
       },
       {
@@ -42,7 +51,7 @@
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
           "branch": "main",
-          "revision": "708caadbe33087bbc905cef5f1d91e82d54f8067",
+          "revision": "a08d3830539f3c719bea3fd194c97c0369e5fa11",
           "version": null
         }
       },
@@ -60,7 +69,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "main",
-          "revision": "a78e3f3a31dc333602a6887e83c2b73e8d54e90f",
+          "revision": "af43c15d900d96615afe5fd502f949026cfb8714",
           "version": null
         }
       },
@@ -78,7 +87,7 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": "main",
-          "revision": "de090acab9e14a32224dd73ad6a3727f00f8d489",
+          "revision": "bc0d6a7068ee1c09cecef02c34491c0af99c1ee2",
           "version": null
         }
       },
