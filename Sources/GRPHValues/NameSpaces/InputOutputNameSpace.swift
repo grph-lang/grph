@@ -21,6 +21,8 @@ public struct InputOutputNameSpace: NameSpace {
             Function(ns: self, name: "getMousePos", parameters: [], returnType: SimpleType.pos.optional),
             Function(ns: self, name: "getTimeInMillisSinceLoad", parameters: [], returnType: SimpleType.integer),
             Function(ns: self, name: "getSVGFromCurrentImage", parameters: [], returnType: SimpleType.string),
+            Function(ns: self, name: "printOut", parameters: [Parameter(name: "message", type: SimpleType.string)], returnType: SimpleType.void),
+            Function(ns: self, name: "printError", parameters: [Parameter(name: "message", type: SimpleType.string)], returnType: SimpleType.void),
         ]
     }
 }

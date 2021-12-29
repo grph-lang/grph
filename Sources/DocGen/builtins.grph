@@ -824,6 +824,19 @@
 /// @see isKeyPressedWithKeyCode
 #builtin function boolean stdio>isKeyPressedWithString[string keyChar]
 
+/// Prints a string to standard output as-is. No automatic newline will be appended, use `standard>log` for logging.
+/// @since GRPH 1.11
+/// @param message The message to print.
+/// @see printError
+/// @see log
+#builtin function void stdio>printOut[string message]
+
+/// Prints a string to standard error as-is. No automatic newline will be appended, just like `printOut`.
+/// @since GRPH 1.11
+/// @param message The error message to print.
+/// @see printOut
+#builtin function void stdio>printError[string message]
+
 /// Creates the given file. If it already exists, it will just outputs a warning.<br/>Needs file-write permission.
 /// @since GRPH 1.0
 /// @see writeInFile

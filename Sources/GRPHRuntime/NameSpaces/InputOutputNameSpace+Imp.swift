@@ -34,6 +34,14 @@ extension InputOutputNameSpace: ImplementedNameSpace {
             ctx.runtime.image.toSVG(context: SVGExportContext(), into: &svg)
             return svg
         }
+        reg.implement(function: exportedFunctions[named: "printOut"]) { ctx, params in
+            printout(params[0] as! String, terminator: "")
+            return GRPHVoid.void
+        }
+        reg.implement(function: exportedFunctions[named: "printError"]) { ctx, params in
+            printerr(params[0] as! String, terminator: "")
+            return GRPHVoid.void
+        }
     }
     
     static var isHeadless: Bool {
