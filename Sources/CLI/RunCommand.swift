@@ -12,6 +12,8 @@
 import ArgumentParser
 #if os(macOS)
 import Darwin
+#elseif os(Windows)
+import ucrt
 #else
 import Glibc
 #endif
