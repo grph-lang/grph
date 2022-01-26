@@ -15,6 +15,8 @@ import GRPHLexer
 import GRPHGenerator
 import GRPHValues
 import DocGen
+import IRGen
+import LLVM
 
 struct CompileCommand: ParsableCommand {
     
@@ -28,11 +30,23 @@ struct CompileCommand: ParsableCommand {
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
-    @Option(name: [.customLong("emit")])
+    @Option(name: [.customLong("emit")], help: "The output type")
     var dest: CompileDestination = .check
     
+    @Option(name: [.short, .long], help: "The output file")
+    var output: String?
+    
     mutating func validate() throws {
-        
+        switch dest {
+        case .ast, .wdiu, .check:
+            if output != nil {
+                throw ValidationError("Emition type does not support output file")
+            }
+        case .irgen, .ir, .bc, .assembly, .object, .executable:
+            if output == nil {
+                throw ValidationError("Use -o filename to specify the output file")
+            }
+        }
     }
     
     func run() throws {
@@ -48,7 +62,7 @@ struct CompileCommand: ParsableCommand {
         
         if dest == .ast {
             print(lines.map { $0.dumpAST() }.joined(separator: "\n"))
-            throw ExitCode.success
+            return
         }
         
         let compiler = GRPHGenerator(lines: lines)
@@ -73,6 +87,31 @@ struct CompileCommand: ParsableCommand {
         
         if dest == .wdiu {
             compiler.dumpWDIU()
+            return
+        }
+        if dest == .check {
+            return
+        }
+        
+        let irgen = IRGenerator(filename: (input as NSString).lastPathComponent)
+        try irgen.build(from: compiler.instructions)
+        
+        try irgen.module.verify()
+        
+        switch dest {
+        case .ast, .wdiu, .check:
+            preconditionFailure()
+        case .irgen, .ir:
+            try irgen.module.print(to: output!)
+        case .bc:
+            try irgen.module.emitBitCode(to: output!)
+        case .assembly, .object:
+            try TargetMachine().emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: output!)
+        case .executable:
+            try TargetMachine().emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: "\(output!).o")
+            print("Cannot yet create executable. Please execute the following:",
+                  "clang -o \(output!) \(output!).o -lgrph", separator: "\n")
+            throw ExitCode.failure
         }
     }
 }

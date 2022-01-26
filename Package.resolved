@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "LLVM",
+        "repositoryURL": "https://github.com/llvm-swift/LLVMSwift",
+        "state": {
+          "branch": "master",
+          "revision": "c0a77afeab065d75ec851b8dc64538f4ef796f23",
+          "version": null
+        }
+      },
+      {
         "package": "Rainbow",
         "repositoryURL": "https://github.com/onevcat/Rainbow",
         "state": {
@@ -26,15 +35,6 @@
           "branch": "main",
           "revision": "2e260eb54cd93273dca29beec1dc6512d21fc2e7",
           "version": null
-        }
-      },
-      {
-        "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser",
-        "state": {
-          "branch": null,
-          "revision": "e1465042f195f374b94f915ba8ca49de24300a0d",
-          "version": "1.0.2"
         }
       },
       {
