@@ -22,23 +22,17 @@ struct CompileCommand: ParsableCommand {
         CommandConfiguration(commandName: "compile", abstract: "Compile GRPH code, without running it")
     }
     
-    @Flag(help: "Dumps AST and exits. No other compiling phase will be run.")
-    var dumpAst: Bool = false
-    
-    @Flag(name: [.long],
-          help: "Dumps WDIU code and exits.")
-    var dumpWdiu: Bool = false
-    
     @Flag(inversion: .prefixedNo, help: "Toggles doc comment parsing (& related warnings)")
     var doc = true
     
-    @Argument(help: "The input file to read, as an utf8 encoded grph file")
+    @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
+    @Option(name: [.customLong("emit")])
+    var dest: CompileDestination = .check
+    
     mutating func validate() throws {
-        if dumpAst && dumpWdiu {
-            throw ValidationError("Incompatible options given, cannot dump WDIU while dumping the AST")
-        }
+        
     }
     
     func run() throws {
@@ -52,7 +46,7 @@ struct CompileCommand: ParsableCommand {
             throw ExitCode.failure
         }
         
-        if dumpAst {
+        if dest == .ast {
             print(lines.map { $0.dumpAST() }.joined(separator: "\n"))
             throw ExitCode.success
         }
@@ -77,7 +71,7 @@ struct CompileCommand: ParsableCommand {
             throw ExitCode.failure
         }
         
-        if dumpWdiu {
+        if dest == .wdiu {
             compiler.dumpWDIU()
         }
     }

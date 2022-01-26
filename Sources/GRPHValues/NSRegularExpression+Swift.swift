@@ -17,15 +17,8 @@
 import Foundation
 
 public extension NSRegularExpression {
-    
     /// Executes the closure for every match, passing the range of the match. Use string[match] to get the substring matched. This method doesn't support capture groups.
-    func allMatches(in string: String, using block: @escaping (_ match: Range<String.Index>) -> Void) {
-        try! allMatchesThrows(in: string, using: block)
-    }
-    
-    /// Same as allMatches, but supports a throwing closure that will rethrow.
-    // Only throws if block throws, but can't use rethrows because NSRegularExpression.enumerateMatches doesn't "rethrows"
-    func allMatchesThrows(in string: String, using block: @escaping (_ match: Range<String.Index>) throws -> Void) throws {
+    func allMatches(in string: String, using block: @escaping (_ match: Range<String.Index>) throws -> Void) rethrows {
         var err: Error?
         self.enumerateMatches(in: string, range: NSRange(string.startIndex..., in: string)) { result, _, stop in
             if let result = result,
@@ -39,7 +32,8 @@ public extension NSRegularExpression {
             }
         }
         if let err = err {
-            throw err
+            // rethrows workaround, using a compiler bug. this is always safe as err only exists if block throws
+            try { throw err }()
         }
     }
     
