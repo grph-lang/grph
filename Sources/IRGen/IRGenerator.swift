@@ -23,9 +23,17 @@ public class IRGenerator {
         builder = IRBuilder(module: Module(name: filename))
     }
     
-    public func build(from: [GRPHValues.Instruction]) throws {
+    public func build(from instructions: [GRPHValues.Instruction]) throws {
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
         builder.positionAtEnd(of: main.appendBasicBlock(named: "entry"))
+        
+        for inst in instructions {
+            if let inst = inst as? RepresentableInstruction {
+                try inst.build(generator: self)
+            } else {
+                throw GRPHCompileError(type: .unsupported, message: "Instruction of type \(type(of: inst)) is not supported in IRGen mode")
+            }
+        }
         
         builder.buildRet(IntType.int32.constant(0))
     }

@@ -73,11 +73,8 @@ public func != (lhs: GRPHType, rhs: GRPHType) -> Bool {
     lhs.string != rhs.string
 }
 
-public struct GRPHTypes {
+public enum GRPHTypes {
     static let plus = try! NSRegularExpression(pattern: "\\+")
-    
-    private init() {}
-    
 }
 
 public extension GRPHTypes {
