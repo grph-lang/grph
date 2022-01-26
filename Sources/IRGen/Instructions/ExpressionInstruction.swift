@@ -15,10 +15,6 @@ import GRPHValues
 
 extension ExpressionInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        if let expression = expression as? RepresentableExpression {
-            _ = try expression.build(generator: generator)
-        } else {
-            throw GRPHCompileError(type: .unsupported, message: "ExpressionInstruction of type \(type(of: expression)) is not supported in IRGen mode")
-        }
+        _ = try expression.tryBuilding(generator: generator)
     }
 }

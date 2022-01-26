@@ -17,3 +17,13 @@ import LLVM
 protocol RepresentableExpression: Expression {
     func build(generator: IRGenerator) throws -> IRValue
 }
+
+extension Expression {
+    func tryBuilding(generator: IRGenerator) throws -> IRValue {
+        if let expression = self as? RepresentableExpression {
+            return try expression.build(generator: generator)
+        } else {
+            throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
+        }
+    }
+}
