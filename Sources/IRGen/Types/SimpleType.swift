@@ -22,6 +22,7 @@ extension GRPHTypes {
     static let boolean = IntType.int1
     static let direction = IntType.int8
     static let stroke = IntType.int8
+    static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     static let void = VoidType()
 }
 
@@ -42,6 +43,8 @@ extension SimpleType {
             return GRPHTypes.direction
         case .stroke:
             return GRPHTypes.stroke
+        case .string:
+            return GRPHTypes.string
         case .void:
             return GRPHTypes.void
         default:

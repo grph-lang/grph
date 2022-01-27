@@ -30,7 +30,14 @@ extension ConstantExpression: RepresentableExpression {
             ])
         case let value as Rotation:
             return GRPHTypes.rotation.constant(Double(value.value))
-            // TODO stroke, direction, STRING
+        case let value as String:
+            let global = generator.builder.addGlobalString(name: "", value: value)
+            return GRPHTypes.string.constant(values: [
+                // immortal bit | size
+                IntType.int64.constant((1 << 63) | UInt64(value.utf8.count)),
+                generator.builder.buildBitCast(global, type: PointerType(pointee: IntType.int8))
+            ])
+            // TODO stroke, direction
         default:
             throw GRPHCompileError(type: .unsupported, message: "Unknown constant of type \(type(of: value))")
         }
