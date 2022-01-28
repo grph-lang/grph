@@ -19,7 +19,7 @@ struct GraphismCLI: ParsableCommand {
             commandName: "grph",
             abstract: "Run operations on GRPH code",
             version: RequiresInstruction.currentVersion(plugin: "GRPH")!.description,
-            subcommands: [RunCommand.self, HighlightCommand.self, CompileCommand.self, LegacyCommand.self],
+            subcommands: [RunCommand.self, HighlightCommand.self, CompileCommand.self, HeaderGenCommand.self, LegacyCommand.self],
             defaultSubcommand: LegacyCommand.self
         )
     }

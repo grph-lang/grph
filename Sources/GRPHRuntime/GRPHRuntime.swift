@@ -120,7 +120,7 @@ func printout(_ str: String, terminator: String = "\n") {
     print(str, terminator: terminator)
 }
 
-func printerr(_ str: String, terminator: String = "\n") {
+public func printerr(_ str: String, terminator: String = "\n") {
     guard let data = (str + terminator).data(using: .utf8) else { return }
     FileHandle.standardError.write(data)
 }

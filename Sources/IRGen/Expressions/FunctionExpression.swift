@@ -35,7 +35,7 @@ extension Parametrable {
     }
 }
 
-extension GRPHValues.Function {
+public extension GRPHValues.Function {
     var mangledName: String {
         switch storage {
         case .block(_):
