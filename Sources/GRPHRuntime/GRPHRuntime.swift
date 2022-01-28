@@ -103,6 +103,14 @@ public class GRPHRuntime {
         return false
     }
     
+    public func runAsREPL(_ block: () -> Void) {
+        timestamp = Date()
+        context = TopLevelRuntimeContext(runtime: self)
+        block()
+        image.destroy()
+        context = nil // break circular reference
+    }
+    
     func triggerAutorepaint() {
         if settings[current: .autoupdate] {
             image.willNeedRepaint()
