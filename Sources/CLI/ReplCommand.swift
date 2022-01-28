@@ -23,28 +23,24 @@ struct ReplCommand: ParsableCommand {
         CommandConfiguration(commandName: "repl", abstract: "Open the REPL prompt")
     }
     
-    // That way, the compiler will be deallocated when not needed anymore
-    func createRuntime() throws -> (GRPHGenerator, GRPHRuntime) {
-        let compiler = GRPHGenerator(lines: [])
-        
-        let runtime = GRPHRuntime(instructions: compiler.instructions, image: GImage(delegate: {}), argv: ["repl"])
-        runtime.localFunctions = compiler.imports.compactMap { $0 as? Function }.filter { $0.ns.isEqual(to: NameSpaces.none) }
-        
-        return (compiler, runtime)
-    }
-    
     func run() throws {
-        setbuf(stdout, nil)
+        let compiler = GRPHGenerator(lines: [])
+        let runtime = GRPHRuntime(instructions: compiler.instructions, image: GImage(delegate: {}), argv: ["repl"])
         
-        let (compiler, runtime) = try createRuntime()
         runtime.runAsREPL {
             interactive(compiler: compiler, runtime: runtime)
         }
     }
     
     func interactive(compiler: GRPHGenerator, runtime: GRPHRuntime) {
-        print(">>> ", terminator: "")
-        while let line = readLine() {
+        defer {
+            print()
+        }
+        while true {
+            print(">>> ", terminator: "")
+            guard let line = readLine() else {
+                return
+            }
             do {
                 guard let context = runtime.context else {
                     print("Error: No context")
@@ -65,8 +61,6 @@ struct ReplCommand: ParsableCommand {
             } catch {
                 print("Error: Unexpected error")
             }
-            print(">>> ", terminator: "")
         }
-        print()
     }
 }
