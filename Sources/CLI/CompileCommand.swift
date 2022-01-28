@@ -31,7 +31,7 @@ struct CompileCommand: ParsableCommand {
     var input: String
     
     @Option(name: [.customLong("emit")], help: "The output type")
-    var dest: CompileDestination = .check
+    var dest: CompileDestination?
     
     @Option(name: [.short, .long], help: "The output file")
     var output: String?
@@ -42,9 +42,16 @@ struct CompileCommand: ParsableCommand {
             if output != nil {
                 throw ValidationError("Emition type does not support output file")
             }
-        case .irgen, .ir, .bc, .assembly, .object, .executable:
+        case .ir, .bc, .assembly, .object, .executable:
             if output == nil {
-                throw ValidationError("Use -o filename to specify the output file")
+                output = dest!.defaultOutputFile(input: input)
+            }
+        case nil:
+            if let output = output {
+                dest = CompileDestination(outputFile: output) ?? .executable
+            } else {
+                dest = .executable
+                output = CompileDestination.executable.defaultOutputFile(input: "")
             }
         }
     }
@@ -98,10 +105,10 @@ struct CompileCommand: ParsableCommand {
         
         try irgen.module.verify()
         
-        switch dest {
+        switch dest! {
         case .ast, .wdiu, .check:
             preconditionFailure()
-        case .irgen, .ir:
+        case .ir:
             try irgen.module.print(to: output!)
         case .bc:
             try irgen.module.emitBitCode(to: output!)

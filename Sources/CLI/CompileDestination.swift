@@ -21,8 +21,6 @@ enum CompileDestination: String, CaseIterable, ExpressibleByArgument {
     /// Output nothing. Only check if compilation works. Runs lexing, token detection, generation, and optionally DocGen, then exits.
     case check
     
-    /// Output raw, freshly generated, LLVM IR. Runs all phases.
-    case irgen
     /// Output LLVM IR. Runs all phases.
     case ir
     /// Output LLVM bitcode. Runs all phases.
@@ -33,4 +31,45 @@ enum CompileDestination: String, CaseIterable, ExpressibleByArgument {
     case object
     /// Output an executable. Runs all phases. Links automatically with all needed libraries.
     case executable
+}
+
+extension CompileDestination {
+    
+    init?(outputFile: String) {
+        let ext = (outputFile as NSString).pathExtension
+        switch ext {
+        case "ll":
+            self = .ir
+        case "bc":
+            self = .bc
+        case "s", "asm":
+            self = .assembly
+        case "o", "obj":
+            self = .object
+        default:
+            return nil
+        }
+    }
+    
+    func defaultOutputFile(input: String) -> String {
+        let base = (input as NSString).deletingPathExtension
+        switch self {
+        case .ir:
+            return "\(base).ll"
+        case .bc:
+            return "\(base).bc"
+        case .assembly:
+            return "\(base).s"
+        case .object:
+            return "\(base).o"
+        case .executable:
+            #if os(Windows)
+            return "a.exe"
+            #else
+            return "a.out"
+            #endif
+        case .ast, .wdiu, .check:
+            preconditionFailure()
+        }
+    }
 }
