@@ -18,6 +18,10 @@ protocol RepresentableExpression: Expression {
     func build(generator: IRGenerator) throws -> IRValue
 }
 
+protocol RepresentableAssignableExpression: RepresentableExpression, AssignableExpression {
+    func getPointer(generator: IRGenerator) throws -> IRValue
+}
+
 extension Expression {
     func tryBuilding(generator: IRGenerator) throws -> IRValue {
         if let expression = self as? RepresentableExpression {
