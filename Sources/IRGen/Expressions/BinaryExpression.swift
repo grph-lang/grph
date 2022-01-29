@@ -47,19 +47,22 @@ extension BinaryExpression: RepresentableExpression {
             return generator.builder.buildDiv(left, right)
         case .modulo:
             return generator.builder.buildRem(left, right)
+        case .equal, .notEqual:
+            if left.type is IntType && right.type is IntType {
+                return generator.builder.buildICmp(left, right, op.icmpPredicate)
+            } else if left.type is FloatType && right.type is FloatType {
+                return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
+            }
             // TODO
+            fallthrough
         default:
             throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
-//        case .equal:
-//            <#code#>
-//        case .notEqual:
-//            <#code#>
-//        case .concat:
-//            <#code#>
-//        case .logicalAnd:
-//            <#code#>
-//        case .logicalOr:
-//            <#code#>
+            //        case .concat:
+            //            <#code#>
+            //        case .logicalAnd:
+            //            <#code#>
+            //        case .logicalOr:
+            //            <#code#>
         }
     }
 }

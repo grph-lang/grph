@@ -19,6 +19,12 @@ extension SimpleBlockInstruction: RepresentableInstruction {
         generator.builder.buildBr(newBlock)
         generator.builder.positionAtEnd(of: newBlock)
         
+        try buildChildren(generator: generator)
+    }
+}
+
+extension BlockInstruction {
+    func buildChildren(generator: IRGenerator) throws {
         generator.currentContext = VariableOwningIRContext(parent: generator.currentContext)
         defer {
             generator.currentContext = generator.currentContext?.parent
