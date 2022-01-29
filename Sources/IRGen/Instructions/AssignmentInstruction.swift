@@ -12,14 +12,43 @@
 
 import Foundation
 import GRPHValues
+import LLVM
 
 extension AssignmentInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
         if let assigned = assigned as? RepresentableAssignableExpression {
             let ptr = try assigned.getPointer(generator: generator)
+            if virtualized {
+                generator.currentContext = VirtualContext(parent: generator.currentContext, ptr: ptr)
+            }
+            defer {
+                if virtualized {
+                    generator.currentContext = generator.currentContext?.parent
+                }
+            }
             generator.builder.buildStore(try value.tryBuilding(generator: generator), to: ptr)
         } else {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: self)) is not supported in IRGen mode")
         }
+    }
+}
+
+/// In a `exp += 3` expression, the virtual context holds the pointer to `exp` so that the addition can reuse it.
+/// Not very useful for variables, but for complex lvalues, it is mandatory.
+class VirtualContext: IRContext {
+    var ptr: IRValue
+    
+    init(parent: IRContext?, ptr: IRValue) {
+        self.ptr = ptr
+        super.init(parent: parent)
+    }
+}
+
+extension AssignmentInstruction.VirtualExpression: RepresentableExpression {
+    func build(generator: IRGenerator) throws -> IRValue {
+        guard let ctx = generator.currentContext as? VirtualContext else {
+            preconditionFailure("VirtualExpression referenced outside of VirtualContext")
+        }
+        return generator.builder.buildLoad(ctx.ptr, type: try type.findLLVMType())
     }
 }

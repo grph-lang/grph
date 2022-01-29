@@ -105,6 +105,11 @@ struct CompileCommand: ParsableCommand {
         
         try irgen.module.verify()
         
+        // -Og, way too cool for us
+//        let optimizer = PassPipeliner(module: irgen.module)
+//        optimizer.addStandardModulePipeline("")
+//        optimizer.execute()
+        
         switch dest! {
         case .ast, .wdiu, .check:
             preconditionFailure()
