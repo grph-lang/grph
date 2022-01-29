@@ -16,3 +16,15 @@ import GRPHValues
 protocol RepresentableInstruction: Instruction {
     func build(generator: IRGenerator) throws
 }
+
+extension Array where Element == Instruction {
+    func buildAll(generator: IRGenerator) throws {
+        for inst in self {
+            if let inst = inst as? RepresentableInstruction {
+                try inst.build(generator: generator)
+            } else {
+                throw GRPHCompileError(type: .unsupported, message: "Instruction of type \(type(of: inst)) is not supported in IRGen mode")
+            }
+        }
+    }
+}

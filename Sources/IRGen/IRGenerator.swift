@@ -36,13 +36,7 @@ public class IRGenerator {
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
         builder.positionAtEnd(of: main.appendBasicBlock(named: "entry"))
         
-        for inst in instructions {
-            if let inst = inst as? RepresentableInstruction {
-                try inst.build(generator: self)
-            } else {
-                throw GRPHCompileError(type: .unsupported, message: "Instruction of type \(type(of: inst)) is not supported in IRGen mode")
-            }
-        }
+        try instructions.buildAll(generator: self)
         
         builder.buildRet(IntType.int32.constant(0))
         globalContext = nil

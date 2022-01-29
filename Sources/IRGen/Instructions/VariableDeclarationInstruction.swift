@@ -1,6 +1,6 @@
 //
 //  VariableDeclarationInstruction.swift
-//  GRPH
+//  GRPH IRGen
 // 
 //  Created by Emil Pedersen on 28/01/2022.
 //  Copyright © 2020 Snowy_1803. All rights reserved.
