@@ -32,6 +32,7 @@ extension ConstantExpression: RepresentableExpression {
             return GRPHTypes.rotation.constant(Double(value.value))
         case let value as String:
             let global = generator.builder.addGlobalString(name: "", value: value)
+            global.isGlobalConstant = true
             return GRPHTypes.string.constant(values: [
                 // immortal bit | size
                 IntType.int64.constant((1 << 63) | UInt64(value.utf8.count)),
