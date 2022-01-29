@@ -19,14 +19,8 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
         let initializer = try value.tryBuilding(generator: generator)
         let type = try type.findLLVMType()
         if global {
-            let glob: Global
-            if constant {
-                glob = generator.builder.addGlobal("_G4none\(name.count)\(name)", initializer: initializer)
-                glob.isGlobalConstant = true
-            } else {
-                glob = generator.builder.addGlobal("_G4none\(name.count)\(name)", initializer: type.undef())
-                generator.builder.buildStore(initializer, to: glob)
-            }
+            let glob = generator.builder.addGlobal("_G4none\(name.count)\(name)", initializer: type.undef())
+            generator.builder.buildStore(initializer, to: glob)
             generator.globalContext?.insert(variable: Variable(name: name, ref: .global(glob)))
         } else if constant {
             generator.currentContext?.insert(variable: Variable(name: name, ref: .value(initializer)))
