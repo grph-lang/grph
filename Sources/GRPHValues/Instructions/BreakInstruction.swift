@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct BreakInstruction: Instruction {
+public final class BreakInstruction: Instruction {
     public let lineNumber: Int
     public let type: BreakType
     public let scope: BreakScope
@@ -60,7 +60,7 @@ public struct BreakInstruction: Instruction {
     }
 }
 
-public struct ReturnInstruction: Instruction {
+public final class ReturnInstruction: Instruction {
     public let lineNumber: Int
     public var value: Expression? = nil
     

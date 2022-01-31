@@ -77,7 +77,7 @@ struct RunCommand: ParsableCommand {
             throw ExitCode.failure
         }
         
-        let runtime = GRPHRuntime(instructions: compiler.instructions, image: GImage(delegate: {}), argv: [input] + arguments)
+        let runtime = GRPHRuntime(instructions: compiler.rootBlock.children, image: GImage(delegate: {}), argv: [input] + arguments)
         runtime.localFunctions = compiler.imports.compactMap { $0 as? Function }.filter { $0.ns.isEqual(to: NameSpaces.none) }
         
         return (compiler, runtime)

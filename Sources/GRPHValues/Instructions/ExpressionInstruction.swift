@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct ExpressionInstruction: Instruction {
+public final class ExpressionInstruction: Instruction {
     public let lineNumber: Int
     public let expression: Expression
     

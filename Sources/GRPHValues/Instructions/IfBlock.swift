@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct IfBlock: BlockInstruction {
+public final class IfBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
@@ -29,7 +29,7 @@ public struct IfBlock: BlockInstruction {
     public var name: String { "if \(condition.string)" }
 }
 
-public struct ElseIfBlock: BlockInstruction {
+public final class ElseIfBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
@@ -47,7 +47,7 @@ public struct ElseIfBlock: BlockInstruction {
     public var name: String { "elseif \(condition.string)" }
 }
 
-public struct ElseBlock: BlockInstruction {
+public final class ElseBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?

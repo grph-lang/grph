@@ -101,7 +101,7 @@ struct CompileCommand: ParsableCommand {
         }
         
         let irgen = IRGenerator(filename: (input as NSString).lastPathComponent)
-        try irgen.build(from: compiler.instructions)
+        try irgen.build(from: compiler.rootBlock.children)
         
         try irgen.module.verify()
         

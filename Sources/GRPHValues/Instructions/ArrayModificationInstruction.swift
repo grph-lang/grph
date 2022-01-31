@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct ArrayModificationInstruction: Instruction {
+public final class ArrayModificationInstruction: Instruction {
     public let lineNumber: Int
     public let name: String
     public let op: ArrayModificationOperation
@@ -36,7 +36,7 @@ public struct ArrayModificationInstruction: Instruction {
         }
     }
     
-    public init(lineNumber: Int, context: CompilingContext, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
+    public convenience init(lineNumber: Int, context: CompilingContext, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
         
         if let index = index {
             guard try SimpleType.integer.isInstance(context: context, expression: index) else {

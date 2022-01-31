@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct WhileBlock: BlockInstruction {
+public final class WhileBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?

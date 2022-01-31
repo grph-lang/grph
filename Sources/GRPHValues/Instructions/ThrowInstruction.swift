@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct ThrowInstruction: Instruction {
+public final class ThrowInstruction: Instruction {
     public let lineNumber: Int
     public let type: GRPHRuntimeError.RuntimeExceptionType
     public let message: Expression

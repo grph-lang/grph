@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct RequiresInstruction: Instruction {
+public final class RequiresInstruction: Instruction {
     public let lineNumber: Int
     public let plugin: String
     public let version: Version

@@ -23,7 +23,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     public var lineNumber = 0
     
     var blockCount = 0
-    public var instructions: [Instruction] = []
+    public var rootBlock: TopLevelBlockInstruction
+    @available(*, deprecated, message: "Use rootBlock instead", renamed: "rootBlock.children")
+    public var instructions: [Instruction] { rootBlock.children }
     
     var nextLabel: Token?
     
@@ -37,6 +39,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     public init(lines: [Token]) {
         self.lines = lines
+        self.rootBlock = TopLevelBlockInstruction()
     }
     
     public func compile() -> Bool {
@@ -280,12 +283,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 let exs = split[1].split(whereSeparator: { $0.literal == "|" })
                 let trm = try findTryBlock()
                 let currblock = currentBlock
-                var tr: TryBlock
-                if let currblock = currblock {
-                    tr = currblock.children[currblock.children.count - trm] as! TryBlock
-                } else {
-                    tr = instructions[instructions.count - trm] as! TryBlock
-                }
+                let tr = currblock.children[currblock.children.count - trm] as! TryBlock
                 let block = try CatchBlock(lineNumber: lineNumber, compiler: self, varName: name)
                 
                 resolveSemanticToken(variable.withModifiers([.declaration, .definition, .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
@@ -307,11 +305,6 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     } else {
                         throw GRPHCompileError(type: .undeclared, message: "Error '\(error)' not found")
                     }
-                }
-                if let currblock = currblock {
-                    currentBlock!.children[currblock.children.count - trm] = tr
-                } else {
-                    instructions[instructions.count - trm] = tr
                 }
                 return ResolvedInstruction(instruction: block)
             case "#throw":
@@ -1070,13 +1063,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         for _ in 0..<amount {
             if let swi = currentBlock as? SwitchTransparentBlock {
                 blockCount -= 1
-                if blockCount > 0 {
-                    currentBlock!.children.removeLast() // remove the switch
-                    currentBlock!.children.append(contentsOf: swi.children) // add its content
-                } else {
-                    instructions.removeLast()
-                    instructions.append(contentsOf: swi.children)
-                }
+                currentBlock.children.removeLast() // remove the switch
+                currentBlock.children.append(contentsOf: swi.children) // add its content
                 context = (context as! SwitchCompilingContext).parent
             } else {
                 blockCount -= 1
@@ -1086,26 +1074,21 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     }
     
     func addBlock(_ instruction: BlockInstruction) throws {
-        var block = instruction
-        block.label = nextLabel?.description
+        instruction.label = nextLabel?.description
         nextLabel = nil
-        try addInstruction(block)
+        try addInstruction(instruction)
         blockCount += 1
     }
     
     func addInstruction(_ instruction: Instruction) throws {
         try context.accepts(instruction: instruction)
-        if blockCount == 0 {
-            instructions.append(instruction)
-        } else {
-            currentBlock!.children.append(instruction)
-        }
+        currentBlock.children.append(instruction)
     }
     
     public func dumpWDIU() {
         print("[WDIU START]")
         var builder = ""
-        for line in instructions {
+        for line in rootBlock.children {
             builder += line.toString(indent: "\t")
         }
         print(builder, terminator: "")
@@ -1116,15 +1099,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     private func findTryBlock(minus: Int = 1) throws -> Int {
         var last: Instruction? = nil
-        if blockCount > 0,
-           let block = currentBlock {
-            if block.children.count >= minus {
-                last = block.children[block.children.count - minus]
-            }
-        } else {
-            if instructions.count >= minus {
-                last = instructions[instructions.count - minus]
-            }
+        let block = currentBlock
+        if block.children.count >= minus {
+            last = block.children[block.children.count - minus]
         }
         if last is TryBlock {
             return minus
@@ -1134,44 +1111,20 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         throw GRPHCompileError(type: .parse, message: "#catch requires a #try block before")
     }
     
-    private var currentBlock: BlockInstruction? {
-        get {
-            lastBlock(in: instructions, max: blockCount)
-        }
-        set {
-            let succeeded = lastBlock(in: &instructions, max: blockCount, new: newValue!)
-            assert(succeeded)
-        }
+    private var currentBlock: BlockInstruction {
+        lastBlock(in: rootBlock, max: blockCount)!
     }
     
-    private func lastBlock(in arr: [Instruction], max: Int) -> BlockInstruction? {
+    private func lastBlock(in block: BlockInstruction, max: Int) -> BlockInstruction? {
         if max == 0 {
-            return nil
-        } else if let curr = arr.last as? BlockInstruction {
+            return block
+        } else if let curr = block.children.last as? BlockInstruction {
             if max == 1 {
                 return curr
             }
-            return lastBlock(in: curr.children, max: max - 1) ?? curr
+            return lastBlock(in: curr, max: max - 1) ?? curr
         } else {
             return nil
-        }
-    }
-    
-    private func lastBlock(in arr: inout [Instruction], max: Int, new: BlockInstruction) -> Bool {
-        if max == 1 {
-            arr[arr.count - 1] = new
-            return true
-        }
-        if var copy = arr.last as? BlockInstruction {
-            if lastBlock(in: &copy.children, max: max - 1, new: new) {
-                arr[arr.count - 1] = copy
-                return true
-            } else {
-                arr = new.children
-                return true
-            }
-        } else {
-            return false
         }
     }
     

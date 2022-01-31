@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct VariableDeclarationInstruction: Instruction {
+public final class VariableDeclarationInstruction: Instruction {
     public static let varNameRequirement = try! NSRegularExpression(pattern: "^[$A-Za-z_][A-Za-z0-9_]*$")
     
     public let global, constant: Bool
@@ -31,7 +31,7 @@ public struct VariableDeclarationInstruction: Instruction {
         self.value = value
     }
     
-    public init(lineNumber: Int, context: CompilingContext, global: Bool, constant: Bool, typeOrAuto: GRPHType?, name: String, exp: Expression) throws {
+    public convenience init(lineNumber: Int, context: CompilingContext, global: Bool, constant: Bool, typeOrAuto: GRPHType?, name: String, exp: Expression) throws {
         guard context.findVariableInScope(named: name) == nil else {
             throw GRPHCompileError(type: .redeclaration, message: "Invalid redeclaration of variable '\(name)'")
         }

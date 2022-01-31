@@ -25,7 +25,7 @@ struct ReplCommand: ParsableCommand {
     
     func run() throws {
         let compiler = GRPHGenerator(lines: [])
-        let runtime = GRPHRuntime(instructions: compiler.instructions, image: GImage(delegate: {}), argv: ["repl"])
+        let runtime = GRPHRuntime(instructions: compiler.rootBlock.children, image: GImage(delegate: {}), argv: ["repl"])
         
         runtime.runAsREPL {
             interactive(compiler: compiler, runtime: runtime)

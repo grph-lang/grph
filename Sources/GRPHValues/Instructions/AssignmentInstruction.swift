@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct AssignmentInstruction: Instruction {
+public final class AssignmentInstruction: Instruction {
     public let lineNumber: Int
     public let assigned: AssignableExpression
     public let value: Expression

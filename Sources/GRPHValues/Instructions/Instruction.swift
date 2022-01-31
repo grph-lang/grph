@@ -11,7 +11,7 @@
 
 import Foundation
 
-public protocol Instruction {
+public protocol Instruction: AnyObject {
     var lineNumber: Int { get }
     
     /// Must end with a newline

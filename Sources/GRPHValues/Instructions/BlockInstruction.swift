@@ -40,7 +40,7 @@ public extension BlockInstruction {
     }
 }
 
-public struct SimpleBlockInstruction: BlockInstruction {
+public final class SimpleBlockInstruction: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
@@ -49,6 +49,16 @@ public struct SimpleBlockInstruction: BlockInstruction {
         self.lineNumber = lineNumber
         createContext(&compiler.context)
     }
+    
+    public var name: String { "block" }
+}
+
+public final class TopLevelBlockInstruction: BlockInstruction {
+    public let lineNumber = 0
+    public var children: [Instruction] = []
+    public var label: String?
+    
+    public init() {}
     
     public var name: String { "block" }
 }

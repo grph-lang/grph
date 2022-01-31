@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct TryBlock: BlockInstruction {
+public final class TryBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?

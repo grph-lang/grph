@@ -11,8 +11,7 @@
 
 import Foundation
 
-// Reference type required because it is referenced in the corresponding #try block
-public class CatchBlock: BlockInstruction {
+public final class CatchBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?

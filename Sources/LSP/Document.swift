@@ -69,7 +69,7 @@ struct TokenizedDocument {
             let gen = GRPHGenerator(lines: lexed)
             gen.resolvedSemanticTokens = []
             successful = gen.compile()
-            instructions = gen.instructions
+            instructions = gen.rootBlock.children
             imports = gen.imports
             diagnostics.append(contentsOf: gen.diagnostics)
             

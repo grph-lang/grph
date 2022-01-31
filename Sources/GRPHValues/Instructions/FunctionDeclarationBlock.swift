@@ -11,7 +11,7 @@
 
 import Foundation
 
-public class FunctionDeclarationBlock: BlockInstruction {
+public final class FunctionDeclarationBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?

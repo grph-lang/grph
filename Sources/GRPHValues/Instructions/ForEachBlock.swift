@@ -11,7 +11,7 @@
 
 import Foundation
 
-public struct ForEachBlock: BlockInstruction {
+public final class ForEachBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
@@ -35,7 +35,7 @@ public struct ForEachBlock: BlockInstruction {
         ctx.variables.append(Variable(name: self.varName, type: arrtype.content, final: !inOut, compileTime: true))
     }
     
-    public init(lineNumber: Int, compiler: GRPHCompilerProtocol, varName: String, array: Expression) throws {
+    public convenience init(lineNumber: Int, compiler: GRPHCompilerProtocol, varName: String, array: Expression) throws {
         let inOut = varName.hasPrefix("&") // new in Swift Edition
         let name = inOut ? String(varName.dropFirst()) : varName
         
