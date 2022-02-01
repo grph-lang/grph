@@ -22,7 +22,7 @@ public protocol BlockInstruction: Instruction {
 }
 
 public extension BlockInstruction {
-    func toString(indent: String) -> String {
+    internal func defaultStringForBlock(indent: String) -> String {
         var builder = "\(line):\(indent)#\(name)\n"
         if let label = label {
             builder = "\(line - 1):\(indent)::\(label)\n\(builder)"
@@ -31,6 +31,10 @@ public extension BlockInstruction {
             builder += child.toString(indent: "\(indent)\t")
         }
         return builder
+    }
+    
+    func toString(indent: String) -> String {
+        return defaultStringForBlock(indent: indent)
     }
     
     @discardableResult func createContext(_ context: inout CompilingContext) -> BlockCompilingContext {

@@ -101,7 +101,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/emil/Documents/runtime-EclipseApplication/GRPHTest/test.grph"
+            argument = "/Users/emil/Documents/runtime-EclipseApplication/GRPHTest/deadsimple/1-print.grph"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

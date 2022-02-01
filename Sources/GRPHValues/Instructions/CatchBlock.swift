@@ -41,3 +41,13 @@ public final class CatchBlock: BlockInstruction {
     
     public var name: String { "catch \(varName) : \(def)" }
 }
+
+extension CatchBlock: Hashable {
+    public static func == (lhs: CatchBlock, rhs: CatchBlock) -> Bool {
+        lhs === rhs
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+}

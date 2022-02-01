@@ -22,7 +22,11 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     public var lineNumber = 0
     
-    var blockCount = 0
+    private var blockpath: [BlockInstruction]
+    private var currentBlock: BlockInstruction {
+        blockpath.last ?? rootBlock
+    }
+    
     public var rootBlock: TopLevelBlockInstruction
     @available(*, deprecated, message: "Use rootBlock instead", renamed: "rootBlock.children")
     public var instructions: [Instruction] { rootBlock.children }
@@ -40,6 +44,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     public init(lines: [Token]) {
         self.lines = lines
         self.rootBlock = TopLevelBlockInstruction()
+        self.blockpath = []
     }
     
     public func compile() -> Bool {
@@ -60,7 +65,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if let resolved = try resolveInstruction(children: trimmed) {
                     if !resolved.notABlock,
                        let block = resolved.instruction as? BlockInstruction {
-                        try addBlock(block)
+                        try addBlock(block, alreadyAdded: resolved.attachedToPrevious)
                     } else if let nextLabel = nextLabel {
                         throw DiagnosticCompileError(notice: Notice(token: nextLabel, severity: .error, source: .generator, message: "Labels must precede a block"))
                     } else {
@@ -93,6 +98,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             }
         }
         closeBlocks(tabs: 0)
+        assert(context is TopLevelCompilingContext)
         context = nil
         return !diagnostics.contains(where: { $0.severity == .error })
     }
@@ -281,19 +287,22 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 let variable = Token(compound: split[0], type: .variable)
                 let name = variable.description
                 let exs = split[1].split(whereSeparator: { $0.literal == "|" })
-                let trm = try findTryBlock()
                 let currblock = currentBlock
-                let tr = currblock.children[currblock.children.count - trm] as! TryBlock
+                guard let tr = currblock.children.last as? TryBlock else {
+                    throw GRPHCompileError(type: .parse, message: "#catch requires a #try block before it")
+                }
                 let block = try CatchBlock(lineNumber: lineNumber, compiler: self, varName: name)
                 
                 resolveSemanticToken(variable.withModifiers([.declaration, .definition, .readonly], data: (context as? BlockCompilingContext)?.variables.first(where: { $0.name ==  variable.description }).map({ SemanticToken.AssociatedData.variable($0)})))
                 
+                var success = false
                 for rawErr in exs {
                     let terror = Token(compound: Array(rawErr), type: .type)
                     let error = terror.description
                     resolveSemanticToken(terror.withModifiers(.defaultLibrary))
                     if error == "Exception" {
                         tr.catches[nil] = block
+                        success = true
                         block.addError(type: "Exception")
                     } else if error.hasSuffix("Exception"),
                               let err = GRPHRuntimeError.RuntimeExceptionType(rawValue: String(error.dropLast(9))) {
@@ -301,12 +310,17 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                             continue
                         }
                         tr.catches[err] = block
+                        success = true
                         block.addError(type: "\(err.rawValue)Exception")
                     } else {
                         throw GRPHCompileError(type: .undeclared, message: "Error '\(error)' not found")
                     }
                 }
-                return ResolvedInstruction(instruction: block)
+                if !success {
+                    diagnostics.append(Notice(token: cmd, severity: .warning, source: .generator, message: "#catch block does not catch any exceptions"))
+                    // #catch block will disappear into the void
+                }
+                return ResolvedInstruction(instruction: block, attachedToPrevious: true)
             case "#throw":
                 guard TokenMatcher(types: .commandName, .identifier, .parentheses).matches(tokens: tokens) else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Could not resolve throw syntax, '#throw errorType(message)' expected"))
@@ -373,7 +387,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 resolveSemanticToken(tokens[1].withType(.keyword).withModifiers([]))
                 let requires = RequiresInstruction(lineNumber: lineNumber, plugin: String(tokens[1].literal), version: version)
-                if blockCount == 0 {
+                if blockpath.count == 0 {
                     try requires.run(context: context)
                     return nil
                 } else {
@@ -395,7 +409,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 let type = try exp.getType(context: context, infer: SimpleType.mixed)
                 // We declare our variable
                 try addInstruction(VariableDeclarationInstruction(lineNumber: lineNumber, global: false, constant: true, type: type, name: name, value: exp))
-                try addBlock(SwitchTransparentBlock(lineNumber: lineNumber))
+                try addBlock(SwitchTransparentBlock(lineNumber: lineNumber), alreadyAdded: false)
                 // We create our context, denying non-#case/#default and advertising our var name
                 context = SwitchCompilingContext(parent: context, compare: VariableExpression(name: name))
                 // We advertise our var with its type, so type checks in #case works
@@ -1052,32 +1066,34 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     }
     
     func closeBlocks(tabs: Int) {
-        let amount = blockCount - tabs
+        let amount = blockpath.count - tabs
         guard amount != 0 else {
             return
         }
         guard amount > 0 else {
-            diagnostics.append(Notice(token: lines[lineNumber].children[0], severity: .warning, source: .generator, message: "Unexpected indent, \(blockCount) indents or less were expected, but \(tabs) were found", hint: "You can use `#compiler indent n*spaces` to change the amount of indentation to use"))
+            diagnostics.append(Notice(token: lines[lineNumber].children[0], severity: .warning, source: .generator, message: "Unexpected indent, \(blockpath.count) indents or less were expected, but \(tabs) were found", hint: "You can use `#compiler indent n*spaces` to change the amount of indentation to use"))
             return
         }
         for _ in 0..<amount {
             if let swi = currentBlock as? SwitchTransparentBlock {
-                blockCount -= 1
+                blockpath.removeLast()
                 currentBlock.children.removeLast() // remove the switch
                 currentBlock.children.append(contentsOf: swi.children) // add its content
                 context = (context as! SwitchCompilingContext).parent
             } else {
-                blockCount -= 1
+                blockpath.removeLast()
                 context = (context as! BlockCompilingContext).parent
             }
         }
     }
     
-    func addBlock(_ instruction: BlockInstruction) throws {
+    func addBlock(_ instruction: BlockInstruction, alreadyAdded: Bool) throws {
         instruction.label = nextLabel?.description
         nextLabel = nil
-        try addInstruction(instruction)
-        blockCount += 1
+        if !alreadyAdded {
+            try addInstruction(instruction)
+        }
+        blockpath.append(instruction)
     }
     
     func addInstruction(_ instruction: Instruction) throws {
@@ -1095,43 +1111,12 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         print("[WDIU END]")
     }
     
-    // Those come from GRPHCompiler — ugly & dirty
-    
-    private func findTryBlock(minus: Int = 1) throws -> Int {
-        var last: Instruction? = nil
-        let block = currentBlock
-        if block.children.count >= minus {
-            last = block.children[block.children.count - minus]
-        }
-        if last is TryBlock {
-            return minus
-        } else if last is CatchBlock {
-            return try findTryBlock(minus: minus + 1)
-        }
-        throw GRPHCompileError(type: .parse, message: "#catch requires a #try block before")
-    }
-    
-    private var currentBlock: BlockInstruction {
-        lastBlock(in: rootBlock, max: blockCount)!
-    }
-    
-    private func lastBlock(in block: BlockInstruction, max: Int) -> BlockInstruction? {
-        if max == 0 {
-            return block
-        } else if let curr = block.children.last as? BlockInstruction {
-            if max == 1 {
-                return curr
-            }
-            return lastBlock(in: curr, max: max - 1) ?? curr
-        } else {
-            return nil
-        }
-    }
-    
     struct ResolvedInstruction {
         var instruction: Instruction
         // only true for inline function definitions
         var notABlock = false
+        // true for #catch blocks, that are attached to their #try and shouldn't be added in the main hierarchy
+        var attachedToPrevious = false
     }
 }
 

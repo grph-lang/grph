@@ -23,4 +23,12 @@ public final class TryBlock: BlockInstruction {
     }
     
     public var name: String { "try" }
+    
+    public func toString(indent: String) -> String {
+        var builder = defaultStringForBlock(indent: indent)
+        for block in Set(catches.values) {
+            builder += block.toString(indent: indent)
+        }
+        return builder
+    }
 }

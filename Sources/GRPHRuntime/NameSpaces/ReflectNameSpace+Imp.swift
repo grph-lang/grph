@@ -45,15 +45,15 @@ extension ReflectNameSpace: ImplementedNameSpace {
                 throw GRPHRuntimeError(type: .invalidArgument, message: "First argument must be a string or a funcref")
             }
             
-            let params = try f.labelled(values: params.dropFirst(2 - (params.count & 1)).map { $0! })
+            let pars = try f.labelled(values: params.dropFirst(2 - (params.count & 1)).map { $0! })
             
             let queue = DispatchQueue(label: "GRPH-Async")
             queue.async {
                 do {
                     if let funcref = params[0] as? FuncRef {
-                        _ = try funcref.execute(context: context, params: params)
+                        _ = try funcref.execute(context: context, params: pars)
                     } else {
-                        _ = try (f as! Function).execute(context: context, arguments: params)
+                        _ = try (f as! Function).execute(context: context, arguments: pars)
                     }
                 } catch let e as GRPHRuntimeError {
                     context.runtime.image.destroy()
