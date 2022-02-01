@@ -10,8 +10,8 @@ The CLI has been tested and works on macOS, Linux and Windows, and depends on Sw
 The LSP server works on macOS and Linux. The LSP Bindings for Swift, sourcekit-lsp, doesn't currently support Windows.
 
 ## Modules
-- GRPHLexer: First phase of the compiler, transforms source code to an AST
-- GRPHGenerator: Second phase of the compiler, transforms the AST to Instructions
+- GRPHLexer: First phase of the compiler, transforms source code to a concrete syntax tree (lexed tokens)
+- GRPHGenerator: Second phase of the compiler, transforms the CST to an AST (Instructions & Expressions)
 - GRPHValues: Common types used in GRPH: contains instructions, expressions, namespaces, functions, methods, types, properties, variables, value types, shapes, etc.
 - GRPHRuntime: The runtime, implementing the standard library in Swift, and an interpreted runtime
 - DocGen: The documentation generator, linking symbols to their doc comments. Also parses doc comment keywords and emits deprecation & invalid doc comment warnings

@@ -263,7 +263,7 @@ class GRPHServer: MessageHandler {
     }
     
     /// Used for outline and breadcrumbs: Return an outline, as a tree
-    /// Our AST doesn't use indentation to make trees
+    /// Our CST doesn't use indentation to make trees
     /// Our I&E, however, can be used to populate this
     func outline(_ request: Request<DocumentSymbolRequest>) {
         guard let tokenized = ensureDocTokenized(request: request) else {
@@ -354,7 +354,7 @@ class GRPHServer: MessageHandler {
         request.reply(.success(result))
     }
     
-     // recursively search the parentheses in the AST
+     // recursively search the parentheses in the CST
     func searchParentheses(at index: inout String.Index, in token: Token) -> Token? {
         if index == token.lineOffset {
             if token.tokenType == .parentheses {

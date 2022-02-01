@@ -47,11 +47,11 @@ extension SemanticToken.Modifiers {
 }
 
 extension Token {
-    /// Converts a line of the AST to a flat array of LSP tokens.
+    /// Converts a line of the CST to a flat array of LSP tokens.
     /// - Parameters:
     ///   - semanticTokens: an array of semantic tokens **on the current line**
     ///   - fallback: the fallback token type. should be nil if self is a .line. Only used for recurisively know of the parent type, if the current token has no format.
-    /// - Returns: A flat array of  LSP tokens, out of this AST line.
+    /// - Returns: A flat array of  LSP tokens, out of this CST line.
     func flattenedComplete(semanticTokens: [SemanticToken] = [], fallback: LSPSemanticTokenType? = nil) -> [LSPToken] {
         // matches are either exact same, or bigger
         if let match = semanticTokens.last(where: { sem in

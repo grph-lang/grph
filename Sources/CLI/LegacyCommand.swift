@@ -34,7 +34,7 @@ struct LegacyCommand: ParsableCommand {
           help: "Only compiles the code and checks for compile errors, without running it")
     var onlyCheck: Bool = false
     
-    @Flag(help: "Dumps AST and exits. No other compiling phase will be run.")
+    @Flag(help: "Dumps CST and exits. No other compiling phase will be run.")
     var dumpAst: Bool = false
     
     @Flag(name: [.long],
@@ -69,10 +69,10 @@ struct LegacyCommand: ParsableCommand {
             wdiu = true
         }
         if dumpAst && highlight {
-            throw ValidationError("Incompatible options given, cannot highlight and dump AST")
+            throw ValidationError("Incompatible options given, cannot highlight and dump CST")
         }
         if (dumpAst || highlight) && wdiu {
-            throw ValidationError("Incompatible options given, cannot dump WDIU while dumping the AST")
+            throw ValidationError("Incompatible options given, cannot dump WDIU while dumping the CST")
         }
         if (onlyCheck || dumpAst || highlight) && (debug || step != nil) {
             throw ValidationError("Incompatible options given, cannot have debug options when running is disabled")

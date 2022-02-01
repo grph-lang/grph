@@ -14,9 +14,9 @@ import Foundation
 import ArgumentParser
 
 enum CompileDestination: String, CaseIterable, ExpressibleByArgument {
-    /// Output AST. Runs Lexing and Token Detection, then exits.
-    case ast
-    /// Output WDIU/INE. Runs lexing, token detection, generation, and optionally DocGen, then exits.
+    /// Output parsed tokens (CST). Runs Lexing and Token Detection, then exits.
+    case parse
+    /// Output WDIU (I&E/AST as code). Runs lexing, token detection, generation, and optionally DocGen, then exits.
     case wdiu
     /// Output nothing. Only check if compilation works. Runs lexing, token detection, generation, and optionally DocGen, then exits.
     case check
@@ -68,7 +68,7 @@ extension CompileDestination {
             #else
             return "a.out"
             #endif
-        case .ast, .wdiu, .check:
+        case .parse, .wdiu, .check:
             preconditionFailure()
         }
     }

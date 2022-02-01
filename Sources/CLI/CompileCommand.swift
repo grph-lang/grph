@@ -38,7 +38,7 @@ struct CompileCommand: ParsableCommand {
     
     mutating func validate() throws {
         switch dest {
-        case .ast, .wdiu, .check:
+        case .parse, .wdiu, .check:
             if output != nil {
                 throw ValidationError("Emition type does not support output file")
             }
@@ -67,7 +67,7 @@ struct CompileCommand: ParsableCommand {
             throw ExitCode.failure
         }
         
-        if dest == .ast {
+        if dest == .parse {
             print(lines.map { $0.dumpAST() }.joined(separator: "\n"))
             return
         }
@@ -111,7 +111,7 @@ struct CompileCommand: ParsableCommand {
 //        optimizer.execute()
         
         switch dest! {
-        case .ast, .wdiu, .check:
+        case .parse, .wdiu, .check:
             preconditionFailure()
         case .ir:
             try irgen.module.print(to: output!)
