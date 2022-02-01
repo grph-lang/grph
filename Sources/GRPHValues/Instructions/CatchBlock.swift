@@ -40,6 +40,14 @@ public final class CatchBlock: BlockInstruction {
     }
     
     public var name: String { "catch \(varName) : \(def)" }
+    
+    public var astNodeData: String {
+        "catch exceptions of type \(def) into variable \(varName)"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [astBlockChildren]
+    }
 }
 
 extension CatchBlock: Hashable {

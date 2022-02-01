@@ -11,7 +11,7 @@
 
 import Foundation
 
-public protocol Instruction: AnyObject {
+public protocol Instruction: AnyObject, ASTNode {
     var lineNumber: Int { get }
     
     /// Must end with a newline

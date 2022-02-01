@@ -36,3 +36,15 @@ public struct ArrayValueExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension ArrayValueExpression {
+    var astNodeData: String {
+        "access an element of array '\(varName)'\(removing ? " and remove it" : "")"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "index", value: index.map { [$0] } ?? [])
+        ]
+    }
+}

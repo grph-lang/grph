@@ -64,3 +64,24 @@ public final class AssignmentInstruction: Instruction {
 public protocol AssignableExpression: Expression {
     func checkCanAssign(context: CompilingContext) throws
 }
+
+public extension AssignmentInstruction.VirtualExpression {
+    var astNodeData: String {
+        "virtual expression of type \(type)"
+    }
+    
+    var astChildren: [ASTElement] { [] }
+}
+
+public extension AssignmentInstruction {
+    var astNodeData: String {
+        "assign a value to another"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "lvalue", value: [assigned]),
+            ASTElement(name: "rvalue", value: [value]),
+        ]
+    }
+}

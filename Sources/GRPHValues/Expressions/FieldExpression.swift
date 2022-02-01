@@ -39,6 +39,18 @@ extension FieldExpression: AssignableExpression {
     }
 }
 
+public extension FieldExpression {
+    var astNodeData: String {
+        "retrieve field \(field.name) of type \(field.type)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "value", value: [on])
+        ]
+    }
+}
+
 public struct ConstantPropertyExpression: Expression {
     public let property: TypeConstant
     public let inType: GRPHType
@@ -57,6 +69,14 @@ public struct ConstantPropertyExpression: Expression {
     }
     
     public var needsBrackets: Bool { false }
+}
+
+public extension ConstantPropertyExpression {
+    var astNodeData: String {
+        "retrieve static property \(property.name) in type \(inType)"
+    }
+    
+    var astChildren: [ASTElement] { [] }
 }
 
 // These could return types directly in a future version
@@ -79,6 +99,16 @@ public struct ValueTypeExpression: Expression {
     public var needsBrackets: Bool { false }
 }
 
+public extension ValueTypeExpression {
+    var astNodeData: String {
+        "retrieve string describing the type of the given value"
+    }
+    
+    var astChildren: [ASTElement] {
+        [ASTElement(name: "value", value: [on])]
+    }
+}
+
 public struct TypeValueExpression: Expression {
     public let type: GRPHType
     
@@ -95,4 +125,12 @@ public struct TypeValueExpression: Expression {
     }
     
     public var needsBrackets: Bool { false }
+}
+
+public extension TypeValueExpression {
+    var astNodeData: String {
+        "retrieve type \(type) as string"
+    }
+    
+    var astChildren: [ASTElement] { [] }
 }

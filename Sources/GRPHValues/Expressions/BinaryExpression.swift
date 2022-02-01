@@ -122,6 +122,19 @@ public struct BinaryExpression: Expression {
     public var needsBrackets: Bool { true }
 }
 
+public extension BinaryExpression {
+    var astNodeData: String {
+        "application of operator '\(op.string)' between two \(operands)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "lhs", value: [left]),
+            ASTElement(name: "rhs", value: [right]),
+        ]
+    }
+}
+
 public enum BinaryOperator: String {
     case logicalAnd = "&&"
     case logicalOr = "||"

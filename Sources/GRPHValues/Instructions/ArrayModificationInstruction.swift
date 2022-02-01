@@ -68,3 +68,23 @@ public final class ArrayModificationInstruction: Instruction {
         case remove = "-"
     }
 }
+
+public extension ArrayModificationInstruction {
+    var astNodeData: String {
+        switch op {
+        case .set:
+            return "add element to array \(name)"
+        case .add:
+            return "modify element in array \(name)"
+        case .remove:
+            return "remove element from array \(name)"
+        }
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "index", value: index.map { [$0] } ?? []),
+            ASTElement(name: "value", value: value.map { [$0] } ?? []),
+        ]
+    }
+}

@@ -64,6 +64,12 @@ public final class RequiresInstruction: Instruction {
             return nil
         }
     }
+    
+    public var astNodeData: String {
+        "throw if \(plugin) version \(version) isn't available"
+    }
+    
+    public var astChildren: [ASTElement] { [] }
 }
 
 public struct Version: Comparable {

@@ -61,4 +61,16 @@ public final class FunctionDeclarationBlock: BlockInstruction {
         }
         return str
     }
+    
+    public var astNodeData: String {
+        "declare function \(generated.signature)"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "defaultValues", value: defaults.compactMap({ $0 })),
+            ASTElement(name: "defaultReturnValue", value: returnDefault.map { [$0] } ?? []),
+            astBlockChildren
+        ]
+    }
 }

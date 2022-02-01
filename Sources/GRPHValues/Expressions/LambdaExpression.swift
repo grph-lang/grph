@@ -32,3 +32,15 @@ public struct LambdaExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension LambdaExpression {
+    var astNodeData: String {
+        "lambda of type \(lambda.currentType) (capturing \(capturedVarNames.joined(separator: ", ")))"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            // TODO: ASTElement(name: "value", value: [lambda.instruction])
+        ]
+    }
+}

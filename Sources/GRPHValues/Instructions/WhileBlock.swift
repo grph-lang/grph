@@ -15,6 +15,7 @@ public final class WhileBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
+    
     public let condition: Expression
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
@@ -27,4 +28,15 @@ public final class WhileBlock: BlockInstruction {
     }
     
     public var name: String { "while \(condition.string)" }
+    
+    public var astNodeData: String {
+        "while block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "condition", value: [condition]),
+            astBlockChildren
+        ]
+    }
 }

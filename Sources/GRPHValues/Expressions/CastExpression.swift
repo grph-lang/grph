@@ -37,6 +37,29 @@ public struct CastExpression: Expression {
     public var needsBrackets: Bool { true }
 }
 
+public extension CastExpression {
+    var astNodeData: String {
+        switch cast {
+        case .typeCheck:
+            return "check if of type \(to)"
+        case .conversion(true):
+            return "optional conversion to \(to)"
+        case .conversion(false):
+            return "throwing conversion to \(to)"
+        case .strict(true):
+            return "optional downcast to \(to)"
+        case .strict(false):
+            return "throwing downcast to \(to)"
+        }
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "value", value: [from])
+        ]
+    }
+}
+
 public enum CastType {
     case typeCheck
     case conversion(optional: Bool)

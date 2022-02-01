@@ -15,6 +15,7 @@ public final class IfBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
+    
     public let condition: Expression
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
@@ -27,12 +28,24 @@ public final class IfBlock: BlockInstruction {
     }
     
     public var name: String { "if \(condition.string)" }
+    
+    public var astNodeData: String {
+        "if block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "condition", value: [condition]),
+            astBlockChildren
+        ]
+    }
 }
 
 public final class ElseIfBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
+    
     public let condition: Expression
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
@@ -45,6 +58,17 @@ public final class ElseIfBlock: BlockInstruction {
     }
     
     public var name: String { "elseif \(condition.string)" }
+    
+    public var astNodeData: String {
+        "elseif block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "condition", value: [condition]),
+            astBlockChildren
+        ]
+    }
 }
 
 public final class ElseBlock: BlockInstruction {
@@ -58,4 +82,12 @@ public final class ElseBlock: BlockInstruction {
     }
     
     public var name: String { "else" }
+    
+    public var astNodeData: String {
+        "else block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [astBlockChildren]
+    }
 }

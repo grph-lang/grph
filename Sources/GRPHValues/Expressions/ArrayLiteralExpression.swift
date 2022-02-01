@@ -42,3 +42,15 @@ public struct ArrayLiteralExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension ArrayLiteralExpression {
+    var astNodeData: String {
+        wrapped.inArray.string
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "elements", value: values)
+        ]
+    }
+}

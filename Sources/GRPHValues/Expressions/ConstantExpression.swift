@@ -54,3 +54,11 @@ public struct ConstantExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension ConstantExpression {
+    var astNodeData: String {
+        "\(value.type) literal: \(string)"
+    }
+    
+    var astChildren: [ASTElement] { [] }
+}

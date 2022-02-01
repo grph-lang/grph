@@ -11,7 +11,7 @@
 
 import Foundation
 
-public protocol Expression: CustomStringConvertible {
+public protocol Expression: CustomStringConvertible, ASTNode {
     
     func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType
     

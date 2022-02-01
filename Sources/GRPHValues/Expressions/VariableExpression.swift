@@ -38,3 +38,11 @@ extension VariableExpression: AssignableExpression {
         }
     }
 }
+
+public extension VariableExpression {
+    var astNodeData: String {
+        "retrieve variable \(name)"
+    }
+    
+    var astChildren: [ASTElement] { [] }
+}

@@ -62,3 +62,11 @@ public struct FunctionReferenceExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension FunctionReferenceExpression {
+    var astNodeData: String {
+        "retrieve \(inferredType) for function \(function.signature)"
+    }
+    
+    var astChildren: [ASTElement] { [] }
+}

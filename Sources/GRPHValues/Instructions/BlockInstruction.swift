@@ -42,6 +42,10 @@ public extension BlockInstruction {
         context = ctx
         return ctx
     }
+    
+    var astBlockChildren: ASTElement {
+        ASTElement(name: "children", value: children)
+    }
 }
 
 public final class SimpleBlockInstruction: BlockInstruction {
@@ -55,6 +59,14 @@ public final class SimpleBlockInstruction: BlockInstruction {
     }
     
     public var name: String { "block" }
+    
+    public var astNodeData: String {
+        "simple block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [astBlockChildren]
+    }
 }
 
 public final class TopLevelBlockInstruction: BlockInstruction {
@@ -65,4 +77,12 @@ public final class TopLevelBlockInstruction: BlockInstruction {
     public init() {}
     
     public var name: String { "block" }
+    
+    public var astNodeData: String {
+        "root block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [astBlockChildren]
+    }
 }

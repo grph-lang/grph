@@ -50,3 +50,15 @@ public struct FuncRefCallExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension FuncRefCallExpression {
+    var astNodeData: String {
+        "invocation of funcref \(varName)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "arguments", value: values.compactMap({ $0 }))
+        ]
+    }
+}

@@ -39,3 +39,15 @@ public struct ConstructorExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension ConstructorExpression {
+    var astNodeData: String {
+        "invocation of \(constructor.signature)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "arguments", value: values.compactMap({ $0 }))
+        ]
+    }
+}

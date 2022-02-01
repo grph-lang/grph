@@ -47,4 +47,15 @@ public final class ForEachBlock: BlockInstruction {
     }
     
     public var name: String { "foreach \(inOut ? "&" : "")\(varName) : \(array.string)" }
+    
+    public var astNodeData: String {
+        "iterate on array, storing the element in variable \(varName)\(inOut ? " as inout" : "")"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "array", value: [array]),
+            astBlockChildren
+        ]
+    }
 }

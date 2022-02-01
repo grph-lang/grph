@@ -26,3 +26,11 @@ public struct NullExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension NullExpression {
+    var astNodeData: String {
+        "null literal"
+    }
+    
+    var astChildren: [ASTElement] { [] }
+}

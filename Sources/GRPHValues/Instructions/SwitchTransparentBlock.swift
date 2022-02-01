@@ -24,4 +24,10 @@ public final class SwitchTransparentBlock: BlockInstruction {
     public init(lineNumber: Int) {
         self.lineNumber = lineNumber
     }
+    
+    public var astNodeData: String {
+        "transparent switch, you should never see this"
+    }
+    
+    public var astChildren: [ASTElement] { [] }
 }

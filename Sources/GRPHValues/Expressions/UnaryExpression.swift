@@ -50,6 +50,18 @@ public struct UnaryExpression: Expression {
     public var string: String { "\(op.rawValue)\(exp.bracketized)" }
 }
 
+public extension UnaryExpression {
+    var astNodeData: String {
+        "application of unary operator '\(op.rawValue)'"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "value", value: [exp])
+        ]
+    }
+}
+
 public enum UnaryOperator: String {
     case bitwiseComplement = "~"
     case opposite = "-"
@@ -73,4 +85,16 @@ public struct UnboxExpression: Expression {
     public var needsBrackets: Bool { false }
     
     public var string: String { "\(exp.bracketized)!" }
+}
+
+public extension UnboxExpression {
+    var astNodeData: String {
+        "unwrap optional"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "value", value: [exp])
+        ]
+    }
 }

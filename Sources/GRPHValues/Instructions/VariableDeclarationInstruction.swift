@@ -58,4 +58,14 @@ public final class VariableDeclarationInstruction: Instruction {
     public func toString(indent: String) -> String {
         "\(line):\(indent)\(global ? "global " : "")\(constant ? "final " : "")\(type.string) \(name) = \(value.string)\n"
     }
+    
+    public var astNodeData: String {
+        "declare \(global ? "global " : "")\(constant ? "constant" : "variable") \(name) of type \(type)"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "initializer", value: [value])
+        ]
+    }
 }

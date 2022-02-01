@@ -18,6 +18,8 @@ enum CompileDestination: String, CaseIterable, ExpressibleByArgument {
     case parse
     /// Output WDIU (I&E/AST as code). Runs lexing, token detection, generation, and optionally DocGen, then exits.
     case wdiu
+    /// Output AST (I&E as a syntax tree). Runs lexing, token detection, generation, and optionally DocGen, then exits.
+    case ast
     /// Output nothing. Only check if compilation works. Runs lexing, token detection, generation, and optionally DocGen, then exits.
     case check
     
@@ -68,7 +70,7 @@ extension CompileDestination {
             #else
             return "a.out"
             #endif
-        case .parse, .wdiu, .check:
+        case .parse, .wdiu, .ast, .check:
             preconditionFailure()
         }
     }

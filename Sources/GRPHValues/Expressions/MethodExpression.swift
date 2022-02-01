@@ -39,3 +39,16 @@ public struct MethodExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension MethodExpression {
+    var astNodeData: String {
+        "invocation of \(method.signature)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "subject", value: [on]),
+            ASTElement(name: "arguments", value: values.compactMap({ $0 }))
+        ]
+    }
+}

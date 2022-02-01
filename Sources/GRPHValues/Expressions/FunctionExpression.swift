@@ -33,3 +33,15 @@ public struct FunctionExpression: Expression {
     
     public var needsBrackets: Bool { false }
 }
+
+public extension FunctionExpression {
+    var astNodeData: String {
+        "invocation of \(function.signature)"
+    }
+    
+    var astChildren: [ASTElement] {
+        [
+            ASTElement(name: "arguments", value: values.compactMap({ $0 }))
+        ]
+    }
+}

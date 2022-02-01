@@ -15,6 +15,7 @@ public final class TryBlock: BlockInstruction {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
+    
     public var catches: [GRPHRuntimeError.RuntimeExceptionType?: CatchBlock] = [:]
     
     public init(compiler: GRPHCompilerProtocol, lineNumber: Int) {
@@ -30,5 +31,16 @@ public final class TryBlock: BlockInstruction {
             builder += block.toString(indent: indent)
         }
         return builder
+    }
+    
+    public var astNodeData: String {
+        "try block"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [
+            astBlockChildren,
+            ASTElement(name: "catches", value: Array(Set(catches.values)))
+        ]
     }
 }

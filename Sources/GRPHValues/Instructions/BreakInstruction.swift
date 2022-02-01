@@ -26,6 +26,12 @@ public final class BreakInstruction: Instruction {
         return "\(line):\(indent)#\(type.rawValue) \(scope)\n"
     }
     
+    public var astNodeData: String {
+        "\(type.rawValue) of scope \(scope)"
+    }
+    
+    public var astChildren: [ASTElement] { [] }
+    
     public enum BreakType: String {
         case `break` = "break"
         case `continue` = "continue"
@@ -71,5 +77,13 @@ public final class ReturnInstruction: Instruction {
     
     public func toString(indent: String) -> String {
         return "\(line):\(indent)#return \(value?.string ?? "")\n"
+    }
+    
+    public var astNodeData: String {
+        "return from function"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [ASTElement(name: "value", value: value.map { [$0] } ?? [])]
     }
 }

@@ -25,4 +25,12 @@ public final class ThrowInstruction: Instruction {
     public func toString(indent: String) -> String {
         "\(line):\(indent)#throw \(type.rawValue)Exception(\(message))\n"
     }
+    
+    public var astNodeData: String {
+        "throw exception of type \(type.rawValue)Exception"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [ASTElement(name: "message", value: [message])]
+    }
 }

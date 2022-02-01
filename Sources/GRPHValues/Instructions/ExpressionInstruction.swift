@@ -23,4 +23,12 @@ public final class ExpressionInstruction: Instruction {
     public func toString(indent: String) -> String {
         "\(line):\(indent)\(expression)\n"
     }
+    
+    public var astNodeData: String {
+        "expression wrapper"
+    }
+    
+    public var astChildren: [ASTElement] {
+        [ASTElement(name: "value", value: [expression])]
+    }
 }
