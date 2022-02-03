@@ -12,17 +12,35 @@
 
 import Foundation
 import GRPHValues
+import LLVM
 
 extension IfBlock: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
         let bodyBlock = generator.builder.currentFunction!.appendBasicBlock(named: label ?? "if")
         let postBlock = generator.builder.currentFunction!.appendBasicBlock(named: label.map { "\($0).post"} ?? "")
+        let elseBlock: BasicBlock
         
-        generator.builder.buildCondBr(condition: try condition.tryBuilding(generator: generator), then: bodyBlock, else: postBlock)
+        if elseBranch != nil {
+            elseBlock = generator.builder.currentFunction!.appendBasicBlock(named: label.map { "\($0).else"} ?? "else")
+        } else {
+            elseBlock = postBlock
+        }
+        
+        generator.builder.buildCondBr(condition: try condition.tryBuilding(generator: generator), then: bodyBlock, else: elseBlock)
         
         generator.builder.positionAtEnd(of: bodyBlock)
         try buildChildren(generator: generator)
         generator.builder.buildBr(postBlock)
+        
+        if let elseBranch = elseBranch {
+            generator.builder.positionAtEnd(of: elseBlock)
+            guard let elseBranch = elseBranch as? RepresentableInstruction else {
+                throw GRPHCompileError(type: .unsupported, message: "Else branch of type \(type(of: elseBranch)) is not supported in IRGen mode")
+            }
+            try elseBranch.build(generator: generator)
+            generator.builder.buildBr(postBlock)
+        }
+        
         generator.builder.positionAtEnd(of: postBlock)
     }
 }

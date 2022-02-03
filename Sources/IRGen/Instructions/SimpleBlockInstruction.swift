@@ -15,11 +15,28 @@ import GRPHValues
 
 extension SimpleBlockInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        let newBlock = generator.builder.currentFunction!.appendBasicBlock(named: label ?? "")
-        generator.builder.buildBr(newBlock)
-        generator.builder.positionAtEnd(of: newBlock)
+        try generator.buildSimpleBlock(label: label ?? "block", for: self)
+    }
+}
+
+extension ElseBlock: RepresentableInstruction {
+    func build(generator: IRGenerator) throws {
+        try generator.buildSimpleBlock(label: label ?? "else", for: self)
+    }
+}
+
+extension IRGenerator {
+    func buildSimpleBlock(label: String, for block: BlockInstruction) throws {
+        let newBlock = builder.currentFunction!.appendBasicBlock(named: label)
+        let postBlock = builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         
-        try buildChildren(generator: generator)
+        builder.buildBr(newBlock)
+        
+        builder.positionAtEnd(of: newBlock)
+        try block.buildChildren(generator: self)
+        builder.buildBr(postBlock)
+        
+        builder.positionAtEnd(of: postBlock)
     }
 }
 
