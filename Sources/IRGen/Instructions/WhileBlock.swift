@@ -44,6 +44,7 @@ extension WhileBlock: RepresentableInstruction {
         let repeatBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).repeat")
         let condBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).cond")
         let bodyBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).body")
+        let elseCheckBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).elseCheck")
         let elseBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).else")
         let postBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         
@@ -56,18 +57,20 @@ extension WhileBlock: RepresentableInstruction {
         generator.builder.buildBr(condBlock)
         
         generator.builder.positionAtEnd(of: condBlock)
-        let phi = generator.builder.buildPhi(PointerType(pointee: IntType.int8))
+        let phi = generator.builder.buildPhi(IntType.int1)
         phi.addIncoming([
-            (generator.builder.currentFunction!.address(of: elseBlock)!, entryBlock),
-            (generator.builder.currentFunction!.address(of: postBlock)!, repeatBlock)
+            (IntType.int1.constant(1), entryBlock),
+            (IntType.int1.constant(0), repeatBlock)
         ])
         let condition = try condition.tryBuilding(generator: generator)
-        let select = generator.builder.buildSelect(condition, then: generator.builder.currentFunction!.address(of: bodyBlock)!, else: phi)
-        generator.builder.buildIndirectBr(address: unsafeBitCast(select.asLLVM(), to: BasicBlock.Address.self), destinations: [elseBlock, postBlock, bodyBlock])
+        generator.builder.buildCondBr(condition: condition, then: bodyBlock, else: elseCheckBlock)
         
         generator.builder.positionAtEnd(of: bodyBlock)
         try buildChildren(generator: generator)
         generator.builder.buildBr(repeatBlock)
+        
+        generator.builder.positionAtEnd(of: elseCheckBlock)
+        generator.builder.buildCondBr(condition: phi, then: elseBlock, else: postBlock)
         
         generator.builder.positionAtEnd(of: elseBlock)
         guard let elseBranch = elseBranch as? RepresentableInstruction else {
