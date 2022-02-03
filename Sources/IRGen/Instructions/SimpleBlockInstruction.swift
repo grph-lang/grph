@@ -26,7 +26,7 @@ extension ElseBlock: RepresentableInstruction {
 }
 
 extension IRGenerator {
-    func buildSimpleBlock(label: String, for block: BlockInstruction) throws {
+    fileprivate func buildSimpleBlock(label: String, for block: BlockInstruction) throws {
         let newBlock = builder.currentFunction!.appendBasicBlock(named: label)
         let postBlock = builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         
