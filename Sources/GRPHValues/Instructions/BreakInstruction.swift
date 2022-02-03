@@ -84,6 +84,6 @@ public final class ReturnInstruction: Instruction {
     }
     
     public var astChildren: [ASTElement] {
-        [ASTElement(name: "value", value: value.map { [$0] } ?? [])]
+        [ASTElement(name: "value", value: value)]
     }
 }

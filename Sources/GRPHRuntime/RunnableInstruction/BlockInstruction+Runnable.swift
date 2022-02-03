@@ -16,9 +16,7 @@ import GRPHValues
 protocol RunnableBlockInstruction: RunnableInstruction, BlockInstruction {
     @discardableResult func createContext(_ context: inout RuntimeContext) -> BlockRuntimeContext
     
-    func run(context: inout RuntimeContext) throws
-    
-    func mustRun(context: BlockRuntimeContext) -> Bool
+    func doRun(context: BlockRuntimeContext) throws
     
     func canRun(context: BlockRuntimeContext) throws -> Bool
 }
@@ -30,32 +28,47 @@ extension RunnableBlockInstruction {
         return ctx
     }
     
-    func run(context: inout RuntimeContext) throws {
-        let ctx = createContext(&context)
-        if try mustRun(context: ctx) || canRun(context: ctx) {
-            ctx.variables.removeAll()
-            try runChildren(context: ctx)
+    func doRun(context: BlockRuntimeContext) throws {
+        context.variables.removeAll()
+        try runChildren(context: context)
+    }
+    
+    func runElseBranchIfNeeded(previousBranchContext ctx: BlockRuntimeContext) throws {
+        var ogctx = ctx.parent!
+        if ctx.canNextRun || ctx.mustNextRun,
+           let self = self as? ElseableBlock,
+           let elseBranch = self.elseBranch {
+            guard let elseBranch = elseBranch as? RunnableBlockInstruction & ElseLikeBlock else {
+                throw GRPHRuntimeError(type: .unexpected, message: "Instruction of type \(type(of: elseBranch)) (line \(elseBranch.line)) has no runnable implementation")
+            }
+            if ctx.mustNextRun {
+                try elseBranch.safeRunForce(context: &ogctx)
+            } else {
+                try elseBranch.safeRun(context: &ogctx)
+            }
         }
     }
     
-    func mustRun(context: BlockRuntimeContext) -> Bool {
-        if let last = context.parent?.previous as? BlockRuntimeContext,
-           last.mustNextRun {
-            last.mustNextRun = false
-            return true
+    func run(context: inout RuntimeContext) throws {
+        let ctx = createContext(&context)
+        if try canRun(context: ctx) {
+            try doRun(context: ctx)
         }
-        return false
+        try runElseBranchIfNeeded(previousBranchContext: ctx)
+    }
+    
+    func forceRun(context: inout RuntimeContext) throws where Self: ElseLikeBlock {
+        let ctx = createContext(&context)
+        try doRun(context: ctx)
     }
     
     func runChildren(context: BlockRuntimeContext) throws {
         context.canNextRun = false
-        var last: RuntimeContext?
         var i = 0
         while i < children.count && !context.broken && !Thread.current.isCancelled {
             guard let child = children[i] as? RunnableInstruction else {
                 throw GRPHRuntimeError(type: .unexpected, message: "Instruction of type \(type(of: children[i])) (line \(children[i].line)) has no runnable implementation")
             }
-            context.previous = last
             let runtime = context.runtime
             if runtime.debugging {
                 printout("[DEBUG LOC \(child.line)]")
@@ -68,11 +81,6 @@ extension RunnableBlockInstruction {
             }
             var inner: RuntimeContext = context
             try child.safeRun(context: &inner)
-            if inner !== context {
-                last = inner
-            } else {
-                last = nil
-            }
             i += 1
         }
         if context.continued {

@@ -242,7 +242,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if tokens.count == 1 {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#elseif requires an argument of type boolean"))
                 }
-                return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean)))
+                let block = try ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: resolveExpression(tokens: Array(tokens.dropFirst()), infer: SimpleType.boolean))
+                return try resolveElseLike(block)
             case "#else":
                 if context is SwitchCompilingContext {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Expected #case or #default in #switch block"))
@@ -250,7 +251,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if tokens.count > 1 {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens.dropFirst()), type: .squareBrackets), severity: .error, source: .generator, message: "#else doesn't expect arguments"))
                 }
-                return ResolvedInstruction(instruction: ElseBlock(compiler: self, lineNumber: lineNumber))
+                return try resolveElseLike(ElseBlock(compiler: self, lineNumber: lineNumber))
             case "#while":
                 if tokens.count == 1 {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#while requires an argument of type boolean"))
@@ -287,8 +288,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 let variable = Token(compound: split[0], type: .variable)
                 let name = variable.description
                 let exs = split[1].split(whereSeparator: { $0.literal == "|" })
-                let currblock = currentBlock
-                guard let tr = currblock.children.last as? TryBlock else {
+                guard let tr = currentBlock.children.last as? TryBlock else {
                     throw GRPHCompileError(type: .parse, message: "#catch requires a #try block before it")
                 }
                 let block = try CatchBlock(lineNumber: lineNumber, compiler: self, varName: name)
@@ -440,7 +440,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     ctx.state = .next
                     return try ResolvedInstruction(instruction: IfBlock(lineNumber: lineNumber, compiler: self, condition: combined))
                 case .next:
-                    return try ResolvedInstruction(instruction: ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: combined))
+                    return try resolveElseLike(ElseIfBlock(lineNumber: lineNumber, compiler: self, condition: combined))
                 case .last:
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case must come before the terminating #default case in a #switch"))
                 }
@@ -456,7 +456,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#default cannot be first in a #switch, it must be last"))
                 case .next:
                     ctx.state = .last
-                    return ResolvedInstruction(instruction: ElseBlock(compiler: self, lineNumber: lineNumber))
+                    return try resolveElseLike(ElseBlock(compiler: self, lineNumber: lineNumber))
                 case .last:
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "Cannot put multiple #default cases in a #switch"))
                 }
@@ -706,6 +706,14 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             }
             throw GRPHCompileError(type: .parse, message: "Could not resolve instruction")
         }
+    }
+    
+    private func resolveElseLike(_ block: ElseLikeBlock) throws -> ResolvedInstruction {
+        guard let tr = currentBlock.children.last as? ElseableBlock else {
+            throw GRPHCompileError(type: .parse, message: "Else blocks may only be attached to #if, #elseif, #while or #foreach blocks")
+        }
+        try tr.appendElse(block)
+        return ResolvedInstruction(instruction: block, attachedToPrevious: true)
     }
     
     public func resolveExpression(tokens _tokens: [Token], infer: GRPHType?) throws -> Expression {

@@ -32,3 +32,9 @@ public struct ASTElement {
     public var name: String
     public var value: [ASTNode]
 }
+
+extension ASTElement {
+    init(name: String, value: ASTNode?) {
+        self.init(name: name, value: value.map { [$0] } ?? [])
+    }
+}

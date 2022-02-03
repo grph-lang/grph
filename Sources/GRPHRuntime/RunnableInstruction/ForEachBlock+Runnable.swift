@@ -19,9 +19,6 @@ extension ForEachBlock: RunnableBlockInstruction {
         let ctx = createContext(&context)
         var i = 0
         let arr = try array.evalIfRunnable(context: context) as! GRPHArray
-        if mustRun(context: ctx) {
-            throw GRPHRuntimeError(type: .unexpected, message: "Cannot fallthrough a #foreach block")
-        }
         while !ctx.broken && i < arr.count {
             ctx.variables.removeAll()
             let v = Variable(name: varName, type: arr.content, content: arr.wrapped[i], final: !inOut)
@@ -35,5 +32,6 @@ extension ForEachBlock: RunnableBlockInstruction {
             }
             i += 1
         }
+        try runElseBranchIfNeeded(previousBranchContext: ctx)
     }
 }

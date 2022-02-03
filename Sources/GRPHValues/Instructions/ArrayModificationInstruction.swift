@@ -83,8 +83,8 @@ public extension ArrayModificationInstruction {
     
     var astChildren: [ASTElement] {
         [
-            ASTElement(name: "index", value: index.map { [$0] } ?? []),
-            ASTElement(name: "value", value: value.map { [$0] } ?? []),
+            ASTElement(name: "index", value: index),
+            ASTElement(name: "value", value: value),
         ]
     }
 }

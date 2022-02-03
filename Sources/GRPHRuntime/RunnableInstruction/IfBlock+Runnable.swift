@@ -20,21 +20,12 @@ extension IfBlock: RunnableBlockInstruction {
 
 extension ElseIfBlock: RunnableBlockInstruction {
     func canRun(context: BlockRuntimeContext) throws -> Bool {
-        if let last = context.parent?.previous as? BlockRuntimeContext {
-            context.canNextRun = last.canNextRun
-            return try context.canNextRun && condition.evalIfRunnable(context: context) as! Bool
-        } else {
-            throw GRPHRuntimeError(type: .unexpected, message: "#elseif must follow another block instruction")
-        }
+        try condition.evalIfRunnable(context: context) as! Bool
     }
 }
 
 extension ElseBlock: RunnableBlockInstruction {
     func canRun(context: BlockRuntimeContext) throws -> Bool {
-        if let last = context.parent?.previous as? BlockRuntimeContext {
-            return last.canNextRun
-        } else {
-            throw GRPHRuntimeError(type: .unexpected, message: "#else must follow another block instruction")
-        }
+        true
     }
 }

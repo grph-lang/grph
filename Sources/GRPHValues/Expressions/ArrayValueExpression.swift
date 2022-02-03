@@ -44,7 +44,7 @@ public extension ArrayValueExpression {
     
     var astChildren: [ASTElement] {
         [
-            ASTElement(name: "index", value: index.map { [$0] } ?? [])
+            ASTElement(name: "index", value: index)
         ]
     }
 }

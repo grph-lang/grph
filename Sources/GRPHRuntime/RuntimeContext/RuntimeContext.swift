@@ -17,7 +17,6 @@ public class RuntimeContext: GRPHContextProtocol {
     let runtime: GRPHRuntime
     
     var parent: RuntimeContext?
-    var previous: RuntimeContext?
     
     init(runtime: GRPHRuntime, parent: RuntimeContext?) {
         self.runtime = runtime

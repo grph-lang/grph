@@ -11,7 +11,7 @@
 
 import Foundation
 
-public final class ForEachBlock: BlockInstruction {
+public final class ForEachBlock: BlockInstruction, ElseableBlock {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
@@ -19,6 +19,8 @@ public final class ForEachBlock: BlockInstruction {
     public let varName: String
     public let array: Expression
     public let inOut: Bool
+    
+    public var elseBranch: ElseLikeBlock?
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, inOut: Bool, varName: String, array: Expression) throws {
         self.varName = varName
@@ -55,7 +57,8 @@ public final class ForEachBlock: BlockInstruction {
     public var astChildren: [ASTElement] {
         [
             ASTElement(name: "array", value: [array]),
-            astBlockChildren
+            astBlockChildren,
+            ASTElement(name: "else", value: elseBranch)
         ]
     }
 }

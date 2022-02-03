@@ -11,12 +11,13 @@
 
 import Foundation
 
-public final class WhileBlock: BlockInstruction {
+public final class WhileBlock: BlockInstruction, ElseableBlock {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
     
     public let condition: Expression
+    public var elseBranch: ElseLikeBlock?
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
         self.lineNumber = lineNumber
@@ -36,7 +37,8 @@ public final class WhileBlock: BlockInstruction {
     public var astChildren: [ASTElement] {
         [
             ASTElement(name: "condition", value: [condition]),
-            astBlockChildren
+            astBlockChildren,
+            ASTElement(name: "else", value: elseBranch)
         ]
     }
 }

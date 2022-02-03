@@ -59,13 +59,11 @@ public class GRPHRuntime {
         timestamp = Date()
         context = TopLevelRuntimeContext(runtime: self)
         do {
-            var last: RuntimeContext?
             var i = 0
             while i < instructions.count && !Thread.current.isCancelled {
                 guard let line = instructions[i] as? RunnableInstruction else {
                     throw GRPHRuntimeError(type: .unexpected, message: "Instruction of type \(type(of: instructions[i])) (line \(instructions[i].line)) has no runnable implementation")
                 }
-                context.previous = last
                 if debugging {
                     printout("[DEBUG LOC \(line.line)]")
                 }
@@ -77,11 +75,6 @@ public class GRPHRuntime {
                 }
                 var inner = context!
                 try line.safeRun(context: &inner)
-                if inner !== context! {
-                    last = inner
-                } else {
-                    last = nil
-                }
                 i += 1
             }
             image.destroy()

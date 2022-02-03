@@ -69,7 +69,7 @@ public final class FunctionDeclarationBlock: BlockInstruction {
     public var astChildren: [ASTElement] {
         [
             ASTElement(name: "defaultValues", value: defaults.compactMap({ $0 })),
-            ASTElement(name: "defaultReturnValue", value: returnDefault.map { [$0] } ?? []),
+            ASTElement(name: "defaultReturnValue", value: returnDefault),
             astBlockChildren
         ]
     }

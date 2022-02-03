@@ -19,9 +19,10 @@ extension WhileBlock: RunnableBlockInstruction {
     
     func run(context: inout RuntimeContext) throws {
         let ctx = createContext(&context)
-        while try mustRun(context: ctx) || (!ctx.broken && canRun(context: ctx)) {
+        while try !ctx.broken && canRun(context: ctx) {
             ctx.variables.removeAll()
             try runChildren(context: ctx)
         }
+        try runElseBranchIfNeeded(previousBranchContext: ctx)
     }
 }

@@ -25,4 +25,13 @@ extension RunnableInstruction {
             throw exception
         }
     }
+    
+    func safeRunForce(context: inout RuntimeContext) throws where Self: ElseLikeBlock, Self: RunnableBlockInstruction {
+        do {
+            try self.forceRun(context: &context)
+        } catch var exception as GRPHRuntimeError {
+            exception.stack.append("\tat \(type(of: self)); line \(line)")
+            throw exception
+        }
+    }
 }

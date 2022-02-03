@@ -11,12 +11,13 @@
 
 import Foundation
 
-public final class IfBlock: BlockInstruction {
+public final class IfBlock: BlockInstruction, ElseableBlock {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
     
     public let condition: Expression
+    public var elseBranch: ElseLikeBlock?
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
         self.lineNumber = lineNumber
@@ -36,17 +37,19 @@ public final class IfBlock: BlockInstruction {
     public var astChildren: [ASTElement] {
         [
             ASTElement(name: "condition", value: [condition]),
-            astBlockChildren
+            astBlockChildren,
+            ASTElement(name: "else", value: elseBranch)
         ]
     }
 }
 
-public final class ElseIfBlock: BlockInstruction {
+public final class ElseIfBlock: BlockInstruction, ElseLikeBlock, ElseableBlock {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
     
     public let condition: Expression
+    public var elseBranch: ElseLikeBlock?
     
     public init(lineNumber: Int, compiler: GRPHCompilerProtocol, condition: Expression) throws {
         self.lineNumber = lineNumber
@@ -66,12 +69,13 @@ public final class ElseIfBlock: BlockInstruction {
     public var astChildren: [ASTElement] {
         [
             ASTElement(name: "condition", value: [condition]),
-            astBlockChildren
+            astBlockChildren,
+            ASTElement(name: "else", value: elseBranch)
         ]
     }
 }
 
-public final class ElseBlock: BlockInstruction {
+public final class ElseBlock: BlockInstruction, ElseLikeBlock {
     public let lineNumber: Int
     public var children: [Instruction] = []
     public var label: String?
