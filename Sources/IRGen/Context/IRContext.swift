@@ -11,6 +11,7 @@
 //
 
 import Foundation
+import GRPHValues
 
 class IRContext {
     var parent: IRContext?
@@ -29,5 +30,9 @@ class IRContext {
             return
         }
         parent.insert(variable: variable)
+    }
+    
+    func findBreak(scope: BreakInstruction.BreakScope) -> BlockIRContext? {
+        parent?.findBreak(scope: scope)
     }
 }

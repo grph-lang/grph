@@ -19,7 +19,6 @@ public class IRGenerator {
     
     public var module: Module { builder.module }
     
-    var topLevelContext: VariableOwningIRContext?
     var globalContext: VariableOwningIRContext?
     
     var currentContext: IRContext?
@@ -30,7 +29,7 @@ public class IRGenerator {
     
     public func build(from instructions: [GRPHValues.Instruction]) throws {
         globalContext = VariableOwningIRContext(parent: nil)
-        topLevelContext = VariableOwningIRContext(parent: globalContext)
+        let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
         
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
@@ -40,7 +39,6 @@ public class IRGenerator {
         
         builder.buildRet(IntType.int32.constant(0))
         globalContext = nil
-        topLevelContext = nil
         currentContext = nil
     }
 }

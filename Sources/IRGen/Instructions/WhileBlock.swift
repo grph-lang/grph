@@ -31,7 +31,7 @@ extension WhileBlock: RepresentableInstruction {
         generator.builder.buildCondBr(condition: try condition.tryBuilding(generator: generator), then: whileBlock, else: postBlock)
         
         generator.builder.positionAtEnd(of: whileBlock)
-        try buildChildren(generator: generator)
+        try buildChildren(generator: generator, context: BlockIRContext(parent: generator.currentContext, label: self.label, break: postBlock, continue: condBlock))
         generator.builder.buildBr(condBlock)
         
         generator.builder.positionAtEnd(of: postBlock)
@@ -47,6 +47,11 @@ extension WhileBlock: RepresentableInstruction {
         let elseCheckBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).elseCheck")
         let elseBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).else")
         let postBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).post")
+        
+        guard let elseBranch = elseBranch as? RepresentableElseLikeBlock else {
+            throw GRPHCompileError(type: .unsupported, message: "Else branch of type \(type(of: elseBranch)) is not supported in IRGen mode")
+        }
+        let fallthroughBlock = elseBranch.createFallthroughBlock(generator: generator, fall: elseBlock)
         
         generator.builder.buildBr(entryBlock)
         
@@ -66,17 +71,14 @@ extension WhileBlock: RepresentableInstruction {
         generator.builder.buildCondBr(condition: condition, then: bodyBlock, else: elseCheckBlock)
         
         generator.builder.positionAtEnd(of: bodyBlock)
-        try buildChildren(generator: generator)
+        try buildChildren(generator: generator, context: BlockIRContext(parent: generator.currentContext, label: self.label, break: postBlock, continue: repeatBlock, fall: elseBlock, fallthrough: fallthroughBlock))
         generator.builder.buildBr(repeatBlock)
         
         generator.builder.positionAtEnd(of: elseCheckBlock)
         generator.builder.buildCondBr(condition: phi, then: elseBlock, else: postBlock)
         
         generator.builder.positionAtEnd(of: elseBlock)
-        guard let elseBranch = elseBranch as? RepresentableInstruction else {
-            throw GRPHCompileError(type: .unsupported, message: "Else branch of type \(type(of: elseBranch)) is not supported in IRGen mode")
-        }
-        try elseBranch.build(generator: generator)
+        try elseBranch.build(generator: generator, fallthroughBlock: fallthroughBlock)
         generator.builder.buildBr(postBlock)
         
         generator.builder.positionAtEnd(of: postBlock)

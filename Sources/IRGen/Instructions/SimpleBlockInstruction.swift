@@ -12,28 +12,34 @@
 
 import Foundation
 import GRPHValues
+import LLVM
 
 extension SimpleBlockInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        try generator.buildSimpleBlock(label: label ?? "block", for: self)
+        try generator.buildSimpleBlock(label: label, fallbackLabel:  "block", for: self)
     }
 }
 
-extension ElseBlock: RepresentableInstruction {
-    func build(generator: IRGenerator) throws {
-        try generator.buildSimpleBlock(label: label ?? "else", for: self)
+extension ElseBlock: RepresentableElseLikeBlock {
+    func createFallthroughBlock(generator: IRGenerator, fall: BasicBlock) -> BasicBlock {
+        return fall
+    }
+    
+    func build(generator: IRGenerator, fallthroughBlock: BasicBlock) throws {
+        try generator.buildSimpleBlock(label: label, fallbackLabel: "else", for: self)
     }
 }
 
 extension IRGenerator {
-    fileprivate func buildSimpleBlock(label: String, for block: BlockInstruction) throws {
+    fileprivate func buildSimpleBlock(label _label: String?, fallbackLabel: String, for block: BlockInstruction) throws {
+        let label = _label ?? fallbackLabel
         let newBlock = builder.currentFunction!.appendBasicBlock(named: label)
         let postBlock = builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         
         builder.buildBr(newBlock)
         
         builder.positionAtEnd(of: newBlock)
-        try block.buildChildren(generator: self)
+        try block.buildChildren(generator: self, context: BlockIRContext(parent: currentContext, label: _label, break: postBlock))
         builder.buildBr(postBlock)
         
         builder.positionAtEnd(of: postBlock)
@@ -41,10 +47,11 @@ extension IRGenerator {
 }
 
 extension BlockInstruction {
-    func buildChildren(generator: IRGenerator) throws {
-        generator.currentContext = VariableOwningIRContext(parent: generator.currentContext)
+    func buildChildren(generator: IRGenerator, context: BlockIRContext) throws {
+        let restore = generator.currentContext
+        generator.currentContext = context
         defer {
-            generator.currentContext = generator.currentContext?.parent
+            generator.currentContext = restore
         }
         try children.buildAll(generator: generator)
     }

@@ -16,40 +16,49 @@ import LLVM
 
 extension IfBlock: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        try generator.buildIfBlock(label: label ?? "if", for: self, condition: condition, elseBranch: elseBranch)
+        let bodyBlock = generator.builder.currentFunction!.appendBasicBlock(named: label ?? "if")
+        try generator.buildIfBlock(label: label, fallbackLabel: "if", for: self, condition: condition, elseBranch: elseBranch, bodyBlock: bodyBlock)
     }
 }
 
-extension ElseIfBlock: RepresentableInstruction {
-    func build(generator: IRGenerator) throws {
-        try generator.buildIfBlock(label: label ?? "elseif", for: self, condition: condition, elseBranch: elseBranch)
+extension ElseIfBlock: RepresentableElseLikeBlock {
+    func createFallthroughBlock(generator: IRGenerator, fall: BasicBlock) -> BasicBlock {
+        return generator.builder.currentFunction!.appendBasicBlock(named: label ?? "elseif")
+    }
+    
+    func build(generator: IRGenerator, fallthroughBlock: BasicBlock) throws {
+        try generator.buildIfBlock(label: label, fallbackLabel: "elseif", for: self, condition: condition, elseBranch: elseBranch, bodyBlock: fallthroughBlock)
     }
 }
 
 extension IRGenerator {
-    fileprivate func buildIfBlock(label: String, for block: BlockInstruction, condition: Expression, elseBranch: ElseLikeBlock?) throws {
-        let bodyBlock = builder.currentFunction!.appendBasicBlock(named: label)
+    fileprivate func buildIfBlock(label _label: String?, fallbackLabel: String, for block: BlockInstruction, condition: Expression, elseBranch: ElseLikeBlock?, bodyBlock: BasicBlock) throws {
+        let label = _label ?? fallbackLabel
         let postBlock = builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         let elseBlock: BasicBlock
+        let ctx: BlockIRContext
         
-        if elseBranch != nil {
+        if let elseBranch = elseBranch as? RepresentableElseLikeBlock {
             elseBlock = builder.currentFunction!.appendBasicBlock(named: "\(label).else")
+            ctx = BlockIRContext(parent: currentContext, label: _label,
+                                 break: postBlock, fall: elseBlock, fallthrough: elseBranch.createFallthroughBlock(generator: self, fall: elseBlock))
         } else {
             elseBlock = postBlock
+            ctx = BlockIRContext(parent: currentContext, label: _label, break: postBlock)
         }
         
         builder.buildCondBr(condition: try condition.tryBuilding(generator: self), then: bodyBlock, else: elseBlock)
         
         builder.positionAtEnd(of: bodyBlock)
-        try block.buildChildren(generator: self)
+        try block.buildChildren(generator: self, context: ctx)
         builder.buildBr(postBlock)
         
         if let elseBranch = elseBranch {
             builder.positionAtEnd(of: elseBlock)
-            guard let elseBranch = elseBranch as? RepresentableInstruction else {
+            guard let elseBranch = elseBranch as? RepresentableElseLikeBlock else {
                 throw GRPHCompileError(type: .unsupported, message: "Else branch of type \(type(of: elseBranch)) is not supported in IRGen mode")
             }
-            try elseBranch.build(generator: self)
+            try elseBranch.build(generator: self, fallthroughBlock: ctx.fallthroughDestination!)
             builder.buildBr(postBlock)
         }
         
