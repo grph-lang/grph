@@ -16,6 +16,9 @@ import LLVM
 
 extension BinaryExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
+        if op == .logicalAnd || op == .logicalOr {
+            return try buildShortCircuiting(generator: generator)
+        }
         // TODO handle num existential everywhere + handle pos
         let left = try self.left.tryBuilding(generator: generator)
         let right = try self.right.tryBuilding(generator: generator)
@@ -47,6 +50,8 @@ extension BinaryExpression: RepresentableExpression {
             return generator.builder.buildDiv(left, right)
         case .modulo:
             return generator.builder.buildRem(left, right)
+        case .logicalOr, .logicalAnd:
+            preconditionFailure()
         case .equal, .notEqual:
             if left.type is IntType && right.type is IntType {
                 return generator.builder.buildICmp(left, right, op.icmpPredicate)
@@ -59,11 +64,34 @@ extension BinaryExpression: RepresentableExpression {
             throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
             //        case .concat:
             //            <#code#>
-            //        case .logicalAnd:
-            //            <#code#>
-            //        case .logicalOr:
-            //            <#code#>
         }
+    }
+    
+    func buildShortCircuiting(generator: IRGenerator) throws -> IRValue {
+        let left = try self.left.tryBuilding(generator: generator)
+        
+        let shortBranch = generator.builder.currentFunction!.appendBasicBlock(named: "shortcircuit")
+        let longBranch = generator.builder.currentFunction!.appendBasicBlock(named: "longcircuit")
+        let mergeBranch = generator.builder.currentFunction!.appendBasicBlock(named: "merge")
+        
+        generator.builder.buildCondBr(condition: left,
+                                      then: op == .logicalOr ? shortBranch : longBranch,
+                                      else: op == .logicalOr ? longBranch : shortBranch)
+        
+        generator.builder.positionAtEnd(of: shortBranch)
+        generator.builder.buildBr(mergeBranch)
+        
+        generator.builder.positionAtEnd(of: longBranch)
+        let right = try self.right.tryBuilding(generator: generator)
+        generator.builder.buildBr(mergeBranch)
+        
+        generator.builder.positionAtEnd(of: mergeBranch)
+        let result = generator.builder.buildPhi(GRPHTypes.boolean)
+        result.addIncoming([
+            (left, shortBranch),
+            (right, longBranch)
+        ])
+        return result
     }
 }
 
