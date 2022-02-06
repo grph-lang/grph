@@ -19,3 +19,11 @@ protocol RepresentableElseLikeBlock: ElseLikeBlock {
     
     func build(generator: IRGenerator, fallthroughBlock: BasicBlock) throws
 }
+
+extension RepresentableElseLikeBlock {
+    func buildWithDebug(generator: IRGenerator, fallthroughBlock: BasicBlock) throws {
+        generator.builder.currentDebugLocation = generator.debug.buildDebugLocation(at: (line: self.line, column: 0), in: generator.currentContext!.currentScope)
+        try build(generator: generator, fallthroughBlock: fallthroughBlock)
+        generator.builder.currentDebugLocation = nil
+    }
+}

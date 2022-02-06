@@ -39,8 +39,9 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
             generator.currentContext?.insert(variable: Variable(name: name, ref: .stack(variable)))
             value = variable
         }
-        if !global {
-            generator.debug.buildDeclare(of: value, atEndOf: generator.builder.insertBlock!, metadata: generator.debug.buildLocalVariable(named: name, scope: generator.currentContext!.currentScope, file: generator.debugFile, line: line, type: generator.debug.buildBasicType(named: self.type.string, encoding: .signed, flags: [], size: generator.builder.module.dataLayout.abiSize(of: type)/8), alignment: generator.builder.module.dataLayout.abiAlignment(of: type)), expr: generator.debug.buildExpression([]), location: generator.debug.buildDebugLocation(at: (line: line, column: 0), in: generator.currentContext!.currentScope))
+        if !global, let loc = generator.builder.currentDebugLocation {
+            // TODO: use real type, generate DIType from GRPHType
+            generator.debug.buildDeclare(of: value, atEndOf: generator.builder.insertBlock!, metadata: generator.debug.buildLocalVariable(named: name, scope: generator.currentContext!.currentScope, file: generator.debugFile, line: line, type: generator.debug.buildBasicType(named: self.type.string, encoding: .signed, flags: [], size: generator.builder.module.dataLayout.abiSize(of: type)/8), alignment: generator.builder.module.dataLayout.abiAlignment(of: type)), expr: generator.debug.buildExpression([]), location: loc)
         }
     }
 }

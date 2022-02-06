@@ -58,7 +58,7 @@ extension IRGenerator {
             guard let elseBranch = elseBranch as? RepresentableElseLikeBlock else {
                 throw GRPHCompileError(type: .unsupported, message: "Else branch of type \(type(of: elseBranch)) is not supported in IRGen mode")
             }
-            try elseBranch.build(generator: self, fallthroughBlock: ctx.fallthroughDestination!)
+            try elseBranch.buildWithDebug(generator: self, fallthroughBlock: ctx.fallthroughDestination!)
             builder.buildBr(postBlock)
         }
         

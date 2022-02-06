@@ -42,7 +42,7 @@ public class IRGenerator {
         let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
         
-        topLevelContext.scope = debug.buildFunction(named: "Top level code", linkageName: "main", scope: debugFile, file: debugFile, line: 0, scopeLine: 0, type: debug.buildSubroutineType(in: debugFile, parameterTypes: [], returnType: debug.buildBasicType(named: "llvmtype<i32>", encoding: .signed, flags: [], size: Size(bits: 32))), flags: [])
+        topLevelContext.scope = debug.buildFunction(named: "main", linkageName: "main", scope: debugFile, file: debugFile, line: 1, scopeLine: 1, type: debug.buildSubroutineType(in: debugFile, parameterTypes: [], returnType: debug.buildBasicType(named: "llvmtype<i32>", encoding: .signed, flags: [], size: Size(bits: 32))), flags: [])
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
         main.addMetadata(topLevelContext.currentScope, kind: .dbg)
         builder.positionAtEnd(of: main.appendBasicBlock(named: "entry"))
@@ -50,10 +50,8 @@ public class IRGenerator {
         try instructions.buildAll(generator: self)
         
         builder.buildRet(IntType.int32.constant(0))
-        debug.module.addFlag(named: "Debug Info Version", constant: IntType.int32.constant(Module.debugMetadataVersion), behavior: .warning)
         debug.module.addFlag(named: "Dwarf Version", constant: IntType.int32.constant(2), behavior: .warning)
-        debug.module.targetTriple = debug.module.targetTriple
-        debug.module.dataLayout = debug.module.dataLayout
+        debug.module.addFlag(named: "Debug Info Version", constant: IntType.int32.constant(Module.debugMetadataVersion), behavior: .warning)
         debug.finalize()
         globalContext = nil
         currentContext = nil

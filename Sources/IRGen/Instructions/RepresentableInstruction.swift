@@ -21,6 +21,7 @@ extension Array where Element == Instruction {
     func buildAll(generator: IRGenerator) throws {
         for inst in self {
             if let inst = inst as? RepresentableInstruction {
+                generator.builder.currentDebugLocation = generator.debug.buildDebugLocation(at: (line: inst.line, column: 0), in: generator.currentContext!.currentScope)
                 try inst.build(generator: generator)
             } else {
                 throw GRPHCompileError(type: .unsupported, message: "Instruction of type \(type(of: inst)) is not supported in IRGen mode")

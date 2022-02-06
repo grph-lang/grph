@@ -78,7 +78,7 @@ extension WhileBlock: RepresentableInstruction {
         generator.builder.buildCondBr(condition: phi, then: elseBlock, else: postBlock)
         
         generator.builder.positionAtEnd(of: elseBlock)
-        try elseBranch.build(generator: generator, fallthroughBlock: fallthroughBlock)
+        try elseBranch.buildWithDebug(generator: generator, fallthroughBlock: fallthroughBlock)
         generator.builder.buildBr(postBlock)
         
         generator.builder.positionAtEnd(of: postBlock)
