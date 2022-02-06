@@ -11,9 +11,15 @@
 //
 
 import Foundation
+import LLVM
 
 class VariableOwningIRContext: IRContext {
     var variables: [Variable] = []
+    var scope: DIScope?
+    
+    override var currentScope: DIScope {
+        return scope ?? parent!.currentScope
+    }
     
     override func findVariable(named name: String) -> Variable? {
         variables.first(where: { $0.name == name }) ?? super.findVariable(named: name)

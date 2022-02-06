@@ -13,9 +13,14 @@
 import Foundation
 import GRPHValues
 import LLVM
+import cllvm
 
 public class IRGenerator {
     let builder: IRBuilder
+    
+    let debug: DIBuilder
+    let debugCU: CompileUnitMetadata
+    let debugFile: FileMetadata
     
     public var module: Module { builder.module }
     
@@ -23,21 +28,33 @@ public class IRGenerator {
     
     var currentContext: IRContext?
     
-    public init(filename: String) {
+    public init(filename: String, debugInfo: Bool) {
         builder = IRBuilder(module: Module(name: filename))
+        debug = DIBuilder(module: builder.module)
+        let url = URL(fileURLWithPath: filename).absoluteURL
+        debugFile = debug.buildFile(named: filename, in: url.deletingLastPathComponent().path)
+        debugCU = debug.buildCompileUnit(for: .c, in: debugFile, kind: debugInfo ? .full : .none)
     }
     
     public func build(from instructions: [GRPHValues.Instruction]) throws {
         globalContext = VariableOwningIRContext(parent: nil)
+        globalContext!.scope = debugFile
         let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
         
+        topLevelContext.scope = debug.buildFunction(named: "Top level code", linkageName: "main", scope: debugFile, file: debugFile, line: 0, scopeLine: 0, type: debug.buildSubroutineType(in: debugFile, parameterTypes: [], returnType: debug.buildBasicType(named: "llvmtype<i32>", encoding: .signed, flags: [], size: Size(bits: 32))), flags: [])
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
+        main.addMetadata(topLevelContext.currentScope, kind: .dbg)
         builder.positionAtEnd(of: main.appendBasicBlock(named: "entry"))
         
         try instructions.buildAll(generator: self)
         
         builder.buildRet(IntType.int32.constant(0))
+        debug.module.addFlag(named: "Debug Info Version", constant: IntType.int32.constant(Module.debugMetadataVersion), behavior: .warning)
+        debug.module.addFlag(named: "Dwarf Version", constant: IntType.int32.constant(2), behavior: .warning)
+        debug.module.targetTriple = debug.module.targetTriple
+        debug.module.dataLayout = debug.module.dataLayout
+        debug.finalize()
         globalContext = nil
         currentContext = nil
     }

@@ -27,6 +27,9 @@ struct CompileCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Toggles doc comment parsing (& related warnings)")
     var doc = true
     
+    @Flag(name: [.long, .customShort("g")], help: "Enable debug info")
+    var debug = false
+    
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
@@ -104,7 +107,7 @@ struct CompileCommand: ParsableCommand {
             return
         }
         
-        let irgen = IRGenerator(filename: (input as NSString).lastPathComponent)
+        let irgen = IRGenerator(filename: input, debugInfo: debug)
         try irgen.build(from: compiler.rootBlock.children)
         
         try irgen.module.verify()

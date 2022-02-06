@@ -12,6 +12,7 @@
 
 import Foundation
 import GRPHValues
+import LLVM
 
 class IRContext {
     var parent: IRContext?
@@ -34,5 +35,9 @@ class IRContext {
     
     func findBreak(scope: BreakInstruction.BreakScope) -> BlockIRContext? {
         parent?.findBreak(scope: scope)
+    }
+    
+    var currentScope: DIScope {
+        parent!.currentScope
     }
 }
