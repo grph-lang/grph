@@ -109,7 +109,7 @@ struct CompileCommand: ParsableCommand {
         
         try irgen.module.verify()
         
-        // -Og, way too cool for us
+        // -O2, way too cool for us
 //        let optimizer = PassPipeliner(module: irgen.module)
 //        optimizer.addStandardModulePipeline("")
 //        optimizer.execute()
@@ -124,10 +124,17 @@ struct CompileCommand: ParsableCommand {
         case .assembly, .object:
             try TargetMachine().emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: output!)
         case .executable:
-            try TargetMachine().emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: "\(output!).o")
-            print("Cannot yet create executable. Please execute the following:",
-                  "clang -o \(output!) \(output!).o -lgrph", separator: "\n")
-            throw ExitCode.failure
+            let tmpfile = URL(fileURLWithPath: "\(output!).\(UUID()).o", relativeTo: FileManager.default.temporaryDirectory)
+            try TargetMachine().emitToFile(module: irgen.module, type: .object, path: tmpfile.path)
+            let ld = Process()
+            ld.executableURL = URL(fileURLWithPath: "/usr/bin/ld")
+            ld.arguments = ["-o", output!, tmpfile.path, "-lgrph", "-L/usr/local/lib"]
+            try ld.run()
+            ld.waitUntilExit()
+            try? FileManager.default.removeItem(at: tmpfile)
+            if ld.terminationStatus != 0 {
+                throw ExitCode.failure
+            }
         }
     }
 }
