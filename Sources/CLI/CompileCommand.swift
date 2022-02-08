@@ -127,8 +127,11 @@ struct CompileCommand: ParsableCommand {
             let tmpfile = URL(fileURLWithPath: "\(output!).\(UUID()).o", relativeTo: FileManager.default.temporaryDirectory)
             try TargetMachine().emitToFile(module: irgen.module, type: .object, path: tmpfile.path)
             let ld = Process()
-            ld.executableURL = URL(fileURLWithPath: "/usr/bin/ld")
-            ld.arguments = ["-o", output!, tmpfile.path, "-lgrph", "-L/usr/local/lib"]
+            // just use clang to link to get all the necessary libraries for the stdlib to work
+            // LD works on macOS, but on Linux, it doesn't find _start
+            // Find clang in env instead of a specific path
+            ld.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            ld.arguments = ["clang", "-o", output!, tmpfile.path, "-lgrph", "-L/usr/local/lib"]
             try ld.run()
             ld.waitUntilExit()
             try? FileManager.default.removeItem(at: tmpfile)
