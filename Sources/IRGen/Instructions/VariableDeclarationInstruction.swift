@@ -31,7 +31,11 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
         } else if constant {
             generator.currentContext?.insert(variable: Variable(name: name, ref: .value(initializer)))
         } else {
+            let pos = generator.builder.insertBlock!
+            generator.builder.positionBefore(generator.builder.currentFunction!.firstBlock!.lastInstruction!)
             let variable = generator.builder.buildAlloca(type: type, name: name)
+            generator.builder.positionAtEnd(of: pos)
+            
             generator.builder.buildStore(initializer, to: variable)
             generator.currentContext?.insert(variable: Variable(name: name, ref: .stack(variable)))
         }

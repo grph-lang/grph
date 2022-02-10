@@ -33,7 +33,11 @@ public class IRGenerator {
         currentContext = topLevelContext
         
         let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
-        builder.positionAtEnd(of: main.appendBasicBlock(named: "entry"))
+        let allocas = main.appendBasicBlock(named: "entry.allocas")
+        builder.positionAtEnd(of: allocas)
+        let entry = main.appendBasicBlock(named: "entry")
+        builder.buildBr(entry)
+        builder.positionAtEnd(of: entry)
         
         try instructions.buildAll(generator: self)
         

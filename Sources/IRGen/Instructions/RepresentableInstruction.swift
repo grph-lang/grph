@@ -14,6 +14,10 @@ import Foundation
 import GRPHValues
 
 protocol RepresentableInstruction: Instruction {
+    /// Builds an instruction into the given generator's builder
+    ///
+    /// Contract: Before an instruction is built and after it is built, the IRBuilder must be at the end of a non-terminated basic block.
+    /// As such, it is always valid to build upon, even if it's into an unreachable basic block.
     func build(generator: IRGenerator) throws
 }
 
