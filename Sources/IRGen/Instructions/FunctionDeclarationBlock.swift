@@ -16,7 +16,7 @@ import LLVM
 
 extension FunctionDeclarationBlock: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        let ctx = VariableOwningIRContext(parent: generator.globalContext)
+        let ctx = FunctionIRContext(parent: generator.globalContext, astNode: self)
         let restoreCtx = generator.currentContext
         let restorePos = generator.builder.insertBlock!
         let builder = generator.builder

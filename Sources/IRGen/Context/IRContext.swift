@@ -35,4 +35,8 @@ class IRContext {
     func findBreak(scope: BreakInstruction.BreakScope) -> BlockIRContext? {
         parent?.findBreak(scope: scope)
     }
+    
+    var currentFunction: FunctionDeclarationBlock? {
+        parent?.currentFunction
+    }
 }
