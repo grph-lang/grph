@@ -31,11 +31,29 @@ extension ConstantExpression: RepresentableExpression {
         case let value as Rotation:
             return GRPHTypes.rotation.constant(Double(value.value))
         case let value as String:
+            let len = value.utf8.count
+            let ptrtype = generator.module.dataLayout.intPointerType()
+            let ptrsize = ptrtype.width / 8
+            if len <= ptrsize {
+                // small string
+                let bytes = Array(value.utf8)
+                var result: UInt64 = 0
+                for (i, byte) in bytes.enumerated() {
+                    result |= UInt64(byte) << (UInt64(ptrsize - i - 1) * 8 as UInt64)
+                }
+                if generator.module.dataLayout.byteOrder == .littleEndian {
+                    result = result.byteSwapped
+                }
+                return GRPHTypes.string.constant(values: [
+                    IntType.int64.constant(GRPHTypes.stringImmortalMask | (len < ptrsize ? GRPHTypes.stringNilTerminatedMask : 0) | GRPHTypes.stringSmallStringMask | UInt64(len)),
+                    generator.builder.buildBitCast(ptrtype.constant(result), type: PointerType(pointee: IntType.int8))
+                ])
+            }
+            // long string
             let global = generator.builder.addGlobalString(name: "", value: value)
             global.isGlobalConstant = true
             return GRPHTypes.string.constant(values: [
-                // immortal bit | size
-                IntType.int64.constant((1 << 63) | UInt64(value.utf8.count)),
+                IntType.int64.constant(GRPHTypes.stringImmortalMask | GRPHTypes.stringNilTerminatedMask | UInt64(len)),
                 generator.builder.buildBitCast(global, type: PointerType(pointee: IntType.int8))
             ])
             // TODO stroke, direction

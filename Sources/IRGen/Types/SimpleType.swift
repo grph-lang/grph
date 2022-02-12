@@ -24,6 +24,10 @@ extension GRPHTypes {
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     static let void = VoidType()
+    
+    static let stringImmortalMask: UInt64 = 1 << 63
+    static let stringNilTerminatedMask: UInt64 = 1 << 62
+    static let stringSmallStringMask: UInt64 = 1 << 61
 }
 
 extension SimpleType {
