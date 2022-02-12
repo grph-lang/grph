@@ -66,7 +66,7 @@ struct HeaderGenCommand: ParsableCommand {
                 printerr("Function \(fn.name) cannot yet be represented")
                 continue
             }
-            print("\(rt) \(fn.mangledName)(\(params.joined(separator: ", ")));")
+            print("\(rt) \(fn.mangledName)(\(params.isEmpty ? "void" : params.joined(separator: ", ")));")
         }
         
         print("""

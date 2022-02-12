@@ -994,7 +994,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 let type = try exp.getType(context: context, infer: SimpleType.mixed)
                 if let property = GRPHTypes.field(named: String(field.literal), in: type) {
                     resolveSemanticToken(field.withType(.property).withModifiers(property.writeable ? .none : .readonly, data: .property(property, in: type)))
-                    return FieldExpression(on: exp, field: property)
+                    return FieldExpression(on: exp, onType: type, field: property)
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find field '\(field.literal)' in type \(type)"))
                 }

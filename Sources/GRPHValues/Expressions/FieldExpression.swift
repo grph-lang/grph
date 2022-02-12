@@ -13,10 +13,12 @@ import Foundation
 
 public struct FieldExpression: Expression {
     public let on: Expression
+    public let onType: GRPHType
     public let field: Field
     
-    public init(on: Expression, field: Field) {
+    public init(on: Expression, onType: GRPHType, field: Field) {
         self.on = on
+        self.onType = onType
         self.field = field
     }
     

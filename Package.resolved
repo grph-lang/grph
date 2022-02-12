@@ -6,7 +6,7 @@
         "repositoryURL": "https://github.com/apple/indexstore-db.git",
         "state": {
           "branch": "main",
-          "revision": "d5a740284012cb50df71ffa1b5e94592832a506a",
+          "revision": "7efd438c9d9ceee03b19ede3ab4007c9d9f962b3",
           "version": null
         }
       },
@@ -33,13 +33,13 @@
         "repositoryURL": "https://github.com/apple/sourcekit-lsp",
         "state": {
           "branch": "main",
-          "revision": "2e260eb54cd93273dca29beec1dc6512d21fc2e7",
+          "revision": "f3f5dd8a965f3d66990eaa1a863022ca9ae03208",
           "version": null
         }
       },
       {
         "package": "swift-argument-parser",
-        "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
           "revision": "e1465042f195f374b94f915ba8ca49de24300a0d",
@@ -60,7 +60,7 @@
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
           "branch": "main",
-          "revision": "a08d3830539f3c719bea3fd194c97c0369e5fa11",
+          "revision": "ab32dd4cd5175e386f2250ed0a6097a68fa98cdc",
           "version": null
         }
       },
@@ -69,7 +69,7 @@
         "repositoryURL": "https://github.com/apple/swift-llbuild.git",
         "state": {
           "branch": "main",
-          "revision": "2fc95055014e81e35b9e80ffc646ffebf2fd73b9",
+          "revision": "0744e587b75b28de457795b5989f9f5ced2803f2",
           "version": null
         }
       },
@@ -78,7 +78,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "main",
-          "revision": "af43c15d900d96615afe5fd502f949026cfb8714",
+          "revision": "3e11784e07d18d597042385956ba2838055d82a9",
           "version": null
         }
       },
@@ -96,7 +96,7 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": "main",
-          "revision": "bc0d6a7068ee1c09cecef02c34491c0af99c1ee2",
+          "revision": "6017b4842dc828fd2dd69cfaf16c1867ce867d4d",
           "version": null
         }
       },
