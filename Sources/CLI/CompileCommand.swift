@@ -27,6 +27,9 @@ struct CompileCommand: ParsableCommand {
     @Flag(inversion: .prefixedNo, help: "Toggles doc comment parsing (& related warnings)")
     var doc = true
     
+    @Flag(inversion: .prefixedEnableDisable, help: ArgumentHelp("Include top level code as the main function", discussion: "When top level code is disabled, non-constant globals will be left uninitialized, as all top level code will be removed"))
+    var topLevelCode = true
+    
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
@@ -106,6 +109,10 @@ struct CompileCommand: ParsableCommand {
         
         let irgen = IRGenerator(filename: (input as NSString).lastPathComponent)
         try irgen.build(from: compiler.rootBlock.children)
+        
+        if !topLevelCode {
+            irgen.module.function(named: "main")?.delete()
+        }
         
         try irgen.module.verify()
         
