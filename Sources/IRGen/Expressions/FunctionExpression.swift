@@ -16,7 +16,7 @@ import LLVM
 
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let fn = try generator.builder.module.getOrInsertFunction(named: function.mangledName, type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType()))
+        let fn = try generator.builder.module.getOrInsertFunction(named: function.mangledName, type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
         return generator.builder.buildCall(fn, args: try values.map {
             // TODO wrap in optional, varargs etc
             if let arg = $0 {

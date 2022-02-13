@@ -15,7 +15,10 @@ import GRPHValues
 import LLVM
 
 extension GRPHType {
-    func findLLVMType() throws -> IRType {
+    func findLLVMType(forReturnType: Bool = false) throws -> IRType {
+        if forReturnType, self.isTheVoid {
+            return VoidType()
+        }
         if let ty = self as? SimpleType {
             // TODO handle other types
             return ty.asLLVM()

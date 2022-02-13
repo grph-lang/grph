@@ -26,7 +26,7 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
             generator.builder.positionAtEnd(of: restorePos)
         }
         
-        let fn = try builder.addFunction(generated.mangledName, type: FunctionType(generated.llvmParameters(), generated.returnType.findLLVMType()))
+        let fn = try builder.addFunction(generated.mangledName, type: FunctionType(generated.llvmParameters(), generated.returnType.findLLVMType(forReturnType: true)))
         for (i, var par) in fn.parameters.enumerated() {
             let name = generated.parameters[i].name
             par.name = name
@@ -41,13 +41,20 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
         try children.buildAll(generator: generator)
         
         if let rd = returnDefault {
-            builder.buildRet(try rd.tryBuilding(generator: generator))
-        } else if generated.returnType.isTheVoid {
-            builder.buildRetVoid()
+            let built = try rd.tryBuilding(generator: generator)
+            if generated.returnType.isTheVoid {
+                builder.buildRetVoid()
+            } else {
+                builder.buildRet(built)
+            }
         } else {
-            // TODO: throw exception.
-            // For now, it is undefined behaviour to not specify a return value for a non-void function
-            builder.buildUnreachable()
+            if generated.returnType.isTheVoid {
+                builder.buildRetVoid()
+            } else {
+                // TODO: throw exception.
+                // For now, it is undefined behaviour to not specify a return value for a non-void function
+                builder.buildUnreachable()
+            }
         }
     }
 }

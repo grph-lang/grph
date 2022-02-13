@@ -32,8 +32,8 @@ extension ConstantPropertyExpression: RepresentableExpression {
         case (SimpleType.pos, "ORIGIN"):
             return GRPHTypes.pos.constant([FloatType.double.constant(0), FloatType.double.constant(0)])
             
-//        case (SimpleType.void, "VOID"):
-//            return GRPHTypes.void.undef()
+        case (SimpleType.void, "VOID"):
+            return GRPHTypes.void.constant(values: [])
             
         default:
             throw GRPHCompileError(type: .unsupported, message: "Unsupported constant property: \(inType).\(property.name)")

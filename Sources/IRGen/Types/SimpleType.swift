@@ -23,7 +23,10 @@ extension GRPHTypes {
     static let direction = IntType.int8
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
-    static let void = VoidType()
+    
+    /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
+    /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
+    static let void = StructType(elementTypes: [])
     
     static let stringImmortalMask: UInt64 = 1 << 63
     static let stringNilTerminatedMask: UInt64 = 1 << 62
