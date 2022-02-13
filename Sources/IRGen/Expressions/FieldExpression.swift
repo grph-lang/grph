@@ -18,7 +18,29 @@ extension FieldExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         // writeable struct fields should use direct pointers instead
         let subject = try on.tryBuilding(generator: generator)
-        let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType()], field.type.findLLVMType()))
-        return generator.builder.buildCall(fn, args: [subject])
+        
+        switch (onType, field.name) {
+        case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
+            return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
+        default:
+            let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType()], field.type.findLLVMType()))
+            return generator.builder.buildCall(fn, args: [subject])
+        }
+    }
+}
+
+extension FieldExpression: RepresentableAssignableExpression {
+    func getPointer(generator: IRGenerator) throws -> IRValue {
+        guard let on = on as? RepresentableAssignableExpression else {
+            throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: on)) is not supported in IRGen mode")
+        }
+        let subject = try on.getPointer(generator: generator)
+        
+        switch (onType, field.name) {
+        case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
+            return generator.builder.buildStructGEP(subject, type: GRPHTypes.pos, index: field.name == "y" ? 1 : 0)
+        default:
+            throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
+        }
     }
 }

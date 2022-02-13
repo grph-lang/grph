@@ -24,7 +24,7 @@ extension ConstantExpression: RepresentableExpression {
         case let value as Bool:
             return GRPHTypes.boolean.constant(value ? 1 : 0)
         case let value as Pos:
-            return GRPHTypes.pos.constant([
+            return GRPHTypes.pos.constant(values: [
                 GRPHTypes.float.constant(Double(value.x)),
                 GRPHTypes.float.constant(Double(value.y)),
             ])

@@ -30,7 +30,7 @@ extension ConstantPropertyExpression: RepresentableExpression {
             return GRPHTypes.float.constant(-Double.nan)
             
         case (SimpleType.pos, "ORIGIN"):
-            return GRPHTypes.pos.constant([FloatType.double.constant(0), FloatType.double.constant(0)])
+            return GRPHTypes.pos.constant(values: [GRPHTypes.float.constant(0), GRPHTypes.float.constant(0)])
             
         case (SimpleType.void, "VOID"):
             return GRPHTypes.void.constant(values: [])

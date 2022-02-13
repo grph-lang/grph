@@ -18,7 +18,7 @@ extension GRPHTypes {
     static let integer = IntType.int64
     static let float = FloatType.double
     static let rotation = FloatType.float
-    static let pos = VectorType(elementType: FloatType.double, count: 2)
+    static let pos = StructType(elementTypes: [GRPHTypes.float, GRPHTypes.float])
     static let boolean = IntType.int1
     static let direction = IntType.int8
     static let stroke = IntType.int8

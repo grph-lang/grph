@@ -19,6 +19,7 @@ protocol RepresentableExpression: Expression {
 }
 
 protocol RepresentableAssignableExpression: RepresentableExpression, AssignableExpression {
+    /// Gets the pointer to the data. When possible, only this function is called for compound assignments.
     func getPointer(generator: IRGenerator) throws -> IRValue
 }
 
