@@ -46,7 +46,7 @@ extension ConstantExpression: RepresentableExpression {
                 }
                 return GRPHTypes.string.constant(values: [
                     IntType.int64.constant(GRPHTypes.stringImmortalMask | (len < ptrsize ? GRPHTypes.stringNilTerminatedMask : 0) | GRPHTypes.stringSmallStringMask | UInt64(len)),
-                    generator.builder.buildBitCast(ptrtype.constant(result), type: PointerType(pointee: IntType.int8))
+                    generator.builder.buildIntToPtr(ptrtype.constant(result), type: PointerType(pointee: IntType.int8))
                 ])
             }
             // long string
