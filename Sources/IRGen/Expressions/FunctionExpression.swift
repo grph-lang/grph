@@ -16,7 +16,7 @@ import LLVM
 
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let fn = try generator.builder.module.getOrInsertFunction(named: function.mangledName, type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
+        let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
         return generator.builder.buildCall(fn, args: try values.map {
             // TODO wrap in optional, varargs etc
             if let arg = $0 {
@@ -37,9 +37,12 @@ extension Parametrable {
 }
 
 public extension GRPHValues.Function {
-    var mangledName: String {
+    func getMangledName(generator: IRGenerator?) -> String {
         switch storage {
         case .block(_):
+            if !(generator?.mangleNames ?? true) {
+                return name
+            }
             return "_G\(ns.name.count)\(ns.name)\(name.count)\(name)"
         case .native:
             return "grph_\(ns.name)_\(name)"

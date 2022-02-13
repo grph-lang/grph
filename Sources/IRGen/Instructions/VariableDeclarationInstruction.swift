@@ -20,13 +20,14 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
         let type = try type.findLLVMType()
         if global {
             let glob: Global
+            let mangled = generator.mangleNames ? "_G4none\(name.count)\(name)" : name
             if initializer.isConstant {
-                glob = generator.builder.addGlobal("_G4none\(name.count)\(name)", initializer: initializer)
+                glob = generator.builder.addGlobal(mangled, initializer: initializer)
                 if constant {
                     glob.isGlobalConstant = true
                 }
             } else {
-                glob = generator.builder.addGlobal("_G4none\(name.count)\(name)", initializer: type.undef())
+                glob = generator.builder.addGlobal(mangled, initializer: type.undef())
                 generator.builder.buildStore(initializer, to: glob)
             }
             generator.globalContext?.insert(variable: Variable(name: name, ref: .global(glob)))

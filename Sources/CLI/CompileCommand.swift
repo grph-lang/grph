@@ -30,6 +30,9 @@ struct CompileCommand: ParsableCommand {
     @Flag(inversion: .prefixedEnableDisable, help: ArgumentHelp("Include top level code as the main function", discussion: "When top level code is disabled, non-constant globals will be left uninitialized, as all top level code will be removed"))
     var topLevelCode = true
     
+    @Flag(inversion: .prefixedEnableDisable, help: "Mangle the name of functions. If disabled, functions will be callable from C code by their name")
+    var mangling = true
+    
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
@@ -108,6 +111,7 @@ struct CompileCommand: ParsableCommand {
         }
         
         let irgen = IRGenerator(filename: (input as NSString).lastPathComponent)
+        irgen.mangleNames = mangling
         try irgen.build(from: compiler.rootBlock.children)
         
         if !topLevelCode {

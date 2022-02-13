@@ -26,7 +26,7 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
             generator.builder.positionAtEnd(of: restorePos)
         }
         
-        let fn = try builder.addFunction(generated.mangledName, type: FunctionType(generated.llvmParameters(), generated.returnType.findLLVMType(forReturnType: true)))
+        let fn = try builder.addFunction(generated.getMangledName(generator: generator), type: FunctionType(generated.llvmParameters(), generated.returnType.findLLVMType(forReturnType: true)))
         for (i, var par) in fn.parameters.enumerated() {
             let name = generated.parameters[i].name
             par.name = name
