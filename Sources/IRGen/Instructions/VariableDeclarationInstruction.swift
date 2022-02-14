@@ -20,7 +20,7 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
         let type = try type.findLLVMType()
         if global {
             let glob: Global
-            let mangled = generator.mangleNames ? "_G4none\(name.count)\(name)" : name
+            let mangled = generator.mangleNames ? "_GV4none\(name.count)\(name)" : name
             if initializer.isConstant {
                 glob = generator.builder.addGlobal(mangled, initializer: initializer)
                 if constant {

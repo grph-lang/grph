@@ -43,7 +43,7 @@ public extension GRPHValues.Function {
             if !(generator?.mangleNames ?? true) {
                 return name
             }
-            return "_G\(ns.name.count)\(ns.name)\(name.count)\(name)"
+            return "_GF\(ns.name.count)\(ns.name)\(name.count)\(name)"
         case .native:
             return "grph_\(ns.name)_\(name)"
         }
