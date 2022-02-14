@@ -44,12 +44,12 @@ public final class VariableDeclarationInstruction: Instruction {
         if let type0 = typeOrAuto {
             value = try GRPHTypes.autobox(context: context, expression: exp, expected: type0)
             type = type0
-            guard try type.isInstance(context: context, expression: value) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Incompatible types '\(try value.getType(context: context, infer: type))' and '\(type)' in declaration")
+            guard type.isInstance(context: context, expression: value) else {
+                throw GRPHCompileError(type: .typeMismatch, message: "Incompatible types '\(value.getType())' and '\(type)' in declaration")
             }
         } else {
             value = exp
-            type = try value.getType(context: context, infer: SimpleType.mixed)
+            type = value.getType()
         }
         context.addVariable(Variable(name: name, type: type, final: constant, compileTime: true), global: global)
         self.init(lineNumber: lineNumber, global: global, constant: constant, type: type, name: name, value: value)

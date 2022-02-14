@@ -25,11 +25,11 @@ public struct ConstructorExpression: Expression {
     }
     
     public init(ctx: CompilingContext, boxing: Expression, infer: GRPHType) throws {
-        self.constructor = try boxing.getType(context: ctx, infer: infer).optional.constructor!
+        self.constructor = boxing.getType().optional.constructor!
         self.values = [boxing]
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         constructor.type
     }
     

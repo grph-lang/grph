@@ -48,18 +48,14 @@ extension MethodExpression: RunnableExpression {
 
 extension FuncRefCallExpression: RunnableExpression {
     func eval(context: RuntimeContext) throws -> GRPHValue {
-        guard let variable = context.findVariable(named: varName) else {
-            throw GRPHRuntimeError(type: .invalidArgument, message: "Unknown variable '\(varName)'")
-        }
-        
-        guard let funcref = variable.content as? FuncRef else {
+        guard let funcref = try exp.evalIfRunnable(context: context) as? FuncRef else {
             throw GRPHRuntimeError(type: .typeMismatch, message: "Funcref call on non-funcref value")
         }
         
         do {
             return try funcref.execute(context: context, params: try values.map { try $0?.evalIfRunnable(context: context) })
         } catch var e as GRPHRuntimeError {
-            e.stack.append("\tat \(funcref.funcName) in funcref \(varName)")
+            e.stack.append("\tat \(funcref.funcName) in funcref \(exp.string)")
             throw e
         }
     }

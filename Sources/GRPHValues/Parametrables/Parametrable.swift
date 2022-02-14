@@ -28,9 +28,10 @@ public extension Parametrable {
         return parameters[index]
     }
     
-    func parameter(index: Int, context: CompilingContext, exp: Expression) throws -> (param: Parameter, add: Int)? {
-        try parameter(index: index) { infer in
-            try exp.getType(context: context, infer: infer)
+    @available(*, deprecated)
+    func parameter(index: Int, context: CompilingContext, exp: Expression) -> (param: Parameter, add: Int)? {
+        parameter(index: index) { infer in
+            exp.getType()
         }
     }
     
@@ -75,9 +76,9 @@ extension Parametrable {
             var param: Expression!
             guard let par = try parameter(index: nextParam, expressionType: { infer in
                 param = try resolver(paramToResolve, infer)
-                return try param.getType(context: ctx, infer: infer)
+                return param.getType()
             })  else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(try param.getType(context: ctx, infer: SimpleType.mixed))' in \(nameForErrors())")
+                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(param.getType())' in \(nameForErrors())")
             }
             nextParam += par.add
             while ourvalues.count < nextParam - 1 {

@@ -77,7 +77,7 @@ extension FunctionDeclarationBlock {
             }
             let drv = try context.generator.resolveExpression(tokens: Array(tokens[(paramsIndex + 2)...]), infer: returnTypeOrAuto)
             returnDefault = drv
-            returnType = try returnTypeOrAuto ?? drv.getType(context: context, infer: SimpleType.mixed)
+            returnType = returnTypeOrAuto ?? drv.getType()
         }
         
         generated = Function(ns: NameSpaces.none, name: String(name.literal), parameters: pars, returnType: returnType, varargs: varargs, storage: .block(self))
@@ -133,7 +133,7 @@ extension FunctionDeclarationBlock {
         if equal < param.endIndex - 1 {
             let exp = try context.generator.resolveExpression(tokens: Array(param[(equal + 1)...]), infer: ptypeOrAuto)
             defaults[i] = exp
-            ptype = try ptypeOrAuto ?? exp.getType(context: context, infer: SimpleType.mixed)
+            ptype = ptypeOrAuto ?? exp.getType()
         } else if equal == param.endIndex {
             guard let ptypeOrAuto = ptypeOrAuto else {
                 throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Cannot infer parameter type without a default parameter value"))

@@ -45,7 +45,7 @@ extension LambdaExpression {
             lambda = Lambda(currentType: type, instruction: instruction)
         } else {
             let expr = try compiler.resolveExpression(tokens: token.children, infer: type.returnType)
-            let exprType = try expr.getType(context: lambdaContext, infer: type.returnType)
+            let exprType = expr.getType()
             guard exprType.isInstance(of: type.returnType) else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Lambda of type '\(type)' must return value of type '\(type.returnType)', found value of type '\(exprType.string)'")
             }

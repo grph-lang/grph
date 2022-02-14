@@ -13,16 +13,18 @@ import Foundation
 
 public struct VariableExpression: Expression {
     public let name: String
+    public let type: GRPHType
     
-    public init(name: String) {
+    public init(context: CompilingContext, name: String) throws {
         self.name = name
+        guard let v = context.findVariable(named: name) else {
+            throw GRPHCompileError(type: .undeclared, message: "Unknown variable '\(name)'")
+        }
+        self.type = v.type
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
-        if let v = context.findVariable(named: name) {
-            return v.type
-        }
-        throw GRPHCompileError(type: .undeclared, message: "Unknown variable '\(name)'")
+    public func getType() -> GRPHType {
+        type
     }
     
     public var string: String { name }

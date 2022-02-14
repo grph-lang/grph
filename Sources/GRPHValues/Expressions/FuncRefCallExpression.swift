@@ -12,23 +12,22 @@
 import Foundation
 
 public struct FuncRefCallExpression: Expression {
+    @available(*, deprecated)
     public let varName: String
+    public let exp: Expression
     public let values: [Expression?]
     
     public init<T>(ctx: CompilingContext, varName: String, values: [T], resolver: (T, GRPHType) throws -> Expression, asInstruction: Bool = false) throws {
         self.varName = varName
         
-        guard let variable = ctx.findVariable(named: varName) else {
-            throw GRPHCompileError(type: .undeclared, message: "Unknown variable '\(varName)'")
-        }
-        
-        let autoboxedType = GRPHTypes.autoboxed(type: variable.type, expected: SimpleType.funcref)
+        self.exp = try GRPHTypes.autobox(context: ctx, expression: VariableExpression(context: ctx, name: varName), expected: SimpleType.funcref)
+        let autoboxedType = self.exp.getType()
         
         guard let function = autoboxedType as? FuncRefType else {
             if autoboxedType as? SimpleType == SimpleType.funcref {
                 throw GRPHCompileError(type: .typeMismatch, message: "Funcref call on non-specialized funcref variable, add return type and parameter types to the variable type, or use reflection")
             }
-            throw GRPHCompileError(type: .typeMismatch, message: "Funcref call on variable of type '\(variable.type)' (expected funcref)")
+            throw GRPHCompileError(type: .typeMismatch, message: "Funcref call on variable of type '\(autoboxedType)' (expected funcref)")
         }
         guard asInstruction || !function.returnType.isTheVoid else {
             throw GRPHCompileError(type: .typeMismatch, message: "Void function can't be used as an expression")
@@ -36,16 +35,12 @@ public struct FuncRefCallExpression: Expression {
         self.values = try function.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "funcref call '\(varName)'")
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
-        guard let variable = context.findVariable(named: varName),
-              let funcref = variable.type as? FuncRefType else {
-            throw GRPHCompileError(type: .undeclared, message: "Unknown funcref '\(varName)'")
-        }
-        return funcref.returnType
+    public func getType() -> GRPHType {
+        return (exp.getType() as! FuncRefType).returnType
     }
     
     public var string: String {
-        "\(varName)^[\(FuncRefType(returnType: SimpleType.void, parameterTypes: []).formattedParameterList(values: values.compactMap {$0}))]"
+        "\(exp.string)^[\(FuncRefType(returnType: SimpleType.void, parameterTypes: []).formattedParameterList(values: values.compactMap {$0}))]"
     }
     
     public var needsBrackets: Bool { false }
@@ -53,11 +48,12 @@ public struct FuncRefCallExpression: Expression {
 
 public extension FuncRefCallExpression {
     var astNodeData: String {
-        "invocation of funcref \(varName)"
+        "invocation of a funcref"
     }
     
     var astChildren: [ASTElement] {
         [
+            ASTElement(name: "funcref", value: exp),
             ASTElement(name: "arguments", value: values.compactMap({ $0 }))
         ]
     }

@@ -46,7 +46,7 @@ public struct ConstantExpression: Expression {
         self.value = string
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         value.type // The value is always known at compile time, so this is fine
     }
     

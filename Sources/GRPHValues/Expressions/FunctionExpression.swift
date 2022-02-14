@@ -23,7 +23,7 @@ public struct FunctionExpression: Expression {
         self.values = try function.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "function '\(function.name)'")
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         return function.returnType
     }
     

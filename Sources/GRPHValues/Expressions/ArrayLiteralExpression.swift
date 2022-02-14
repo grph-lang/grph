@@ -20,7 +20,7 @@ public struct ArrayLiteralExpression: Expression {
         self.values = values
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         ArrayType(content: wrapped)
     }
     

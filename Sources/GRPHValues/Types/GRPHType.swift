@@ -42,8 +42,8 @@ public extension GRPHType {
         OptionalType(wrapped: self)
     }
     
-    func isInstance(context: CompilingContext, expression: Expression) throws -> Bool {
-        return GRPHTypes.autoboxed(type: try expression.getType(context: context, infer: self), expected: self).isInstance(of: self)
+    func isInstance(context: CompilingContext, expression: Expression) -> Bool {
+        return GRPHTypes.autoboxed(type: expression.getType(), expected: self).isInstance(of: self)
     }
     
     // default: None
@@ -181,7 +181,7 @@ public extension GRPHTypes {
     }
     
     static func autobox(context: CompilingContext, expression: Expression, expected: GRPHType) throws -> Expression {
-        let type = try expression.getType(context: context, infer: expected)
+        let type = expression.getType()
         if !(type is OptionalType),
            let expected = expected as? OptionalType { // Boxing
             if context.compiler.hasStrictBoxing {

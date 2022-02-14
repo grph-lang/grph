@@ -12,38 +12,39 @@
 import Foundation
 
 public struct ArrayValueExpression: Expression {
+    @available(*, deprecated)
     public let varName: String
+    public let array: Expression
     public let index: Expression?
     public let removing: Bool
     
     public init(context: CompilingContext, varName: String, index: Expression?, removing: Bool) throws {
         self.varName = varName
+        self.array = try GRPHTypes.autobox(context: context, expression: VariableExpression(context: context, name: varName), expected: ArrayType(content: SimpleType.mixed))
         self.index = index == nil ? nil : try GRPHTypes.autobox(context: context, expression: index!, expected: SimpleType.integer)
         self.removing = removing
-    }
-    
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
-        guard let v = context.findVariable(named: varName) else {
-            throw GRPHCompileError(type: .undeclared, message: "Unknown variable '\(varName)'")
-        }
-        guard let type = GRPHTypes.autoboxed(type: v.type, expected: ArrayType(content: SimpleType.mixed)) as? ArrayType else {
+        guard self.array.getType() is ArrayType else {
             throw GRPHCompileError(type: .invalidArguments, message: "Array expression with non-array variable")
         }
-        return type.content
     }
     
-    public var string: String { "\(varName){\(index?.string ?? "")\(removing ? "-" : "")}" }
+    public func getType() -> GRPHType {
+        return (self.array.getType() as! ArrayType).content
+    }
+    
+    public var string: String { "\(array.string){\(index?.string ?? "")\(removing ? "-" : "")}" }
     
     public var needsBrackets: Bool { false }
 }
 
 public extension ArrayValueExpression {
     var astNodeData: String {
-        "access an element of array '\(varName)'\(removing ? " and remove it" : "")"
+        "access an element of an array \(removing ? " and remove it" : "")"
     }
     
     var astChildren: [ASTElement] {
         [
+            ASTElement(name: "array", value: array),
             ASTElement(name: "index", value: index)
         ]
     }

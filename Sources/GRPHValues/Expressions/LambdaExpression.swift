@@ -20,7 +20,7 @@ public struct LambdaExpression: Expression {
         self.capturedVarNames = capturedVarNames
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         lambda.currentType
     }
     

@@ -22,7 +22,7 @@ public struct CastExpression: Expression {
         self.to = to
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         if case .typeCheck = cast {
             return SimpleType.boolean
         } else if cast.optional {

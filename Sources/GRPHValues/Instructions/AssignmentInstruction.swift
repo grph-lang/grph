@@ -21,16 +21,16 @@ public final class AssignmentInstruction: Instruction {
         self.lineNumber = lineNumber
         self.assigned = assigned
         
-        let varType = try assigned.getType(context: context, infer: SimpleType.mixed)
+        let varType = assigned.getType()
         let avalue = try GRPHTypes.autobox(context: context, expression: value, expected: varType)
         
-        guard try varType.isInstance(context: context, expression: avalue) else {
-            throw GRPHCompileError(type: .typeMismatch, message: "Incompatible types '\(try avalue.getType(context: context, infer: SimpleType.mixed))' and '\(varType)' in assignment")
+        guard varType.isInstance(context: context, expression: avalue) else {
+            throw GRPHCompileError(type: .typeMismatch, message: "Incompatible types '\(avalue.getType())' and '\(varType)' in assignment")
         }
         
         if let op = op {
             self.virtualized = true
-            self.value = try BinaryExpression(context: context, left: VirtualExpression(type: assigned.getType(context: context, infer: SimpleType.mixed)), op: op, right: avalue)
+            self.value = try BinaryExpression(context: context, left: VirtualExpression(type: assigned.getType()), op: op, right: avalue)
         } else {
             self.virtualized = false
             self.value = avalue
@@ -51,7 +51,7 @@ public final class AssignmentInstruction: Instruction {
     public struct VirtualExpression: Expression {
         public let type: GRPHType
         
-        public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+        public func getType() -> GRPHType {
             type
         }
         

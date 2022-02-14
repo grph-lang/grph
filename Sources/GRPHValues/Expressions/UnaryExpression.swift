@@ -20,26 +20,26 @@ public struct UnaryExpression: Expression {
         self.exp = exp
         switch self.op {
         case .bitwiseComplement:
-            guard try SimpleType.integer.isInstance(context: context, expression: exp) else {
+            guard SimpleType.integer.isInstance(context: context, expression: exp) else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Operator '\(op)' needs an integer")
             }
         case .opposite:
-            guard try SimpleType.num.isInstance(context: context, expression: exp) else {
+            guard SimpleType.num.isInstance(context: context, expression: exp) else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Operator '\(op)' needs a number")
             }
         case .not:
-            guard try SimpleType.boolean.isInstance(context: context, expression: exp) else {
+            guard SimpleType.boolean.isInstance(context: context, expression: exp) else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Operator '\(op)' needs a boolean")
             }
         }
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         switch op {
         case .bitwiseComplement:
             return SimpleType.integer
         case .opposite:
-            return try exp.getType(context: context, infer: infer)
+            return exp.getType()
         case .not:
             return SimpleType.boolean
         }
@@ -71,15 +71,15 @@ public enum UnaryOperator: String {
 public struct UnboxExpression: Expression {
     public let exp: Expression
     
-    public init(exp: Expression) {
+    public init(exp: Expression) throws {
         self.exp = exp
-    }
-    
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
-        guard let type = try exp.getType(context: context, infer: infer.optional) as? OptionalType else {
+        guard exp.getType() is OptionalType else {
             throw GRPHCompileError(type: .typeMismatch, message: "Cannot unbox non optional")
         }
-        return type.wrapped
+    }
+    
+    public func getType() -> GRPHType {
+        return (exp.getType() as! OptionalType).wrapped
     }
     
     public var needsBrackets: Bool { false }

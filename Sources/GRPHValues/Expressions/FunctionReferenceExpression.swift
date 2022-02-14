@@ -54,7 +54,7 @@ public struct FunctionReferenceExpression: Expression {
         }
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         inferredType
     }
     

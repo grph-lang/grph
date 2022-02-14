@@ -13,7 +13,7 @@ import Foundation
 
 public protocol Expression: CustomStringConvertible, ASTNode {
     
-    func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType
+    func getType() -> GRPHType
     
     var string: String { get }
     

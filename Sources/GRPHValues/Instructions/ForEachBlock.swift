@@ -29,7 +29,7 @@ public final class ForEachBlock: BlockInstruction, ElseableBlock {
         self.lineNumber = lineNumber
         let ctx = createContext(&compiler.context)
         
-        let type = try self.array.getType(context: compiler.context, infer: SimpleType.mixed.inArray)
+        let type = self.array.getType()
         
         guard let arrtype = type as? ArrayType else {
             throw GRPHCompileError(type: .typeMismatch, message: "#foreach needs an array, a \(type) was given")

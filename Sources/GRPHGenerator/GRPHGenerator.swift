@@ -332,7 +332,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: err, severity: .error, source: .generator, message: "Could not find error type '\(err.literal)'"))
                 }
                 let msg = try resolveExpression(tokens: tokens[2].children, infer: SimpleType.string)
-                guard try SimpleType.string.isInstance(context: context, expression: msg) else {
+                guard SimpleType.string.isInstance(context: context, expression: msg) else {
                     throw DiagnosticCompileError(notice: Notice(token: tokens[2], severity: .error, source: .generator, message: "Expected the message to be a string"))
                 }
                 return ResolvedInstruction(instruction: ThrowInstruction(lineNumber: lineNumber, type: error, message: msg))
@@ -358,8 +358,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 } else {
                     let expected = block.generated.returnType
                     let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: params, infer: expected), expected: expected)
-                    guard try block.generated.returnType.isInstance(context: context, expression: exp) else {
-                        throw GRPHCompileError(type: .parse, message: "Expected a #return value of type \(expected), found a \(try exp.getType(context: context, infer: expected))")
+                    guard block.generated.returnType.isInstance(context: context, expression: exp) else {
+                        throw GRPHCompileError(type: .parse, message: "Expected a #return value of type \(expected), found a \(exp.getType())")
                     }
                     return ResolvedInstruction(instruction: ReturnInstruction(lineNumber: lineNumber, value: exp))
                 }
@@ -406,12 +406,12 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 } while context.findVariable(named: name) != nil
                 
                 let exp = try resolveExpression(tokens: Array(tokens.dropFirst()), infer: nil)
-                let type = try exp.getType(context: context, infer: SimpleType.mixed)
+                let type = exp.getType()
                 // We declare our variable
                 try addInstruction(VariableDeclarationInstruction(lineNumber: lineNumber, global: false, constant: true, type: type, name: name, value: exp))
                 try addBlock(SwitchTransparentBlock(lineNumber: lineNumber), alreadyAdded: false)
                 // We create our context, denying non-#case/#default and advertising our var name
-                context = SwitchCompilingContext(parent: context, compare: VariableExpression(name: name))
+                context = SwitchCompilingContext(parent: context, compare: try VariableExpression(context: context, name: name))
                 // We advertise our var with its type, so type checks in #case works
                 context.addVariable(Variable(name: name, type: type, final: true, compileTime: true), global: false)
                 return nil // handled
@@ -419,7 +419,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 guard let ctx = context as? SwitchCompilingContext else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#case cannot be used outside of a #switch"))
                 }
-                let type = try ctx.compare.getType(context: context, infer: SimpleType.mixed)
+                let type = ctx.compare.getType()
                 // children instead of tokens as we need the spaces
                 let params = children.dropFirst().split(on: .whitespace)
                 guard params.count > 0 else {
@@ -583,7 +583,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     // var declaration or assignment, try assignment first
                     if let assigned = try? resolveExpression(tokens: Array(tokens[..<assignment]), infer: nil) as? AssignableExpression {
                         resolveSemanticTokensAsModification(tokens[..<assignment])
-                        let type = try assigned.getType(context: context, infer: SimpleType.mixed)
+                        let type = assigned.getType()
                         let value = try resolveExpression(tokens: Array(tokens[(assignment + 1)...]), infer: type)
                         return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: nil, value: value))
                     } else { // var declaration
@@ -632,7 +632,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: Array(tokens[..<compound]), type: .squareBrackets), severity: .error, source: .generator, message: "Left value of an assignment must be assignable"))
                 }
                 resolveSemanticTokensAsModification(tokens[..<compound])
-                let type = try assigned.getType(context: context, infer: SimpleType.mixed)
+                let type = assigned.getType()
                 let value = try resolveExpression(tokens: Array(tokens[(compound + 1)...]), infer: type)
                 return try ResolvedInstruction(instruction: AssignmentInstruction(lineNumber: lineNumber, context: context, assigned: assigned, op: tokens[compound].children[0].description, value: value))
             } else if let colon = tokens.firstIndex(where: { $0.tokenType == .methodCallOperator }), colon > 0 {
@@ -662,7 +662,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 if offset < colon {
                     // A method on some subject
                     let subject = try resolveExpression(tokens: Array(tokens[offset..<colon]), infer: nil)
-                    let type = try subject.getType(context: context, infer: SimpleType.mixed)
+                    let type = subject.getType()
                     guard let method = Method(imports: imports, namespace: ns, name: name.description, inType: type) else {
                         throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find method '\(name.literal)' in type '\(type.string)'"))
                     }
@@ -675,7 +675,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                         return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: FunctionExpression(ctx: context, function: function, values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
                     } else if let method = Method(imports: imports, namespace: ns, name: name.description, inType: context.findVariable(named: "this")!.type) {
                         resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
-                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: VariableExpression(name: "this"), values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
+                        return try ResolvedInstruction(instruction: ExpressionInstruction(lineNumber: lineNumber, expression: MethodExpression(ctx: context, method: method, on: VariableExpression(context: context, name: "this"), values: args, resolver: resolveExpression(tokens:infer:), asInstruction: true)))
                     } else {
                         throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Could not find function or method '\(name.literal)'"))
                     }
@@ -741,7 +741,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             case .booleanLiteral:
                 return ConstantExpression(boolean: token.literal == "true")
             case .nullLiteral:
-                return NullExpression()
+                return NullExpression(infer: infer ?? SimpleType.mixed)
             case .numberLiteral:
                 switch token.data {
                 case .integer(let int):
@@ -790,7 +790,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 return try ArrayLiteralExpression(wrapped: wrapped, values: token.children.stripped.split(on: .comma).map { tokens in
                     let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
-                    let type = try exp.getType(context: context, infer: wrapped)
+                    let type = exp.getType()
                     guard type.isInstance(of: wrapped) else {
                         throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Value of type '\(type)' couldn't be converted to \(wrapped)"))
                     }
@@ -798,7 +798,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 })
             case .identifier:
                 resolveSemanticToken(token.withType(.variable).forVariable(context.findVariable(named: tokens[0].description)))
-                return VariableExpression(name: token.description)
+                return try VariableExpression(context: context, name: token.description)
             default:
                 break
             }
@@ -900,7 +900,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             
             return try ArrayLiteralExpression(wrapped: wrapped, values: tokens.last!.children.stripped.split(on: .comma).map { tokens in
                 let exp = try GRPHTypes.autobox(context: context, expression: resolveExpression(tokens: tokens, infer: wrapped), expected: wrapped)
-                let type = try exp.getType(context: context, infer: wrapped)
+                let type = exp.getType()
                 guard type.isInstance(of: wrapped) else {
                     throw DiagnosticCompileError(notice: Notice(token: Token(compound: tokens, type: .squareBrackets), severity: .error, source: .generator, message: "Value of type '\(type)' couldn't be converted to \(wrapped)"))
                 }
@@ -917,8 +917,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
             let on = try resolveExpression(tokens: [tokens[0]], infer: nil)
             let name = tokens[4]
             resolveSemanticToken(tokens[2].withType(.namespace).withModifiers([]))
-            guard let method = Method(imports: context.imports, namespace: ns, name: String(name.literal), inType: try on.getType(context: context, infer: SimpleType.mixed)) else {
-                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(ns.name)>\(name.literal)'")
+            guard let method = Method(imports: context.imports, namespace: ns, name: String(name.literal), inType: on.getType()) else {
+                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(on.getType()).\(ns.name)>\(name.literal)'")
             }
             resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
             return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
@@ -954,8 +954,8 @@ public class GRPHGenerator: GRPHCompilerProtocol {
         if TokenMatcher(types: .dot, .identifier, .squareBrackets).matches(tokens: tokens.suffix(3)) {
             let on = try resolveExpression(tokens: tokens.dropLast(3), infer: nil)
             let name = tokens[tokens.count - 2]
-            guard let method = Method(imports: context.imports, namespace: NameSpaces.none, name: String(name.literal), inType: try on.getType(context: context, infer: SimpleType.mixed)) else {
-                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(try on.getType(context: context, infer: SimpleType.mixed)).\(name.literal)'")
+            guard let method = Method(imports: context.imports, namespace: NameSpaces.none, name: String(name.literal), inType: on.getType()) else {
+                throw GRPHCompileError(type: .undeclared, message: "Undeclared method '\(on.getType()).\(name.literal)'")
             }
             resolveSemanticToken(name.withType(.method).withModifiers([.defaultLibrary, .call], data: .method(method)))
             return try MethodExpression(ctx: context, method: method, on: on, values: tokens.last!.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))
@@ -991,7 +991,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     resolveSemanticToken(field.withType(.keyword).withModifiers([]))
                     return ValueTypeExpression(on: exp)
                 }
-                let type = try exp.getType(context: context, infer: SimpleType.mixed)
+                let type = exp.getType()
                 if let property = GRPHTypes.field(named: String(field.literal), in: type) {
                     resolveSemanticToken(field.withType(.property).withModifiers(property.writeable ? .none : .readonly, data: .property(property, in: type)))
                     return FieldExpression(on: exp, onType: type, field: property)

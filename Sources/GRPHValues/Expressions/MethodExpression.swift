@@ -25,7 +25,7 @@ public struct MethodExpression: Expression {
         self.values = try method.populateArgumentList(ctx: ctx, values: values, resolver: resolver, nameForErrors: "method '\(method.inType)>\(method.name)'")
     }
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
+    public func getType() -> GRPHType {
         return method.returnType
     }
     

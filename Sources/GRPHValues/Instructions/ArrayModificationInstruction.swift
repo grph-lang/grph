@@ -39,7 +39,7 @@ public final class ArrayModificationInstruction: Instruction {
     public convenience init(lineNumber: Int, context: CompilingContext, name: String, op: ArrayModificationOperation, index: Expression?, value: Expression?) throws {
         
         if let index = index {
-            guard try SimpleType.integer.isInstance(context: context, expression: index) else {
+            guard SimpleType.integer.isInstance(context: context, expression: index) else {
                 throw GRPHCompileError(type: .typeMismatch, message: "Expected integer in array modification index")
             }
         }
@@ -50,8 +50,8 @@ public final class ArrayModificationInstruction: Instruction {
             throw GRPHCompileError(type: .typeMismatch, message: "Expected an array in array modification, got a \(v.type)")
         }
         if let exp = value {
-            guard try arr.content.isInstance(context: context, expression: exp) else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Expected \(arr.content) as array content, got \(try exp.getType(context: context, infer: arr.content))")
+            guard arr.content.isInstance(context: context, expression: exp) else {
+                throw GRPHCompileError(type: .typeMismatch, message: "Expected \(arr.content) as array content, got \(exp.getType())")
             }
         }
         

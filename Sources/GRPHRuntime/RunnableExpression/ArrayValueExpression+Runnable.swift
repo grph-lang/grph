@@ -14,7 +14,7 @@ import GRPHValues
 
 extension ArrayValueExpression: RunnableExpression {
     func eval(context: RuntimeContext) throws -> GRPHValue {
-        guard let val = context.findVariable(named: varName)?.content as? GRPHArray else {
+        guard let val = try array.evalIfRunnable(context: context) as? GRPHArray else {
             throw GRPHRuntimeError(type: .invalidArgument, message: "Array expression with non-array")
         }
         guard val.count > 0 else {

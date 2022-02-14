@@ -13,13 +13,18 @@ import Foundation
 
 public struct NullExpression: Expression {
     
-    public init() {}
+    var type: OptionalType
     
-    public func getType(context: CompilingContext, infer: GRPHType) throws -> GRPHType {
-        if infer is OptionalType {
-            return infer
+    public init(infer: GRPHType) {
+        if let infer = infer as? OptionalType {
+            type = infer
+        } else {
+            type = OptionalType(wrapped: SimpleType.mixed)
         }
-        return OptionalType(wrapped: SimpleType.mixed)
+    }
+    
+    public func getType() -> GRPHType {
+        type
     }
     
     public var string: String { "null" }
