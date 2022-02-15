@@ -24,11 +24,20 @@ protocol RepresentableAssignableExpression: RepresentableExpression, AssignableE
 }
 
 extension Expression {
-    func tryBuilding(generator: IRGenerator) throws -> IRValue {
-        if let expression = self as? RepresentableExpression {
-            return try expression.build(generator: generator)
-        } else {
+    func tryBuildingWithoutCaringAboutType(generator: IRGenerator) throws -> IRValue {
+        guard let expression = self as? RepresentableExpression else {
             throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
         }
+        return try expression.build(generator: generator)
+    }
+    
+    func tryBuilding(generator: IRGenerator, expect: GRPHType) throws -> IRValue {
+        guard let expect = expect as? RepresentableGRPHType else {
+            throw GRPHCompileError(type: .unsupported, message: "Type \(expect) is not supported in IRGen mode")
+        }
+        guard let from = self.getType() as? RepresentableGRPHType else {
+            throw GRPHCompileError(type: .unsupported, message: "Type \(self.getType()) is not supported in IRGen mode")
+        }
+        return try from.downcast(generator: generator, to: expect, value: tryBuildingWithoutCaringAboutType(generator: generator))
     }
 }

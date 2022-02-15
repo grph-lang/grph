@@ -17,7 +17,7 @@ import LLVM
 extension FieldExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         // writeable struct fields should use direct pointers instead
-        let subject = try on.tryBuilding(generator: generator)
+        let subject = try on.tryBuilding(generator: generator, expect: onType)
         
         switch (onType, field.name) {
         case (SimpleType.pos, "x"), (SimpleType.pos, "y"):

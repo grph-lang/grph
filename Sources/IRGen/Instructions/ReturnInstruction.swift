@@ -15,14 +15,14 @@ import GRPHValues
 
 extension ReturnInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
+        let fn = generator.currentContext!.currentFunction!
         if let value = value {
-            generator.builder.buildRet(try value.tryBuilding(generator: generator))
+            generator.builder.buildRet(try value.tryBuilding(generator: generator, expect: fn.generated.returnType))
         } else {
-            let fn = generator.currentContext!.currentFunction!
             if fn.generated.returnType.isTheVoid {
                 generator.builder.buildRetVoid()
             } else if let def = fn.returnDefault {
-                generator.builder.buildRet(try def.tryBuilding(generator: generator))
+                generator.builder.buildRet(try def.tryBuilding(generator: generator, expect: fn.generated.returnType))
             } else {
                 // this would be a compiler error upstream
                 preconditionFailure()

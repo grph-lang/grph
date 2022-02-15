@@ -47,7 +47,7 @@ extension IRGenerator {
             ctx = BlockIRContext(parent: currentContext, label: _label, break: postBlock)
         }
         
-        builder.buildCondBr(condition: try condition.tryBuilding(generator: self), then: bodyBlock, else: elseBlock)
+        builder.buildCondBr(condition: try condition.tryBuilding(generator: self, expect: SimpleType.boolean), then: bodyBlock, else: elseBlock)
         
         builder.positionAtEnd(of: bodyBlock)
         try block.buildChildren(generator: self, context: ctx)

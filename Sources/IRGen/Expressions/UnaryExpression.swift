@@ -16,12 +16,13 @@ import LLVM
 
 extension UnaryExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let value = try exp.tryBuilding(generator: generator)
+        // TODO: Do care about type
+        let value = try exp.tryBuildingWithoutCaringAboutType(generator: generator)
         switch op {
         case .bitwiseComplement, .not: // ~ and ! are the same, but with different int width
             return generator.builder.buildNot(value)
         case .opposite:
-            // TODO value can here be integer (OK), float (OK), but also the num existential (NOT OK!)
+            // TODO: value can here be integer (OK), float (OK), but also the num existential (NOT OK!)
             return generator.builder.buildNeg(value)
         }
     }

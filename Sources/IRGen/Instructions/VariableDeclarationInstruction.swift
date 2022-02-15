@@ -16,7 +16,7 @@ import LLVM
 
 extension VariableDeclarationInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        let initializer = try value.tryBuilding(generator: generator)
+        let initializer = try value.tryBuilding(generator: generator, expect: type as! RepresentableGRPHType)
         let type = try type.findLLVMType()
         if global {
             let glob: Global

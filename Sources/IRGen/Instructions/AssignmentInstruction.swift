@@ -26,7 +26,7 @@ extension AssignmentInstruction: RepresentableInstruction {
                     generator.currentContext = generator.currentContext?.parent
                 }
             }
-            generator.builder.buildStore(try value.tryBuilding(generator: generator), to: ptr)
+            generator.builder.buildStore(try value.tryBuilding(generator: generator, expect: assigned.getType()), to: ptr)
         } else {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: self)) is not supported in IRGen mode")
         }

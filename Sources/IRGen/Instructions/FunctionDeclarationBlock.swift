@@ -41,7 +41,7 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
         try children.buildAll(generator: generator)
         
         if let rd = returnDefault {
-            let built = try rd.tryBuilding(generator: generator)
+            let built = try rd.tryBuilding(generator: generator, expect: generated.returnType)
             if generated.returnType.isTheVoid {
                 builder.buildRetVoid()
             } else {

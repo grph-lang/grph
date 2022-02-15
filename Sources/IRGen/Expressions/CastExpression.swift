@@ -16,9 +16,9 @@ import LLVM
 
 extension CastExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.mixed], to.findLLVMType()))
-        let val = try from.tryBuilding(generator: generator)
-        return generator.builder.buildCall(fn, args: [try (from.getType() as! RepresentableGRPHType).downcast(generator: generator, to: SimpleType.mixed, value: val)])
+        let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.existential], to.findLLVMType()))
+        let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
+        return generator.builder.buildCall(fn, args: [val])
     }
 }
 
@@ -36,12 +36,13 @@ extension RepresentableGRPHType {
         glob.linkage = .private
         let ptr = PointerType(pointee: IntType.int8)
         let cnt = LLVM.ArrayType.constant([ptr.null(), ptr.null(), ptr.null()], type: PointerType(pointee: IntType.int8))
-        let mixed = GRPHTypes.mixed.constant(values: [generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8)), GRPHTypes.mixed.elementTypes[1].undef()])
+        let mixed = GRPHTypes.existential.constant(values: [generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8)), GRPHTypes.existential.elementTypes[1].undef()])
         let elem = generator.builder.buildInsertValue(aggregate: cnt, element: generator.builder.buildIntToPtr(value, type: ptr), index: 0)
         return generator.builder.buildInsertValue(aggregate: mixed, element: elem, index: 1)
     }
     
     /// Cast from this type, to a parent type
+    /// Don't call this directly, use `Expression.tryBuilding(generator:expect:)`
     func downcast(generator: IRGenerator, to: RepresentableGRPHType, value: IRValue) throws -> IRValue {
         if self == to {
             return value

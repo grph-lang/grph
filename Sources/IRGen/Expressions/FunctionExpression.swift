@@ -17,10 +17,10 @@ import LLVM
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
-        return generator.builder.buildCall(fn, args: try values.map {
+        return generator.builder.buildCall(fn, args: try values.enumerated().map { i, arg in
             // TODO wrap in optional, varargs etc
-            if let arg = $0 {
-                return try arg.tryBuilding(generator: generator)
+            if let arg = arg {
+                return try arg.tryBuilding(generator: generator, expect: self.function.parameters[i].type as! RepresentableGRPHType)
             }
             throw GRPHCompileError(type: .unsupported, message: "Optionals are not supported in IRGen mode")
         })

@@ -19,9 +19,12 @@ extension BinaryExpression: RepresentableExpression {
         if op == .logicalAnd || op == .logicalOr {
             return try buildShortCircuiting(generator: generator)
         }
-        // TODO handle num existential everywhere + handle pos
-        let left = try self.left.tryBuilding(generator: generator)
-        let right = try self.right.tryBuilding(generator: generator)
+        if op == .equal || op == .notEqual {
+            return try buildEquality(generator: generator)
+        }
+        // TODO: handle num existential everywhere + handle pos
+        let left = try self.left.tryBuilding(generator: generator, expect: operands)
+        let right = try self.right.tryBuilding(generator: generator, expect: operands)
         switch op {
         case .greaterOrEqualTo, .lessOrEqualTo, .greaterThan, .lessThan:
             if operands == .integer {
@@ -50,16 +53,8 @@ extension BinaryExpression: RepresentableExpression {
             return generator.builder.buildDiv(left, right)
         case .modulo:
             return generator.builder.buildRem(left, right)
-        case .logicalOr, .logicalAnd:
+        case .logicalOr, .logicalAnd, .equal, .notEqual:
             preconditionFailure()
-        case .equal, .notEqual:
-            if left.type is IntType && right.type is IntType {
-                return generator.builder.buildICmp(left, right, op.icmpPredicate)
-            } else if left.type is FloatType && right.type is FloatType {
-                return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
-            }
-            // TODO
-            fallthrough
         default:
             throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
             //        case .concat:
@@ -68,7 +63,7 @@ extension BinaryExpression: RepresentableExpression {
     }
     
     func buildShortCircuiting(generator: IRGenerator) throws -> IRValue {
-        let left = try self.left.tryBuilding(generator: generator)
+        let left = try self.left.tryBuilding(generator: generator, expect: SimpleType.boolean)
         
         let shortBranch = generator.builder.currentFunction!.appendBasicBlock(named: "shortcircuit")
         let longBranch = generator.builder.currentFunction!.appendBasicBlock(named: "longcircuit")
@@ -82,7 +77,7 @@ extension BinaryExpression: RepresentableExpression {
         generator.builder.buildBr(mergeBranch)
         
         generator.builder.positionAtEnd(of: longBranch)
-        let right = try self.right.tryBuilding(generator: generator)
+        let right = try self.right.tryBuilding(generator: generator, expect: SimpleType.boolean)
         generator.builder.buildBr(mergeBranch)
         
         generator.builder.positionAtEnd(of: mergeBranch)
@@ -92,6 +87,18 @@ extension BinaryExpression: RepresentableExpression {
             (right, longBranch)
         ])
         return result
+    }
+    
+    func buildEquality(generator: IRGenerator) throws -> IRValue {
+        let left = try self.left.tryBuildingWithoutCaringAboutType(generator: generator)
+        let right = try self.right.tryBuildingWithoutCaringAboutType(generator: generator)
+        if left.type is IntType && right.type is IntType {
+            return generator.builder.buildICmp(left, right, op.icmpPredicate)
+        } else if left.type is FloatType && right.type is FloatType {
+            return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
+        }
+        // TODO: other types
+        throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
     }
 }
 
