@@ -28,13 +28,6 @@ public extension Parametrable {
         return parameters[index]
     }
     
-    @available(*, deprecated)
-    func parameter(index: Int, context: CompilingContext, exp: Expression) -> (param: Parameter, add: Int)? {
-        parameter(index: index) { infer in
-            exp.getType()
-        }
-    }
-    
     func parameter(index: Int, expressionType: (GRPHType) throws -> GRPHType) rethrows -> (param: Parameter, add: Int)? {
         var param = index
         while param < maximumParameterCount {

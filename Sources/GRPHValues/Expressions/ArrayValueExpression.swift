@@ -12,14 +12,11 @@
 import Foundation
 
 public struct ArrayValueExpression: Expression {
-    @available(*, deprecated)
-    public let varName: String
     public let array: Expression
     public let index: Expression?
     public let removing: Bool
     
     public init(context: CompilingContext, varName: String, index: Expression?, removing: Bool) throws {
-        self.varName = varName
         self.array = try GRPHTypes.autobox(context: context, expression: VariableExpression(context: context, name: varName), expected: ArrayType(content: SimpleType.mixed))
         self.index = index == nil ? nil : try GRPHTypes.autobox(context: context, expression: index!, expected: SimpleType.integer)
         self.removing = removing

@@ -12,14 +12,10 @@
 import Foundation
 
 public struct FuncRefCallExpression: Expression {
-    @available(*, deprecated)
-    public let varName: String
     public let exp: Expression
     public let values: [Expression?]
     
     public init<T>(ctx: CompilingContext, varName: String, values: [T], resolver: (T, GRPHType) throws -> Expression, asInstruction: Bool = false) throws {
-        self.varName = varName
-        
         self.exp = try GRPHTypes.autobox(context: ctx, expression: VariableExpression(context: ctx, name: varName), expected: SimpleType.funcref)
         let autoboxedType = self.exp.getType()
         

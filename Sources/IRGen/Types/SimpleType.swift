@@ -24,6 +24,8 @@ extension GRPHTypes {
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     
+    static let mixed = StructType(elementTypes: [PointerType(pointee: IntType.int8), LLVM.ArrayType(elementType: PointerType(pointee: IntType.int8), count: 3)])
+    
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
     static let void = StructType(elementTypes: [])
@@ -33,7 +35,42 @@ extension GRPHTypes {
     static let stringSmallStringMask: UInt64 = 1 << 61
 }
 
-extension SimpleType {
+extension SimpleType: RepresentableGRPHType {
+    var typeid: [UInt8]? {
+        switch self {
+        case .void:         return [0]
+        case .boolean:      return [1]
+        case .integer:      return [2]
+        case .float:        return [3]
+        case .rotation:     return [4]
+        case .pos:          return [5]
+        case .string:       return [6]
+        case .color:        return [7]
+        case .linear:       return [8]
+        case .radial:       return [9]
+        case .direction:    return [10]
+        case .stroke:       return [11]
+        case .font:         return [12]
+        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
+            return [100] // reference types, they have an isa instead
+        case .num, .mixed, .paint, .funcref:
+            return nil // not valid existentials
+        }
+    }
+    
+    var representationMode: RepresentationMode {
+        switch self {
+        case .integer, .float, .rotation, .pos, .boolean, .color, .linear, .radial, .direction, .stroke, .void:
+            return .pureValue
+        case .string, .font:
+            return .impureValue
+        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
+            return .referenceType
+        case .num, .mixed, .paint, .funcref:
+            return .existential
+        }
+    }
+    
     func asLLVM() -> IRType {
         switch self {
         case .integer:
