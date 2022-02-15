@@ -33,7 +33,11 @@ public struct Function: Parametrable, Importable {
 
 public extension Function {
     enum Storage {
+        /// builtin function
         case native
+        /// `#external` declaration. IRGen-mode only, declares an external function
+        case external
+        /// A function defined by the user in a block
         case block(FunctionDeclarationBlock)
     }
 }

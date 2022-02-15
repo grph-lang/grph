@@ -33,7 +33,7 @@ extension FunctionDeclarationBlock {
         
         let name = tokens[paramsIndex - 1]
         defer { // make sure generated is set (or use .none if we fail parsing)
-            context.generator.resolveSemanticToken(name.withType(.function).withModifiers([.declaration, .definition], data: generated.map { .function($0) }))
+            context.generator.resolveSemanticToken(name.withType(.function).withModifiers([.declaration, isExternal ? [] : .definition], data: generated.map { .function($0) }))
         }
         guard name.tokenType == .identifier && name.literal.allSatisfy({ $0.isLetter || $0 == "_" }) else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Expected function name to only contain letters and underscores"))
@@ -62,12 +62,14 @@ extension FunctionDeclarationBlock {
         }
         
         let returnType: GRPHType
+        let storage: Function.Storage
         if tokens.count == paramsIndex + 1 {
             if let returnTypeOrAuto = returnTypeOrAuto {
                 returnType = returnTypeOrAuto
             } else {
                 throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Cannot infer auto type without a default return value", hint: "Insert ` = defaultValue` at the end of the line to add a default return value"))
             }
+            storage = .block(self)
         } else {
             guard tokens[paramsIndex + 1].tokenType == .assignmentOperator else {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[paramsIndex + 1], severity: .error, source: .generator, message: "Expected a `=` after the function signature to define the default return value"))
@@ -75,12 +77,26 @@ extension FunctionDeclarationBlock {
             guard tokens.count > paramsIndex + 2 else {
                 throw DiagnosticCompileError(notice: Notice(token: tokens[paramsIndex + 1], severity: .error, source: .generator, message: "The default return value cannot be empty", hint: "Remove the `=` sign to not use any default return value"))
             }
-            let drv = try context.generator.resolveExpression(tokens: Array(tokens[(paramsIndex + 2)...]), infer: returnTypeOrAuto)
-            returnDefault = drv
-            returnType = returnTypeOrAuto ?? drv.getType()
+            let drvTokens = Array(tokens[(paramsIndex + 2)...])
+            if let firstTok = drvTokens.first,
+               firstTok.tokenType == .commandName,
+               firstTok.literal == "#external" {
+                // external declaration!
+                if let returnTypeOrAuto = returnTypeOrAuto {
+                    returnType = returnTypeOrAuto
+                } else {
+                    throw DiagnosticCompileError(notice: Notice(token: typeLit, severity: .error, source: .generator, message: "Cannot infer auto type without a default return value in external declaration"))
+                }
+                storage = .external
+            } else {
+                let drv = try context.generator.resolveExpression(tokens: drvTokens, infer: returnTypeOrAuto)
+                returnDefault = drv
+                returnType = returnTypeOrAuto ?? drv.getType()
+                storage = .block(self)
+            }
         }
         
-        generated = Function(ns: NameSpaces.none, name: String(name.literal), parameters: pars, returnType: returnType, varargs: varargs, storage: .block(self))
+        generated = Function(ns: NameSpaces.none, name: String(name.literal), parameters: pars, returnType: returnType, varargs: varargs, storage: storage)
         context.imports.append(generated)
     }
     
@@ -164,5 +180,12 @@ extension FunctionDeclarationBlock {
         context.generator.resolveSemanticToken(name.withType(.parameter).withModifiers([.declaration], data: .variable(pvar)))
         
         return par
+    }
+    
+    var isExternal: Bool {
+        if case .external = generated?.storage {
+            return true
+        }
+        return false
     }
 }

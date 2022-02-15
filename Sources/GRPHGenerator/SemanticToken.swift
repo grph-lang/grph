@@ -90,7 +90,7 @@ extension Function {
         switch storage {
         case .native:
             return .defaultLibrary
-        case .block(_):
+        case .block(_), .external:
             return []
         }
     }

@@ -39,7 +39,7 @@ extension Parametrable {
 public extension GRPHValues.Function {
     func getMangledName(generator: IRGenerator?) -> String {
         switch storage {
-        case .block(_):
+        case .block(_), .external:
             if !(generator?.mangleNames ?? true) {
                 return name
             }

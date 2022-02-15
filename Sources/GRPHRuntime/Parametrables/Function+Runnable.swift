@@ -19,6 +19,8 @@ extension Function {
             return try NativeFunctionRegistry.shared.implementation(for: self)(context, arguments)
         case .block(let block):
             return try block.executeFunction(context: context, params: arguments)
+        case .external:
+            throw GRPHRuntimeError(type: .unexpected, message: "external function declarations aren't supported in interpreted mode")
         }
     }
 }

@@ -337,7 +337,12 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
                 return ResolvedInstruction(instruction: ThrowInstruction(lineNumber: lineNumber, type: error, message: msg))
             case "#function":
-                return try ResolvedInstruction(instruction: FunctionDeclarationBlock(lineNumber: lineNumber, compiler: self, tokens: Array(tokens.dropFirst())))
+                let restore = context
+                let inst = try FunctionDeclarationBlock(lineNumber: lineNumber, compiler: self, tokens: Array(tokens.dropFirst()))
+                if inst.isExternal {
+                    context = restore
+                }
+                return ResolvedInstruction(instruction: inst, notABlock: inst.isExternal)
             case "#return":
                 guard let block = context.inFunction else {
                     throw DiagnosticCompileError(notice: Notice(token: cmd, severity: .error, source: .generator, message: "#return may only be used in functions"))
@@ -1121,7 +1126,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
     
     struct ResolvedInstruction {
         var instruction: Instruction
-        // only true for inline function definitions
+        // only true for inline function definitions and #external function declarations
         var notABlock = false
         // true for #catch blocks, that are attached to their #try and shouldn't be added in the main hierarchy
         var attachedToPrevious = false
