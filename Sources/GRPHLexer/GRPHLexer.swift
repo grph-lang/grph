@@ -489,8 +489,9 @@ public class GRPHLexer {
                 }
                 str.append(char)
             }
-            if token.literal.count != 1 {
-                str += token.literal[i..<token.literal.index(before: token.literal.endIndex)]
+            let end = token.literal.index(before: token.literal.endIndex)
+            if i <= end {
+                str += token.literal[i..<end]
             }
             token.data = .string(str)
         case .squareBrackets:
