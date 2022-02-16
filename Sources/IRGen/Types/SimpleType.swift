@@ -24,7 +24,8 @@ extension GRPHTypes {
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     
-    static let existential = StructType(elementTypes: [PointerType(pointee: IntType.int8), LLVM.ArrayType(elementType: PointerType(pointee: IntType.int8), count: 3)])
+    static let existentialData = LLVM.ArrayType(elementType: PointerType(pointee: IntType.int8), count: 3)
+    static let existential = StructType(elementTypes: [PointerType(pointee: IntType.int8), existentialData])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.

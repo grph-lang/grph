@@ -34,13 +34,20 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
         } else if constant {
             generator.currentContext?.insert(variable: Variable(name: name, ref: .value(initializer)))
         } else {
-            let pos = generator.builder.insertBlock!
-            generator.builder.positionBefore(generator.builder.currentFunction!.firstBlock!.lastInstruction!)
-            let variable = generator.builder.buildAlloca(type: type, name: name)
-            generator.builder.positionAtEnd(of: pos)
-            
+            let variable = generator.insertAlloca(type: type, name: name)
             generator.builder.buildStore(initializer, to: variable)
             generator.currentContext?.insert(variable: Variable(name: name, ref: .stack(variable)))
         }
+    }
+}
+
+extension IRGenerator {
+    func insertAlloca(type: IRType, name: String = "") -> IRInstruction{
+        let pos = builder.insertBlock!
+        builder.positionBefore(builder.currentFunction!.firstBlock!.lastInstruction!)
+        defer {
+            builder.positionAtEnd(of: pos)
+        }
+        return builder.buildAlloca(type: type, name: name)
     }
 }

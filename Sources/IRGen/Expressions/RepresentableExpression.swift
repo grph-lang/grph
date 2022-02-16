@@ -38,6 +38,6 @@ extension Expression {
         guard let from = self.getType() as? RepresentableGRPHType else {
             throw GRPHCompileError(type: .unsupported, message: "Type \(self.getType()) is not supported in IRGen mode")
         }
-        return try from.downcast(generator: generator, to: expect, value: tryBuildingWithoutCaringAboutType(generator: generator))
+        return try from.upcast(generator: generator, to: expect, value: tryBuildingWithoutCaringAboutType(generator: generator))
     }
 }
