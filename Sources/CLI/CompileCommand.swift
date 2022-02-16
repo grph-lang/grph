@@ -33,6 +33,9 @@ struct CompileCommand: ParsableCommand {
     @Flag(inversion: .prefixedEnableDisable, help: "Mangle the name of functions. If disabled, functions will be callable from C code by their name")
     var mangling = true
     
+    @Flag(help: "Generate position independent code")
+    var pic = false
+    
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
@@ -133,10 +136,10 @@ struct CompileCommand: ParsableCommand {
         case .bc:
             try irgen.module.emitBitCode(to: output!)
         case .assembly, .object:
-            try TargetMachine().emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: output!)
+            try TargetMachine(relocations: pic ? .pic : .default).emitToFile(module: irgen.module, type: dest == .assembly ? .assembly : .object, path: output!)
         case .executable:
             let tmpfile = URL(fileURLWithPath: "\(output!).\(UUID()).o", relativeTo: FileManager.default.temporaryDirectory)
-            try TargetMachine().emitToFile(module: irgen.module, type: .object, path: tmpfile.path)
+            try TargetMachine(relocations: pic ? .pic : .default).emitToFile(module: irgen.module, type: .object, path: tmpfile.path)
             let ld = Process()
             // just use clang to link to get all the necessary libraries for the stdlib to work
             // LD works on macOS, but on Linux, it doesn't find _start
