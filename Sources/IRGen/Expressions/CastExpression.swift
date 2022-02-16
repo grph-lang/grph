@@ -19,8 +19,11 @@ extension CastExpression: RepresentableExpression {
         // TODO: optional conversions and throwing ones
         switch cast {
         case .strict(optional: _):
-            // TODO: downcast
-            fallthrough
+            guard let dest = to as? RepresentableGRPHType else {
+                throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
+            }
+            let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
+            return try SimpleType.mixed.unsafeDowncast(generator: generator, to: dest, value: val)
         case .conversion(optional: _):
             let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.existential], to.findLLVMType()))
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
@@ -79,6 +82,20 @@ extension RepresentableGRPHType {
         case .existential:
             return try existentialize(generator: generator, value: value)
         }
+    }
+    
+    /// Cast from this (existential) type, to a subtype
+    /// This casting is unsafe! it does no checks on the actual type
+    func unsafeDowncast(generator: IRGenerator, to: RepresentableGRPHType, value: IRValue) throws -> IRValue {
+        if self.representationMode != .existential {
+            return value
+        }
+        let data = generator.insertAlloca(type: GRPHTypes.existentialData)
+        // this shouldn't be needed (reset value to zero)
+        generator.builder.buildStore(generator.builder.buildExtractValue(value, index: 1), to: data)
+        
+        let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: to.asLLVM()))
+        return generator.builder.buildLoad(dataErased, type: to.asLLVM())
     }
     
     /// A type is trivial if it is:
