@@ -22,6 +22,8 @@ extension FieldExpression: RepresentableExpression {
         switch (onType, field.name) {
         case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
             return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
+        case (is TupleType, let name):
+            return generator.builder.buildExtractValue(subject, index: Int(name.dropFirst())!)
         default:
             let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType()], field.type.findLLVMType()))
             return generator.builder.buildCall(fn, args: [subject])
@@ -39,6 +41,8 @@ extension FieldExpression: RepresentableAssignableExpression {
         switch (onType, field.name) {
         case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
             return generator.builder.buildStructGEP(subject, type: GRPHTypes.pos, index: field.name == "y" ? 1 : 0)
+        case (let tuple as TupleType, let name):
+            return generator.builder.buildStructGEP(subject, type: try tuple.asLLVM(), index: Int(name.dropFirst())!)
         default:
             throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
         }

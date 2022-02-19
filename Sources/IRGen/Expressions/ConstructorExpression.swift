@@ -27,7 +27,10 @@ extension ConstructorExpression: RepresentableExpression {
                 return try type.getLLVMType().null()
             }
         case .generic(signature: "tuple(T wrapped...)"):
-            preconditionFailure("tuples not implemented")
+            let type = constructor.type as! TupleType
+            return try type.content.indices.reduce(try type.asLLVM().undef()) { (curr, i) in
+                return try generator.builder.buildInsertValue(aggregate: curr, element: values[i]!.tryBuilding(generator: generator, expect: type.content[i]), index: i)
+            }
         case .native:
             preconditionFailure("constructors not implemented")
         case .generic(signature: let sig):

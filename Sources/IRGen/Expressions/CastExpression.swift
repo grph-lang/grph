@@ -51,6 +51,7 @@ extension RepresentableGRPHType {
         var glob = generator.builder.addGlobal("irtype.\(self)", initializer: LLVM.ArrayType.constant(type, type: IntType.int8))
         glob.isGlobalConstant = true
         glob.linkage = .private
+        glob.unnamedAddressKind = .global
         
         let data = generator.insertAlloca(type: GRPHTypes.existentialData)
         // this shouldn't be needed (reset value to zero)

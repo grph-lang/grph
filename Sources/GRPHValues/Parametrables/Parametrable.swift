@@ -71,7 +71,7 @@ extension Parametrable {
                 param = try resolver(paramToResolve, infer)
                 return param.getType()
             })  else {
-                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected '\(param.string)' of type '\(param.getType())' in \(nameForErrors())")
+                throw GRPHCompileError(type: .typeMismatch, message: "Unexpected parameter at position \(nextParam) in \(nameForErrors())")
             }
             nextParam += par.add
             while ourvalues.count < nextParam - 1 {
