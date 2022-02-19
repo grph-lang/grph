@@ -777,7 +777,7 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 }
             case .parentheses:
                 if let infer = infer {
-                    let type = GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
+                    let type = hasStrictBoxing ? infer : GRPHTypes.autoboxed(type: infer, expected: SimpleType.mixed)
                     // zero-width semantic token with constructor data
                     resolveSemanticToken(Token(lineNumber: token.lineNumber, lineOffset: token.lineOffset, literal: token.literal[token.lineOffset..<token.lineOffset], tokenType: .type).withModifiers(.call, data: type.constructor.map { .constructor($0) }))
                     return try ConstructorExpression(ctx: context, type: type, values: token.children.split(on: .whitespace), resolver: resolveExpression(tokens:infer:))

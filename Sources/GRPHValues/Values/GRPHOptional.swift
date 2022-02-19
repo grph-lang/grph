@@ -37,11 +37,11 @@ public enum GRPHOptional: GRPHValue {
     
     public func isEqual(to other: GRPHValue) -> Bool {
         if let other = other as? GRPHOptional {
-            if case .some(let value) = other {
-                if case .some(let mine) = self {
-                    return value.isEqual(to: mine)
-                }
-            } else if case .null = self {
+            if case .some(let value) = other,
+               case .some(let mine) = self {
+                return value.isEqual(to: mine)
+            } else if case .null = self,
+                      case .null = other {
                 return true
             }
         }
