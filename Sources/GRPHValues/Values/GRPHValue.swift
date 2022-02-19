@@ -44,6 +44,8 @@ extension Int: StatefulValue, GRPHNumber {
             self.init(rot.value)
         } else if let str = value as? String {
             self.init(decoding: str) // May return nil
+        } else if let b = value as? Bool {
+            self = b ? 1 : 0
         } else {
             return nil
         }

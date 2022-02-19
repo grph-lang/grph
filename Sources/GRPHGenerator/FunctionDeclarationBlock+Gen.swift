@@ -93,6 +93,9 @@ extension FunctionDeclarationBlock {
                 returnDefault = drv
                 returnType = returnTypeOrAuto ?? drv.getType()
                 storage = .block(self)
+                if !returnType.isInstance(context: context, expression: drv) {
+                    throw GRPHCompileError(type: .parse, message: "Expected a default return value of type \(returnType), found a \(drv.getType())")
+                }
             }
         }
         

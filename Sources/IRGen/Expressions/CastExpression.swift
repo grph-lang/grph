@@ -16,18 +16,24 @@ import LLVM
 
 extension CastExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        // TODO: optional conversions and throwing ones
         switch cast {
         case .strict(optional: _):
+            // TODO: checked optional/throwing conversions
             guard let dest = to as? RepresentableGRPHType else {
-                throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
+                throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `as!`")
             }
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
             return try SimpleType.mixed.unsafeDowncast(generator: generator, to: dest, value: val)
-        case .conversion(optional: _):
-            let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.existential], to.findLLVMType()))
+        case .conversion(optional: let isOptional):
+            let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.existential], to.optional.findLLVMType()))
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            return generator.builder.buildCall(fn, args: [val])
+            let result = generator.builder.buildCall(fn, args: [val])
+            if isOptional {
+                return result
+            } else {
+                // TODO: throw on null
+                return generator.builder.buildExtractValue(result, index: 1)
+            }
         case .typeCheck:
             // TODO: support reference types and non trivial types (optionals, arrays, tuples etc)
             guard let dest = to as? RepresentableGRPHType,
