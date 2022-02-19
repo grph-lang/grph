@@ -24,8 +24,8 @@ extension MultiOrType: RepresentableGRPHType {
         return type1.representationMode == .referenceType && type2.representationMode == .referenceType
     }
     
-    var typeid: [UInt8]? {
-        onlyReferenceTypes ? [100] : nil
+    var typeid: [UInt8] {
+        onlyReferenceTypes ? [100] : [255]
     }
     
     var representationMode: RepresentationMode {

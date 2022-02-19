@@ -37,7 +37,7 @@ extension GRPHTypes {
 }
 
 extension SimpleType: RepresentableGRPHType {
-    var typeid: [UInt8]? {
+    var typeid: [UInt8] {
         switch self {
         case .void:         return [0]
         case .boolean:      return [1]
@@ -55,7 +55,7 @@ extension SimpleType: RepresentableGRPHType {
         case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
             return [100] // reference types, they have an isa instead
         case .num, .mixed, .paint, .funcref:
-            return nil // not valid existentials
+            return [255] // existentials
         }
     }
     

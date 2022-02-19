@@ -32,11 +32,11 @@ enum RepresentationMode {
 protocol RepresentableGRPHType: GRPHType {
     /// The typeid representing this type
     /// Only makes sense for value types
-    var typeid: [UInt8]? { get }
+    var typeid: [UInt8] { get }
     /// How the type is represented in memory
     var representationMode: RepresentationMode { get }
     /// Convert to an LLVM type
-    func asLLVM() -> IRType
+    func asLLVM() throws -> IRType
 }
 
 extension GRPHType {
@@ -45,7 +45,7 @@ extension GRPHType {
             return VoidType()
         }
         if let ty = self as? RepresentableGRPHType {
-            return ty.asLLVM()
+            return try ty.asLLVM()
         } else {
             throw GRPHCompileError(type: .unsupported, message: "Type \(self) not found")
         }

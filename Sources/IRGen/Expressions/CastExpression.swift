@@ -36,7 +36,7 @@ extension CastExpression: RepresentableExpression {
             }
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
             return generator.builder.buildICmp(
-                generator.builder.buildLoad(generator.builder.buildExtractValue(val, index: 0), type: IntType.int8), dest.typeid![0], .equal)
+                generator.builder.buildLoad(generator.builder.buildExtractValue(val, index: 0), type: IntType.int8), dest.typeid[0], .equal)
         }
     }
 }
@@ -47,9 +47,7 @@ extension RepresentableGRPHType {
         if self.representationMode == .existential {
             return value
         }
-        guard let type = self.typeid else {
-            throw GRPHCompileError(type: .unsupported, message: "Type \(self) cannot be placed in an existential")
-        }
+        let type = self.typeid
         var glob = generator.builder.addGlobal("irtype.\(self)", initializer: LLVM.ArrayType.constant(type, type: IntType.int8))
         glob.isGlobalConstant = true
         glob.linkage = .private
@@ -58,7 +56,7 @@ extension RepresentableGRPHType {
         // this shouldn't be needed (reset value to zero)
         generator.builder.buildStore(GRPHTypes.existentialData.null(), to: data)
         
-        let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: self.asLLVM()))
+        let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: try self.asLLVM()))
         generator.builder.buildStore(value, to: dataErased)
         
         let constExt = GRPHTypes.existential.constant(values: [generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8)), GRPHTypes.existentialData.undef()])
@@ -94,14 +92,14 @@ extension RepresentableGRPHType {
         // this shouldn't be needed (reset value to zero)
         generator.builder.buildStore(generator.builder.buildExtractValue(value, index: 1), to: data)
         
-        let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: to.asLLVM()))
-        return generator.builder.buildLoad(dataErased, type: to.asLLVM())
+        let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: try to.asLLVM()))
+        return generator.builder.buildLoad(dataErased, type: try to.asLLVM())
     }
     
     /// A type is trivial if it is:
     ///  - a builtin
     ///  - a value type (pure or impure)
     var isTrivial: Bool {
-        (self.representationMode == .pureValue || self.representationMode == .impureValue) && self.typeid?.count == 1
+        (self.representationMode == .pureValue || self.representationMode == .impureValue) && self.typeid.count == 1
     }
 }
