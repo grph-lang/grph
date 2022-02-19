@@ -190,8 +190,9 @@ public extension GRPHTypes {
             return try ConstructorExpression(ctx: context, boxing: autobox(context: context, expression: expression, expected: expected.wrapped), infer: expected)
         } else if type is OptionalType,
                   let expected = expected as? OptionalType { // Recursive, multi? optional
-            if let expression = expression as? ConstructorExpression {
-                return try ConstructorExpression(ctx: context, boxing: autobox(context: context, expression: expression.values[0]!, expected: expected.wrapped), infer: expected)
+            if let expression = expression as? ConstructorExpression,
+               let wrapped = expression.values[safe: 0] {
+                return try ConstructorExpression(ctx: context, boxing: autobox(context: context, expression: wrapped, expected: expected.wrapped), infer:     expected)
             }
         } else if type is OptionalType { // Unboxing
             if context.compiler.hasStrictUnboxing {
