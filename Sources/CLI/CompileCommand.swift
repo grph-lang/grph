@@ -36,6 +36,9 @@ struct CompileCommand: ParsableCommand {
     @Flag(help: "Generate position independent code")
     var pic = false
     
+    @Flag(name: .customShort("O"), help: "Optimize the code to run faster")
+    var optimize = false
+    
     @Argument(help: "The input file to read, as an utf8 encoded grph file", completion: .file(extensions: ["grph"]))
     var input: String
     
@@ -123,10 +126,11 @@ struct CompileCommand: ParsableCommand {
         
         try irgen.module.verify()
         
-        // -O2, way too cool for us
-//        let optimizer = PassPipeliner(module: irgen.module)
-//        optimizer.addStandardModulePipeline("")
-//        optimizer.execute()
+        if optimize {
+            let optimizer = PassPipeliner(module: irgen.module)
+            optimizer.addStandardModulePipeline("")
+            optimizer.execute()
+        }
         
         switch dest! {
         case .parse, .wdiu, .ast, .check:
