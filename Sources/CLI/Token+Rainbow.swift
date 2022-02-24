@@ -86,10 +86,10 @@ extension Notice.Severity {
 }
 
 extension Notice {
-    func representNicely() -> String {
+    func representNicely(filepath: String) -> String {
         // remove tabs as they mess everything up with their wider size
         let base = token.literal.base
-        var msg = "file:\(token.lineNumber + 1):\(token.lineOffset.utf16Offset(in: base)): \(severity.colorfulDescription): \(message)\n"
+        var msg = "\(filepath):\(token.lineNumber + 1):\(token.lineOffset.utf16Offset(in: base)): \(severity.colorfulDescription): \(message)\n"
         msg += base.replacingOccurrences(of: "\t", with: " ") + "\n"
         msg += String(repeating: " ", count: base.distance(from: base.startIndex, to: token.lineOffset))
         msg += "^" + String(repeating: "~", count: max(0, token.literal.count - 1))

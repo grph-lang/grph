@@ -50,9 +50,10 @@ struct HeaderGenCommand: ParsableCommand {
             """)
         
         for fn in ns.exportedFunctions {
-            guard let rt = fn.returnType.nameInC,
+            guard let rt = fn.returnType.getNameInC(asReturnType: true),
                   let params = fn.parameters.map({ par -> String? in
-                      guard let t = par.type.nameInC else {
+                      // TODO: varargs
+                      guard let t = (par.optional ? par.type.optional : par.type).getNameInC(asReturnType: false) else {
                           return nil
                       }
                       return "\(t) \(par.name)"
@@ -78,15 +79,21 @@ struct HeaderGenCommand: ParsableCommand {
 }
 
 extension GRPHType {
-    var nameInC: String? {
+    func getNameInC(asReturnType: Bool) -> String? {
         switch self {
         case let self as SimpleType:
             switch self {
             case SimpleType.void:
-                return "void"
+                return asReturnType ? "void" : "grph_void_t"
             case .integer, .float, .rotation, .boolean, .pos, .string:
                 return "grph_\(self.string)_t"
             default:
+                return nil
+            }
+        case let self as OptionalType:
+            if let wrapped = self.wrapped.getNameInC(asReturnType: false) {
+                return "optional_\(wrapped.dropFirst(5))"
+            } else {
                 return nil
             }
         default:

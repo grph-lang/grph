@@ -18,11 +18,15 @@ extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
         return generator.builder.buildCall(fn, args: try values.enumerated().map { i, arg in
-            // TODO wrap in optional, varargs etc
-            if let arg = arg {
-                return try arg.tryBuilding(generator: generator, expect: self.function.parameters[i].type as! RepresentableGRPHType)
+            let param = self.function.parameters[i]
+            // TODO: wrap in varargs etc
+            let value = try arg.map { arg in
+                return try arg.tryBuilding(generator: generator, expect: param.type as! RepresentableGRPHType)
             }
-            throw GRPHCompileError(type: .unsupported, message: "Optionals are not supported in IRGen mode")
+            if param.optional {
+                return try value.wrapInOptional(generator: generator, type: param.type.optional)
+            }
+            return value!
         })
     }
 }
@@ -30,7 +34,10 @@ extension FunctionExpression: RepresentableExpression {
 extension Parametrable {
     func llvmParameters() throws -> [IRType] {
         try parameters.enumerated().map { i, par in
-            // TODO handle varargs, optional params
+            // TODO: handle varargs
+            if par.optional {
+                return try par.type.optional.findLLVMType()
+            }
             return try par.type.findLLVMType()
         }
     }

@@ -73,7 +73,7 @@ struct CompileCommand: ParsableCommand {
         let lines = lexer.parseDocument(content: try String(contentsOfFile: input, encoding: .utf8))
         
         for diag in lexer.diagnostics {
-            print(diag.representNicely())
+            print(diag.representNicely(filepath: input))
         }
         guard !lexer.diagnostics.contains(where: { $0.severity == .error }) else {
             throw ExitCode.failure
@@ -97,7 +97,7 @@ struct CompileCommand: ParsableCommand {
         }
         
         for diag in compiler.diagnostics {
-            print(diag.representNicely())
+            print(diag.representNicely(filepath: input))
         }
         
         guard result else {

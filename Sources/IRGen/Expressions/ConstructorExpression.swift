@@ -21,11 +21,9 @@ extension ConstructorExpression: RepresentableExpression {
             preconditionFailure("not implemented")
         case .generic(signature: "T?(T wrapped?)"):
             let type = constructor.type as! OptionalType
-            if let wrapped = values[safe: 0] {
-                return try generator.builder.buildInsertValue(aggregate: type.getLLVMType().constant(values: [true, type.wrapped.findLLVMType().undef()]), element: wrapped.tryBuilding(generator: generator, expect: type.wrapped), index: 1)
-            } else {
-                return try type.getLLVMType().null()
-            }
+            return try values[safe: 0].map {
+                try $0.tryBuilding(generator: generator, expect: type.wrapped)
+            }.wrapInOptional(generator: generator, type: type)
         case .generic(signature: "tuple(T wrapped...)"):
             let type = constructor.type as! TupleType
             return try type.content.indices.reduce(try type.asLLVM().undef()) { (curr, i) in
@@ -35,6 +33,16 @@ extension ConstructorExpression: RepresentableExpression {
             preconditionFailure("constructors not implemented")
         case .generic(signature: let sig):
             preconditionFailure("Generic constructor with signature \(sig) not found")
+        }
+    }
+}
+
+extension Optional where Wrapped == IRValue {
+    func wrapInOptional(generator: IRGenerator, type: OptionalType) throws -> IRValue {
+        if let wrapped = self {
+            return try generator.builder.buildInsertValue(aggregate: type.getLLVMType().constant(values: [true, type.wrapped.findLLVMType().undef()]), element: wrapped, index: 1)
+        } else {
+            return try type.getLLVMType().null()
         }
     }
 }
