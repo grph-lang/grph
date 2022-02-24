@@ -35,29 +35,38 @@ extension CastExpression: RepresentableExpression {
                 return generator.builder.buildExtractValue(result, index: 1)
             }
         case .typeCheck:
-            // TODO: support reference types and non trivial types (optionals, arrays, tuples etc)
+            // TODO: support reference types
             guard let dest = to as? RepresentableGRPHType,
-                  dest.isTrivial else {
+                  dest.representationMode == .pureValue || dest.representationMode == .impureValue else {
                 throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
             }
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
+            let glob = dest.getTypeIDGlobal(generator: generator)
             return generator.builder.buildICmp(
-                generator.builder.buildLoad(generator.builder.buildExtractValue(val, index: 0), type: IntType.int8), dest.typeid[0], .equal)
+                generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8))), 0, .equal)
         }
     }
 }
 
 extension RepresentableGRPHType {
+    func getTypeIDGlobal(generator: IRGenerator) -> Global {
+        if let g = generator.builder.module.global(named: "irtype.\(self)") {
+            return g
+        } else {
+            let type = self.typeid
+            var glob = generator.builder.addGlobal("irtype.\(self)", initializer: LLVM.ArrayType.constant(type, type: IntType.int8))
+            glob.isGlobalConstant = true
+            glob.linkage = .linkOnceAny
+            return glob
+        }
+    }
+    
     /// transform a pure value type into an existential
     private func existentialize(generator: IRGenerator, value: IRValue) throws -> IRValue {
         if self.representationMode == .existential {
             return value
         }
-        let type = self.typeid
-        var glob = generator.builder.addGlobal("irtype.\(self)", initializer: LLVM.ArrayType.constant(type, type: IntType.int8))
-        glob.isGlobalConstant = true
-        glob.linkage = .private
-        glob.unnamedAddressKind = .global
+        let glob = getTypeIDGlobal(generator: generator)
         
         let data = generator.insertAlloca(type: GRPHTypes.existentialData)
         // this shouldn't be needed (reset value to zero)
@@ -101,12 +110,5 @@ extension RepresentableGRPHType {
         
         let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: try to.asLLVM()))
         return generator.builder.buildLoad(dataErased, type: try to.asLLVM())
-    }
-    
-    /// A type is trivial if it is:
-    ///  - a builtin
-    ///  - a value type (pure or impure)
-    var isTrivial: Bool {
-        (self.representationMode == .pureValue || self.representationMode == .impureValue) && self.typeid.count == 1
     }
 }
