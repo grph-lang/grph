@@ -415,10 +415,10 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                 // We declare our variable
                 try addInstruction(VariableDeclarationInstruction(lineNumber: lineNumber, global: false, constant: true, type: type, name: name, value: exp))
                 try addBlock(SwitchTransparentBlock(lineNumber: lineNumber), alreadyAdded: false)
-                // We create our context, denying non-#case/#default and advertising our var name
-                context = SwitchCompilingContext(parent: context, compare: try VariableExpression(context: context, name: name))
                 // We advertise our var with its type, so type checks in #case works
                 context.addVariable(Variable(name: name, type: type, final: true, compileTime: true), global: false)
+                // We create our context, denying non-#case/#default and advertising our var name
+                context = SwitchCompilingContext(parent: context, compare: try VariableExpression(context: context, name: name))
                 return nil // handled
             case "#case": // uwu
                 guard let ctx = context as? SwitchCompilingContext else {

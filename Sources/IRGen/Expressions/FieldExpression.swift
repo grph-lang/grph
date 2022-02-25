@@ -48,3 +48,10 @@ extension FieldExpression: RepresentableAssignableExpression {
         }
     }
 }
+
+extension ValueTypeExpression: RepresentableExpression {
+    func build(generator: IRGenerator) throws -> IRValue {
+        let val = try on.tryBuilding(generator: generator, expect: SimpleType.mixed)
+        return generator.builder.buildExtractValue(val, index: 0)
+    }
+}

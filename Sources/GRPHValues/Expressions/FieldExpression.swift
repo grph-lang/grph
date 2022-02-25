@@ -81,7 +81,7 @@ public extension ConstantPropertyExpression {
     var astChildren: [ASTElement] { [] }
 }
 
-// These could return types directly in a future version
+// These used to return strings, and type == string in interpreted
 
 public struct ValueTypeExpression: Expression {
     public let on: Expression
@@ -91,7 +91,7 @@ public struct ValueTypeExpression: Expression {
     }
     
     public func getType() -> GRPHType {
-        SimpleType.string
+        SimpleType.type
     }
     
     public var string: String {
@@ -119,7 +119,7 @@ public struct TypeValueExpression: Expression {
     }
     
     public func getType() -> GRPHType {
-        SimpleType.string
+        SimpleType.type
     }
     
     public var string: String {

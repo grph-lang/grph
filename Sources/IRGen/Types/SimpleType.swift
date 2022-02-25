@@ -23,8 +23,9 @@ extension GRPHTypes {
     static let direction = IntType.int8
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
+    static let type = PointerType(pointee: IntType.int8)
     
-    static let existentialData = LLVM.ArrayType(elementType: PointerType(pointee: IntType.int8), count: 3)
+    static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
     static let existential = StructType(elementTypes: [PointerType(pointee: IntType.int8), existentialData])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
@@ -52,6 +53,7 @@ extension SimpleType: RepresentableGRPHType {
         case .direction:    return [10]
         case .stroke:       return [11]
         case .font:         return [12]
+        case .type:         return [13]
         case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
             return [100] // reference types, they have an isa instead
         case .num, .mixed, .paint, .funcref:
@@ -61,7 +63,7 @@ extension SimpleType: RepresentableGRPHType {
     
     var representationMode: RepresentationMode {
         switch self {
-        case .integer, .float, .rotation, .pos, .boolean, .color, .linear, .radial, .direction, .stroke, .void:
+        case .integer, .float, .rotation, .pos, .boolean, .color, .linear, .radial, .direction, .stroke, .void, .type:
             return .pureValue
         case .string, .font:
             return .impureValue
@@ -94,6 +96,8 @@ extension SimpleType: RepresentableGRPHType {
             return GRPHTypes.void
         case .mixed, .paint, .num, .funcref:
             return GRPHTypes.existential
+        case .type:
+            return GRPHTypes.type
         default:
             print("Illegal usage of an irrepresentable type")
             return VoidType()

@@ -1,0 +1,32 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+#function void printNumTypeA[num num]
+	#switch num.type
+		#case integer.TYPE
+			printOut: "integer\n"
+		#case float.TYPE
+			printOut: "float\n"
+		#default
+			printOut: "unknown\n"
+
+#function void printNumTypeB[num num]
+	#if num is integer
+		printOut: "integer\n"
+	#elif num is float
+		printOut: "float\n"
+	#else
+		printOut: "unknown\n"
+
+// CHECK: integer
+printNumTypeA: 1
+// CHECK: integer
+printNumTypeB: 1
+
+// CHECK: float
+printNumTypeA: 1f
+// CHECK: float
+printNumTypeB: 1f
