@@ -1,0 +1,25 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck %s
+
+#requires GRPH 1.11
+
+#import stdio
+#import strutils
+
+#function void print[string s]
+	printOut: s
+	printOut: "\n"
+
+// CHECK: world
+print: [substring["Hello, world!" 7 12]]
+// CHECK-NEXT: ello, world
+print: [substring["Hello, world!" 1 12]]
+// CHECK-NEXT: Hello
+print: [substring["Hello, world!" 0 5]]
+
+// CHECK-NEXT: This is concatenation!
+#block
+	string mid = "concatenation"
+	print: ["This is " + mid + "!"]
+
+// CHECK-NEXT: Result: 6 :)
+print: ["Result: " + [3 + 3 as string] + " :)"]

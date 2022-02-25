@@ -1,0 +1,44 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+#function void loga[mixed val]
+	printOut: [val as string]
+	printOut: "\n"
+
+int+string tuple = (1 "a")
+
+// CHECK: 1
+loga: tuple.$0
+// CHECK-NEXT: a
+loga: tuple.$1
+
+int+string copy = tuple
+
+tuple.$0 += 1
+
+// CHECK-NEXT: 1
+loga: copy.$0
+// CHECK-NEXT: 2
+loga: tuple.$0
+
+string+string+string string3 = ("a" "b" "c")
+
+// CHECK-NEXT: a
+loga: string3.$0
+// CHECK-NEXT: b
+loga: string3.$1
+// CHECK-NEXT: c
+loga: string3.$2
+
+<int+<int+int>>+int nested = ((3 (23 7)) 1)
+
+// CHECK-NEXT: 7
+loga: nested.$0.$1.$1
+
+nested.$0.$1.$1 = 42
+
+// CHECK-NEXT: 42
+loga: nested.$0.$1.$1

@@ -1,0 +1,30 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+mixed int = 3
+string|float string = "hello"
+
+// CHECK: 3
+printOut: [int as string]
+printOut: "\n"
+// CHECK-NEXT: hello
+printOut: [string as string]
+printOut: "\n"
+// CHECK-NEXT: 3.500000
+string = 3.5f
+printOut: [string as string]
+printOut: "\n"
+
+#if 3 is string
+	printOut: "impossibruh\n"
+// CHECK-NEXT: yepai
+#if int is int
+	printOut: "yepai\n"
+#if string is string
+	printOut: "nopai\n"
+// CHECK-NEXT: yessir
+#if string is float
+	printOut: "yessir\n"

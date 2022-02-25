@@ -1,0 +1,19 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck %s
+
+#requires GRPH 1.11
+
+#import stdio
+#import math
+
+#function void print[string s]
+	printOut: s
+	printOut: "\n"
+
+// CHECK: 7.000000
+print: [sqrt[49] as string]
+// CHECK-NEXT: 8.000000
+print: [sqrt[64.0] as string]
+// CHECK-NEXT: 3
+print: [cbrt[27.0] as integer as string]
+// CHECK-NEXT: 12124.703831
+print: [pow[43 2.5] as string]

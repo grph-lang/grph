@@ -1,0 +1,23 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+// CHECK: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: Halfway!
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+// CHECK-NEXT: yay
+int i = 0
+#while i < 10
+	#if i == 5
+		printOut: "Halfway!\n"
+	printOut: "yay\n"
+	i += 1

@@ -1,0 +1,33 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+global string gs = "Fun\n"
+string ls = "Great\n"
+
+// CHECK: Fun
+printOut: gs
+// CHECK-NEXT: Great
+printOut: ls
+
+// CHECK-NEXT: No
+ls = "No\n"
+printOut: ls
+
+// CHECK-NEXT: Yes
+gs = "Yes\n"
+printOut: gs
+
+// CHECK-NEXT: Immutable
+global final string gfs = "Immutable\n"
+printOut: gfs
+
+// CHECK-NEXT: Yes
+global final string fakegfs = gs
+printOut: fakegfs
+
+// CHECK-NEXT: 1234567
+final string lfs = "1234567\n"
+printOut: lfs

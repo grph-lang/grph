@@ -53,12 +53,10 @@ extension BinaryExpression: RepresentableExpression {
             return generator.builder.buildDiv(left, right)
         case .modulo:
             return generator.builder.buildRem(left, right)
+        case .concat:
+            return generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grphop_concat_strings", type: FunctionType([GRPHTypes.string, GRPHTypes.string], GRPHTypes.string)), args: [left, right])
         case .logicalOr, .logicalAnd, .equal, .notEqual:
             preconditionFailure()
-        default:
-            throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
-            //        case .concat:
-            //            <#code#>
         }
     }
     

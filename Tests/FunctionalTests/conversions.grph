@@ -10,52 +10,32 @@
 
 // CHECK: 52
 print: [52 as string]
-// CHECK: true
+// CHECK-NEXT: true
 print: [true as string]
-// CHECK: false
+// CHECK-NEXT: false
 print: [false as string]
-// CHECK: void.VOID
+// CHECK-NEXT: void.VOID
 print: [void.VOID as string]
-// CHECK: 12.345000
+// CHECK-NEXT: 12.345000
 print: [12.345 as string]
-// CHECK: small
+// CHECK-NEXT: small
 print: ["small" as string]
-// CHECK: big ass string uwu
+// CHECK-NEXT: big ass string uwu
 print: ["big ass string uwu" as string]
 
-// CHECK: 101
+// CHECK-NEXT: 101
 print: ["101" as integer as string]
-// CHECK: 5
+// CHECK-NEXT: 5
 print: ["0b101" as integer as string]
-// CHECK: 257
+// CHECK-NEXT: 257
 print: ["0x101" as integer as string]
-// CHECK: 65
+// CHECK-NEXT: 65
 print: ["0o101" as integer as string]
-// CHECK: 1297
+// CHECK-NEXT: 1297
 print: ["0z101" as integer as string]
-// CHECK: 1
+// CHECK-NEXT: 1
 print: [true as integer as string]
-// CHECK: 12
+// CHECK-NEXT: 12
 print: [12.345 as integer as string]
-// CHECK: 3
+// CHECK-NEXT: 3
 print: [3 as integer as string]
-
-#import math
-
-// CHECK: 7.000000
-print: [sqrt[49] as string]
-// CHECK: 8.000000
-print: [sqrt[64.0] as string]
-// CHECK: 3
-print: [cbrt[27.0] as integer as string]
-// CHECK: 12124.703831
-print: [pow[43 2.5] as string]
-
-#import strutils
-
-// CHECK: world
-print: [substring["Hello, world!" 7 12]]
-// CHECK: ello, world
-print: [substring["Hello, world!" 1 12]]
-// CHECK: Hello
-print: [substring["Hello, world!" 0 5]]
