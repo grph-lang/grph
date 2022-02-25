@@ -1,0 +1,26 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#import stdio
+
+#function void testWhileElse[int end]
+	int i = 0
+	#while i < end
+		printOut: "iteration\n"
+		i += 1
+	#else
+		printOut: "else\n"
+	printOut: "end\n"
+
+// CHECK: else
+// CHECK-NEXT: end
+testWhileElse: 0
+
+// CHECK-NEXT: iteration
+// CHECK-NEXT: end
+testWhileElse: 1
+
+// CHECK-NEXT: iteration
+// CHECK-NEXT: iteration
+// CHECK-NEXT: end
+testWhileElse: 2
+

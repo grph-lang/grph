@@ -116,7 +116,7 @@ extension FunctionDeclarationBlock {
         
         let last = param[equal - 1]
         let optional: Bool
-        let name: Token
+        let nameIndex: Int
         if last.tokenType == .varargs {
             guard isLast else {
                 throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "The varargs '...' must be the last parameter"))
@@ -126,23 +126,24 @@ extension FunctionDeclarationBlock {
             }
             varargs = true
             optional = false // require at least 1 argument for some reason
-            name = param[equal - 2]
+            nameIndex = equal - 2
         } else if last.literal == "?" {
             guard equal == param.endIndex else {
                 throw DiagnosticCompileError(notice: Notice(token: last, severity: .error, source: .generator, message: "Do not specify '?' when having a default parameter value"))
             }
             optional = true
-            name = param[equal - 2]
+            nameIndex = equal - 2
         } else {
             optional = equal != param.endIndex
-            name = last
+            nameIndex = equal - 1
         }
+        let name = param[nameIndex]
         
         guard name.tokenType == .identifier else {
             throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Unexpected token: expected a variable name"))
         }
         
-        let typeLit = Token(compound: Array(param[...(equal - 2)]), type: .type)
+        let typeLit = Token(compound: Array(param[...(nameIndex - 1)]), type: .type)
         let ptypeOrAuto: GRPHType?
         if typeLit.literal == "auto" {
             ptypeOrAuto = nil
