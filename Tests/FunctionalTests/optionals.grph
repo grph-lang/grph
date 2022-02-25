@@ -1,0 +1,34 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+
+#requires GRPH 1.11
+#compiler strictest true
+
+#import stdio
+
+#function void print[string s]
+	printOut: s
+	printOut: "\n"
+
+int a = 42
+int?? b = ((69))
+int? c = null
+int? d = int?()
+int?? firstLevelNull = null
+int?? secondLevelNull = (null)
+
+// CHECK: 42
+print: [a as string]
+// CHECK-NEXT: 69
+print: [b!! as string]
+
+#function int? wrapA[int i] = (i)
+
+#compiler strictest false
+
+#function int? wrapB[int i] = i
+
+// CHECK-NEXT: 1026
+print: [wrapA[1026]! as string]
+
+// CHECK-NEXT: 2681
+print: [wrapB[2681]! as string]

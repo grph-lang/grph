@@ -90,10 +90,15 @@ extension FunctionDeclarationBlock {
                 storage = .external
             } else {
                 let drv = try context.generator.resolveExpression(tokens: drvTokens, infer: returnTypeOrAuto)
-                returnDefault = drv
-                returnType = returnTypeOrAuto ?? drv.getType()
+                if let rt = returnTypeOrAuto {
+                    returnDefault = try GRPHTypes.autobox(context: context, expression: drv, expected: rt)
+                    returnType = rt
+                } else {
+                    returnDefault = drv
+                    returnType = drv.getType()
+                }
                 storage = .block(self)
-                if !returnType.isInstance(context: context, expression: drv) {
+                if !returnType.isInstance(context: context, expression: returnDefault!) {
                     throw GRPHCompileError(type: .parse, message: "Expected a default return value of type \(returnType), found a \(drv.getType())")
                 }
             }
