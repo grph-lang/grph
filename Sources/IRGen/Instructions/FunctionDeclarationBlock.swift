@@ -30,16 +30,45 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
         }
         
         let fn = try builder.addFunction(generated.getMangledName(generator: generator), type: FunctionType(generated.llvmParameters(), generated.returnType.findLLVMType(forReturnType: true)))
-        for (i, var par) in fn.parameters.enumerated() {
-            let name = generated.parameters[i].name
-            par.name = name
-            ctx.insert(variable: Variable(name: name, ref: .value(par)))
-        }
+        
         let allocas = fn.appendBasicBlock(named: "entry.allocas")
         builder.positionAtEnd(of: allocas)
         let entry = fn.appendBasicBlock(named: "entry")
         builder.buildBr(entry)
         builder.positionAtEnd(of: entry)
+        
+        for (i, var par) in fn.parameters.enumerated() {
+            let param = generated.parameters[i]
+            let name = param.name
+            if let def = defaults[i] {
+                par.name = "\(name).optional"
+                
+                let valueBranch = fn.appendBasicBlock(named: "\(name).exists")
+                let emptyBranch = fn.appendBasicBlock(named: "\(name).empty")
+                let mergeBranch = fn.appendBasicBlock(named: "\(name).merge")
+                
+                builder.buildCondBr(condition: builder.buildExtractValue(par, index: 0), then: valueBranch, else: emptyBranch)
+                
+                builder.positionAtEnd(of: valueBranch)
+                let unwrapped = builder.buildExtractValue(par, index: 1)
+                builder.buildBr(mergeBranch)
+                
+                builder.positionAtEnd(of: emptyBranch)
+                let defaulted = try def.tryBuilding(generator: generator, expect: param.type)
+                builder.buildBr(mergeBranch)
+                
+                builder.positionAtEnd(of: mergeBranch)
+                let phi = builder.buildPhi(try param.type.findLLVMType(), name: name)
+                phi.addIncoming([
+                    (unwrapped, valueBranch),
+                    (defaulted, emptyBranch)
+                ])
+                ctx.insert(variable: Variable(name: name, ref: .value(phi)))
+            } else {
+                par.name = name
+                ctx.insert(variable: Variable(name: name, ref: .value(par)))
+            }
+        }
         
         try children.buildAll(generator: generator)
         

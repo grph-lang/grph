@@ -1,0 +1,32 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#import stdio
+
+#function void printWithDefault[string str = "(nothing)"]
+	printOut: str
+	printOut: "\n"
+
+// CHECK: something
+printWithDefault: "something"
+
+// CHECK-NEXT: (nothing)
+printWithDefault:
+
+#function void printOptional[string str?]
+	printOut: str!
+	printOut: "\n"
+
+// CHECK-NEXT: Hello
+printOptional: "Hello"
+
+#function void printRange[int a, int b = a + 1]
+	printOut: [a as string]
+	printOut: "..<"
+	printOut: [b as string]
+	printOut: "\n"
+
+// CHECK-NEXT: 10..<15
+printRange: 10 15
+
+// CHECK-NEXT: 84..<85
+printRange: 84

@@ -1,4 +1,4 @@
-// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck -v %s
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
 
 #import stdio
 
