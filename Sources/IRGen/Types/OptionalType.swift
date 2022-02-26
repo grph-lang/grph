@@ -16,8 +16,12 @@ import LLVM
 
 // if wrapped is a reference, we could be a nullable reference
 extension OptionalType: RepresentableGRPHType {
-    var typeid: [UInt8] {
-        [130] + (wrapped as! RepresentableGRPHType).typeid
+    var typeid: UInt8 {
+        130
+    }
+    
+    var genericsVector: [RepresentableGRPHType] {
+        [wrapped as! RepresentableGRPHType]
     }
     
     var representationMode: RepresentationMode {

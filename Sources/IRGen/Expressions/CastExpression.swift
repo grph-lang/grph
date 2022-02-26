@@ -41,7 +41,7 @@ extension CastExpression: RepresentableExpression {
                 throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
             }
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            let glob = dest.getTypeIDGlobal(generator: generator)
+            let glob = dest.getTypeTableGlobal(generator: generator)
             return generator.builder.buildICmp(
                 generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8))), 0, .equal)
         }
@@ -49,12 +49,20 @@ extension CastExpression: RepresentableExpression {
 }
 
 extension RepresentableGRPHType {
-    func getTypeIDGlobal(generator: IRGenerator) -> Global {
-        if let g = generator.builder.module.global(named: "irtype.\(self)") {
+    func getTypeTableGlobal(generator: IRGenerator) -> Global {
+        if let g = generator.builder.module.global(named: "typetable.\(self)") {
             return g
         } else {
-            let type = self.typeid
-            var glob = generator.builder.addGlobal("irtype.\(self)", initializer: LLVM.ArrayType.constant(type, type: IntType.int8))
+            let typenameContent: [Int8] = [Int8(bitPattern: self.typeid)] + self.string.utf8CString
+            var typename = generator.builder.addGlobal("", initializer: LLVM.ArrayType.constant(typenameContent, type: IntType.int8))
+            typename.isGlobalConstant = true
+            typename.linkage = .private
+            
+            var glob = generator.builder.addGlobal("typetable.\(self)", initializer: StructType.constant(values: [
+                generator.builder.buildInBoundsGEP(typename, type: LLVM.ArrayType(elementType: IntType.int8, count: typenameContent.count), indices: [0, 1])
+            ] + self.genericsVector.map { type in
+                type.getTypeTableGlobal(generator: generator)
+            } + [PointerType.toVoid.null()]))
             glob.isGlobalConstant = true
             glob.linkage = .linkOnceAny
             return glob
@@ -66,7 +74,7 @@ extension RepresentableGRPHType {
         if self.representationMode == .existential {
             return value
         }
-        let glob = getTypeIDGlobal(generator: generator)
+        let glob = getTypeTableGlobal(generator: generator)
         
         let data = generator.insertAlloca(type: GRPHTypes.existentialData)
         // this shouldn't be needed (reset value to zero)

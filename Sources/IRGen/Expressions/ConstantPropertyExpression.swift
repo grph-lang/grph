@@ -43,7 +43,7 @@ extension ConstantPropertyExpression: RepresentableExpression {
 
 extension TypeValueExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let glob = (type as! RepresentableGRPHType).getTypeIDGlobal(generator: generator)
+        let glob = (type as! RepresentableGRPHType).getTypeTableGlobal(generator: generator)
         return generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8))
     }
 }

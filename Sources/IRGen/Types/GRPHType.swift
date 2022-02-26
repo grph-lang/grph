@@ -30,9 +30,15 @@ enum RepresentationMode {
 }
 
 protocol RepresentableGRPHType: GRPHType {
-    /// The typeid representing this type
-    /// Only makes sense for value types
-    var typeid: [UInt8] { get }
+    /// The typeid representing this raw type
+    /// Generics are not included here
+    /// Structs have all a value between 0 and 63
+    /// Classes have all a value between 64 and 127
+    /// Generic types have all a value between 128 and 191
+    /// Existential types (can't be instanciated) have a value between 192 and 255
+    var typeid: UInt8 { get }
+    /// The generics vector to append to the typetable
+    var genericsVector: [RepresentableGRPHType] { get }
     /// How the type is represented in memory
     var representationMode: RepresentationMode { get }
     /// Convert to an LLVM type

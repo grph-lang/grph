@@ -15,8 +15,12 @@ import GRPHValues
 import LLVM
 
 extension TupleType: RepresentableGRPHType {
-    var typeid: [UInt8] {
-        [128, UInt8(content.count)] + content.flatMap { ($0 as! RepresentableGRPHType).typeid }
+    var typeid: UInt8 {
+        128
+    }
+    
+    var genericsVector: [RepresentableGRPHType] {
+        content.map { ($0 as! RepresentableGRPHType) }
     }
     
     var representationMode: RepresentationMode {

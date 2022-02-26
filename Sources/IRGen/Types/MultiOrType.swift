@@ -24,8 +24,30 @@ extension MultiOrType: RepresentableGRPHType {
         return type1.representationMode == .referenceType && type2.representationMode == .referenceType
     }
     
-    var typeid: [UInt8] {
-        onlyReferenceTypes ? [100] : [255]
+    var typeid: UInt8 {
+        254
+    }
+    
+    var genericsVector: [RepresentableGRPHType] {
+        var result: [RepresentableGRPHType] = []
+        if let nested = type1 as? MultiOrType {
+            result.append(contentsOf: nested.genericsVector)
+        } else {
+            result.append(type1 as! RepresentableGRPHType)
+        }
+        if let nested = type2 as? MultiOrType {
+            result.append(contentsOf: nested.genericsVector)
+        } else {
+            result.append(type2 as! RepresentableGRPHType)
+        }
+        var uniquified: [RepresentableGRPHType] = []
+        var uniquifier: Set<String> = []
+        for type in result {
+            if uniquifier.insert(type.string).inserted {
+                uniquified.append(type)
+            }
+        }
+        return uniquified
     }
     
     var representationMode: RepresentationMode {

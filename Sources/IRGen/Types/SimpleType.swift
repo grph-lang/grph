@@ -23,10 +23,10 @@ extension GRPHTypes {
     static let direction = IntType.int8
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
-    static let type = PointerType(pointee: IntType.int8)
+    static let type = PointerType.toVoid
     
     static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
-    static let existential = StructType(elementTypes: [PointerType(pointee: IntType.int8), existentialData])
+    static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
@@ -38,26 +38,49 @@ extension GRPHTypes {
 }
 
 extension SimpleType: RepresentableGRPHType {
-    var typeid: [UInt8] {
+    var typeid: UInt8 {
         switch self {
-        case .void:         return [0]
-        case .boolean:      return [1]
-        case .integer:      return [2]
-        case .float:        return [3]
-        case .rotation:     return [4]
-        case .pos:          return [5]
-        case .string:       return [6]
-        case .color:        return [7]
-        case .linear:       return [8]
-        case .radial:       return [9]
-        case .direction:    return [10]
-        case .stroke:       return [11]
-        case .font:         return [12]
-        case .type:         return [13]
-        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
-            return [100] // reference types, they have an isa instead
-        case .num, .mixed, .paint, .funcref:
-            return [255] // existentials
+        case .void:         return 0
+        case .boolean:      return 1
+        case .integer:      return 2
+        case .float:        return 3
+        case .rotation:     return 4
+        case .pos:          return 5
+        case .string:       return 6
+        case .color:        return 7
+        case .linear:       return 8
+        case .radial:       return 9
+        case .direction:    return 10
+        case .stroke:       return 11
+        case .font:         return 12
+        case .type:         return 13
+        case .Background:   return 64
+        case .Rectangle:    return 65
+        case .Circle:       return 66
+        case .Line:         return 67
+        case .Polygon:      return 68
+        case .Text:         return 69
+        case .Path:         return 70
+        case .Group:        return 71
+        case .funcref:
+            return 252 // opaque supertype (value type)
+        case .shape:
+            return 253 // abstract supertype (reference type)
+        case .num, .paint:
+            return 254 // multi or type
+        case .mixed:
+            return 255
+        }
+    }
+    
+    var genericsVector: [RepresentableGRPHType] {
+        switch self {
+        case .num:
+            return [SimpleType.float, SimpleType.integer]
+        case .paint:
+            return [SimpleType.color, SimpleType.linear, SimpleType.radial]
+        default:
+            return []
         }
     }
     
