@@ -38,25 +38,6 @@ extension ConstructorExpression: RepresentableExpression {
     }
 }
 
-extension GRPHValues.ArrayType {
-    func createArray(generator: IRGenerator, capacity: Int) -> IRValue {
-        return generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_create", type: FunctionType([PointerType.toVoid, GRPHTypes.integer], PointerType.toVoid)), args: [
-            getTypeTableGlobalPtr(generator: generator),
-            Int64(capacity)
-        ])
-    }
-    
-    func buildNewArray(generator: IRGenerator, values: [Expression]) throws -> IRValue {
-        // TODO: capacity would be better with closest power of 2
-        let arrayRef = createArray(generator: generator, capacity: values.count)
-        for value in values {
-            let valueptr = try generator.insertAlloca(type: content.findLLVMType())
-            generator.builder.buildStore(try value.tryBuilding(generator: generator, expect: content), to: valueptr)
-            _ = generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_append", type: FunctionType([PointerType.toVoid, PointerType.toVoid], VoidType())), args: [arrayRef, generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))])
-        }
-        return arrayRef
-    }
-}
 
 extension Optional where Wrapped == IRValue {
     func wrapInOptional(generator: IRGenerator, type: OptionalType) throws -> IRValue {
