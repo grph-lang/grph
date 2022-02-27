@@ -7,8 +7,9 @@
 {string} cmps = ("Zero" "One" "Two" "Three" "Four")
 cmps{5+} = "Five" // Adds "Five" at index 4
 cmps{+} = "Six" // Adds "Six" to the end
-// cmps{0-} = // Removes index 0 ("Zero")
+cmps{0-} = // Removes index 0 ("Zero")
 
+// CHECK-NOT: Zero
 // CHECK: One
 // CHECK-NEXT: Two
 // CHECK-NEXT: Three

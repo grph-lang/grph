@@ -546,6 +546,11 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     case "-":
                         index = Array(curly.dropLast())
                         type = .remove
+                        if assignment == tokens.endIndex - 1 {
+                            diagnostics.append(Notice(token: tokens[assignment], severity: .warning, source: .generator, message: "Removing an array element using a trailing equal sign is deprecated", tags: [.deprecated], hint: "Remove the trailing equal sign"))
+                        } else {
+                            diagnostics.append(Notice(token: tokens[assignment], severity: .warning, source: .generator, message: "Removing an array element by matching a value is deprecated", tags: [.deprecated], hint: "Use an #if or #while statement instead to make your code more explicit"))
+                        }
                     case "+":
                         index = Array(curly.dropLast())
                         type = .add

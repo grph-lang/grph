@@ -40,8 +40,7 @@ extension ArrayModificationInstruction: RepresentableInstruction {
                 ])
             }
         case .remove:
-            // TODO: array remove
-            throw GRPHCompileError(type: .unsupported, message: "array remove")
+            throw GRPHCompileError(type: .unsupported, message: "Trailing equal sign remove is not implemented")
         case .set:
             _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_set", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
                 arrayRef,
