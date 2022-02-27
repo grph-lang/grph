@@ -1,0 +1,21 @@
+// RUN: grph compile %s --emit=executable -o %t && %t hello world | FileCheck -v %s --check-prefix=TWO
+// RUN: grph compile %s --emit=executable -o %t && %t 1 1.5 0.2 5.3 | FileCheck -v %s --check-prefix=FOUR
+// RUN: grph compile %s --emit=executable -o %t && %t ABCDEFGHIJKLMNOPQRSTUVWXYZ  | FileCheck -v %s --check-prefix=LONG
+
+#requires GRPH 1.11
+
+#import stdio
+
+#foreach arg : argv
+	printOut: arg
+	printOut: "\n"
+
+// TWO: hello
+// TWO-NEXT: world
+
+// FOUR: 1
+// FOUR-NEXT: 1.5
+// FOUR-NEXT: 0.2
+// FOUR-NEXT: 5.3
+
+// LONG: ABCDEFGHIJKLMNOPQRSTUVWXYZ

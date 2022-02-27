@@ -121,7 +121,7 @@ struct CompileCommand: ParsableCommand {
         try irgen.build(from: compiler.rootBlock.children)
         
         if !topLevelCode {
-            irgen.module.function(named: "main")?.delete()
+            irgen.module.function(named: "grph_entrypoint")?.delete()
         }
         
         try irgen.module.verify()

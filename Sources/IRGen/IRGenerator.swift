@@ -31,19 +31,26 @@ public class IRGenerator {
     
     public func build(from instructions: [GRPHValues.Instruction]) throws {
         globalContext = VariableOwningIRContext(parent: nil)
+        
+        var argv = builder.addGlobal("grphv_global_argv", type: PointerType.toVoid)
+        argv.linkage = .external
+        
+        globalContext!.insert(variable: Variable(name: "argv", ref: .global(argv)))
         let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
         
-        let main = builder.addFunction("main", type: FunctionType([], IntType.int32))
+        let main = builder.addFunction("grph_entrypoint", type: FunctionType([], VoidType()))
         let allocas = main.appendBasicBlock(named: "entry.allocas")
-        builder.positionAtEnd(of: allocas)
         let entry = main.appendBasicBlock(named: "entry")
+        
+        builder.positionAtEnd(of: allocas)
         builder.buildBr(entry)
+        
         builder.positionAtEnd(of: entry)
         
         try instructions.buildAll(generator: self)
         
-        builder.buildRet(IntType.int32.constant(0))
+        builder.buildRetVoid()
         globalContext = nil
         currentContext = nil
     }

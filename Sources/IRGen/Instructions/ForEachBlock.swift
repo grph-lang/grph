@@ -26,6 +26,7 @@ extension ForEachBlock: RepresentableInstruction {
         let preBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).pre")
         let condBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).cond")
         let bodyBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).body")
+        let repeatBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).repeat")
         let postBlock = generator.builder.currentFunction!.appendBasicBlock(named: "\(label).post")
         
         generator.builder.buildBr(preBlock)
@@ -48,11 +49,14 @@ extension ForEachBlock: RepresentableInstruction {
         innerctx.insert(variable: Variable(name: varName, ref: .reference(elem)))
         try buildChildren(generator: generator, context: innerctx)
         let iNext = generator.builder.buildAdd(index, 1)
+        generator.builder.buildBr(repeatBlock)
+        
+        generator.builder.positionAtEnd(of: repeatBlock)
         generator.builder.buildBr(condBlock)
         
         index.addIncoming([
             (0, preBlock),
-            (iNext, bodyBlock)
+            (iNext, repeatBlock)
         ])
         
         generator.builder.positionAtEnd(of: postBlock)
