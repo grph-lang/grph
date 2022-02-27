@@ -73,9 +73,9 @@ public extension ArrayModificationInstruction {
     var astNodeData: String {
         switch op {
         case .set:
-            return "add element to array \(name)"
-        case .add:
             return "modify element in array \(name)"
+        case .add:
+            return "add element to array \(name)"
         case .remove:
             return "remove element from array \(name)"
         }

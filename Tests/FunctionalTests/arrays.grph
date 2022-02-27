@@ -1,0 +1,20 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+{string} cmps = ("Zero" "One" "Two" "Three" "Four")
+cmps{5+} = "Five" // Adds "Five" at index 4
+cmps{+} = "Six" // Adds "Six" to the end
+// cmps{0-} = // Removes index 0 ("Zero")
+
+// CHECK: One
+// CHECK-NEXT: Two
+// CHECK-NEXT: Three
+// CHECK-NEXT: Four
+// CHECK-NEXT: Five
+// CHECK-NEXT: Six
+#foreach cmp : cmps
+	printOut: cmp
+	printOut: "\n"

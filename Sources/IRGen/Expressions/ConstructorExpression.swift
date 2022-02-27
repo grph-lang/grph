@@ -18,7 +18,8 @@ extension ConstructorExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         switch constructor.storage {
         case .generic(signature: "{T}(T wrapped...)"), .generic(signature: "funcref<T><>(T wrapped)"):
-            preconditionFailure("not implemented")
+            let type = constructor.type as! GRPHValues.ArrayType
+            return try type.buildNewArray(generator: generator, values: values.map { $0! })
         case .generic(signature: "T?(T wrapped?)"):
             let type = constructor.type as! OptionalType
             return try values[safe: 0].map {
@@ -34,6 +35,26 @@ extension ConstructorExpression: RepresentableExpression {
         case .generic(signature: let sig):
             preconditionFailure("Generic constructor with signature \(sig) not found")
         }
+    }
+}
+
+extension GRPHValues.ArrayType {
+    func createArray(generator: IRGenerator, capacity: Int) -> IRValue {
+        return generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_create", type: FunctionType([PointerType.toVoid, GRPHTypes.integer], PointerType.toVoid)), args: [
+            getTypeTableGlobalPtr(generator: generator),
+            Int64(capacity)
+        ])
+    }
+    
+    func buildNewArray(generator: IRGenerator, values: [Expression]) throws -> IRValue {
+        // TODO: capacity would be better with closest power of 2
+        let arrayRef = createArray(generator: generator, capacity: values.count)
+        for value in values {
+            let valueptr = try generator.insertAlloca(type: content.findLLVMType())
+            generator.builder.buildStore(try value.tryBuilding(generator: generator, expect: content), to: valueptr)
+            _ = generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_append", type: FunctionType([PointerType.toVoid, PointerType.toVoid], VoidType())), args: [arrayRef, generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))])
+        }
+        return arrayRef
     }
 }
 

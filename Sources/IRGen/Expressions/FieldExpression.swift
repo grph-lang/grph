@@ -24,6 +24,8 @@ extension FieldExpression: RepresentableExpression {
             return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
         case (is TupleType, let name):
             return generator.builder.buildExtractValue(subject, index: Int(name.dropFirst())!)
+        case (is GRPHValues.ArrayType, "length"):
+            return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 2)
         default:
             let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType()], field.type.findLLVMType()))
             return generator.builder.buildCall(fn, args: [subject])

@@ -27,6 +27,8 @@ extension GRPHTypes {
     
     static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
     static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
+    static let vwt = StructType(elementTypes: [GRPHTypes.integer])
+    static let arrayStruct = StructType(elementTypes: [IntType.int64, PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
@@ -121,6 +123,8 @@ extension SimpleType: RepresentableGRPHType {
             return GRPHTypes.existential
         case .type:
             return GRPHTypes.type
+        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
+            return PointerType.toVoid
         default:
             print("Illegal usage of an irrepresentable type")
             return VoidType()

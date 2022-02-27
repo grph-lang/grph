@@ -41,9 +41,9 @@ extension CastExpression: RepresentableExpression {
                 throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
             }
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            let glob = dest.getTypeTableGlobal(generator: generator)
+            let glob = dest.getTypeTableGlobalPtr(generator: generator)
             return generator.builder.buildICmp(
-                generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8))), 0, .equal)
+                generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), glob), 0, .equal)
         }
     }
 }
@@ -57,9 +57,16 @@ extension RepresentableGRPHType {
             var typename = generator.builder.addGlobal("", initializer: LLVM.ArrayType.constant(typenameContent, type: IntType.int8))
             typename.isGlobalConstant = true
             typename.linkage = .private
+            typename.unnamedAddressKind = .global
+            
+            var vwt = generator.builder.addGlobal("", initializer: GRPHTypes.vwt.constant(values: [generator.builder.buildSizeOf(try! self.asLLVM())]))
+            vwt.isGlobalConstant = true
+            vwt.linkage = .private
+            vwt.unnamedAddressKind = .global
             
             var glob = generator.builder.addGlobal("typetable.\(self)", initializer: StructType.constant(values: [
-                generator.builder.buildInBoundsGEP(typename, type: LLVM.ArrayType(elementType: IntType.int8, count: typenameContent.count), indices: [0, 1])
+                generator.builder.buildInBoundsGEP(typename, type: LLVM.ArrayType(elementType: IntType.int8, count: typenameContent.count), indices: [0, 1]),
+                vwt
             ] + self.genericsVector.map { type in
                 type.getTypeTableGlobal(generator: generator)
             } + [PointerType.toVoid.null()]))
@@ -67,6 +74,10 @@ extension RepresentableGRPHType {
             glob.linkage = .linkOnceAny
             return glob
         }
+    }
+    
+    func getTypeTableGlobalPtr(generator: IRGenerator) -> IRValue {
+        generator.builder.buildBitCast(getTypeTableGlobal(generator: generator), type: PointerType(pointee: IntType.int8))
     }
     
     /// transform a pure value type into an existential

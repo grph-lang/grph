@@ -26,7 +26,7 @@ class Variable {
     
     func getContent(generator: IRGenerator) throws -> IRValue {
         switch ref {
-        case .global(let ptr as IRValue), .stack(let ptr as IRValue):
+        case .global(let ptr as IRValue), .stack(let ptr as IRValue), .reference(let ptr):
             guard let ty = ptr.type as? PointerType else {
                 throw GRPHCompileError(type: .unsupported, message: "Allocated value is not a pointer")
             }
@@ -38,7 +38,7 @@ class Variable {
     
     func getPointer(generator: IRGenerator) throws -> IRValue {
         switch ref {
-        case .global(let ptr as IRValue), .stack(let ptr as IRValue):
+        case .global(let ptr as IRValue), .stack(let ptr as IRValue), .reference(let ptr):
             return ptr
         case .value(_):
             throw GRPHCompileError(type: .unsupported, message: "Cannot get pointer to a register")
@@ -53,4 +53,6 @@ enum VariableReference {
     case value(IRValue)
     /// A local variable that was allocated on the stack
     case stack(IRInstruction)
+    /// A reference to an array element, inside a ForEachBlock
+    case reference(IRValue)
 }
