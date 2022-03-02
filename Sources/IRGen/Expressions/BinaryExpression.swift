@@ -76,13 +76,14 @@ extension BinaryExpression: RepresentableExpression {
         
         generator.builder.positionAtEnd(of: longBranch)
         let right = try self.right.tryBuilding(generator: generator, expect: SimpleType.boolean)
+        let longLastBr = generator.builder.insertBlock!
         generator.builder.buildBr(mergeBranch)
         
         generator.builder.positionAtEnd(of: mergeBranch)
         let result = generator.builder.buildPhi(GRPHTypes.boolean)
         result.addIncoming([
             (left, shortBranch),
-            (right, longBranch)
+            (right, longLastBr)
         ])
         return result
     }
@@ -125,7 +126,7 @@ extension BinaryOperator {
     var icmpPredicate: IntPredicate {
         switch self {
         case .greaterOrEqualTo:
-            return .signedLessThanOrEqual
+            return .signedGreaterThanOrEqual
         case .lessOrEqualTo:
             return .signedLessThanOrEqual
         case .greaterThan:

@@ -48,10 +48,10 @@ extension ForEachBlock: RepresentableInstruction {
         let innerctx = BlockIRContext(parent: generator.currentContext, label: self.label, break: postBlock, continue: condBlock)
         innerctx.insert(variable: Variable(name: varName, ref: .reference(elem)))
         try buildChildren(generator: generator, context: innerctx)
-        let iNext = generator.builder.buildAdd(index, 1)
         generator.builder.buildBr(repeatBlock)
         
         generator.builder.positionAtEnd(of: repeatBlock)
+        let iNext = generator.builder.buildAdd(index, 1)
         generator.builder.buildBr(condBlock)
         
         index.addIncoming([

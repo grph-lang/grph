@@ -1,0 +1,46 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+// CHECK: 0
+// CHECK-NEXT: 1
+// CHECK-NEXT: 2
+// CHECK-NEXT: 3
+// CHECK-NEXT: 4
+
+#foreach i : range[0 4]
+	log: i
+
+// CHECK-NEXT: 0
+// CHECK-NEXT: 2
+// CHECK-NEXT: 4
+// CHECK-NEXT: 6
+// CHECK-NEXT: 8
+// CHECK-NEXT: 10
+
+#foreach i : range[0 10 2]
+	log: i
+
+// CHECK-NEXT: 0
+// CHECK-NEXT: 3
+// CHECK-NEXT: 6
+// CHECK-NEXT: 9
+
+#foreach i : range[0 10 -3]
+	log: i
+
+// CHECK-NEXT: 10
+// CHECK-NEXT: 7
+// CHECK-NEXT: 4
+// CHECK-NEXT: 1
+
+#foreach i : range[10 0 3]
+	log: i
+
+// CHECK-NEXT: 10
+// CHECK-NEXT: 3
+
+#foreach i : range[10 0 -7]
+	log: i

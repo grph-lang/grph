@@ -52,6 +52,7 @@ extension ConstantExpression: RepresentableExpression {
             // long string
             var global = generator.builder.addGlobalString(name: "", value: value)
             global.isGlobalConstant = true
+            global.linkage = .private
             global.unnamedAddressKind = .global
             return GRPHTypes.string.constant(values: [
                 IntType.int64.constant(GRPHTypes.stringImmortalMask | GRPHTypes.stringNilTerminatedMask | UInt64(len)),
