@@ -17,9 +17,15 @@ import LLVM
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
-        // TODO: handle varargs
-        return generator.builder.buildCall(fn, args: try (values + Array(repeating: nil, count: function.parameters.count - values.count)).enumerated().map { i, arg in
-            let param = self.function.parameters[i]
+        return generator.builder.buildCall(fn, args: try function.parameters.enumerated().map { i, param in
+            let arg = values[safe: i]
+            if i == function.parameters.indices.last, function.varargs {
+                if i <= values.count {
+                    return try param.type.inArray.buildNewArray(generator: generator, values: values[i...].map { $0! })
+                } else {
+                    return try param.type.inArray.buildNewArray(generator: generator, values: [])
+                }
+            }
             let value = try arg.map { arg in
                 return try arg.tryBuilding(generator: generator, expect: param.type as! RepresentableGRPHType)
             }
@@ -34,7 +40,9 @@ extension FunctionExpression: RepresentableExpression {
 extension Parametrable {
     func llvmParameters() throws -> [IRType] {
         try parameters.enumerated().map { i, par in
-            // TODO: handle varargs
+            if i == parameters.indices.last, varargs {
+                return try par.type.inArray.findLLVMType()
+            }
             if par.optional {
                 return try par.type.optional.findLLVMType()
             }

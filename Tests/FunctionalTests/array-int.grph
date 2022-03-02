@@ -2,8 +2,6 @@
 
 #requires GRPH 1.11
 
-#import stdio
-
 {int} arr = <int>{ 1, 2, 3 }
 
 arr{1} = 42
@@ -13,6 +11,5 @@ arr{1} = 42
 // CHECK: 3
 int i = 0
 #while i < arr.length
-	printOut: [arr{i} as string]
-	printOut: "\n"
+	log: arr{i}
 	i += 1
