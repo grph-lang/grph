@@ -190,6 +190,8 @@ public class GRPHLexer {
         case .slashOperator:
             if char == "/" {
                 return .changeCurrentType(.comment)
+            } else if char == "=" {
+                return .changeCurrentType(.operator)
             }
             return .newToken
         case .comment:
