@@ -17,3 +17,47 @@ print: [sqrt[64.0] as string]
 print: [cbrt[27.0] as integer as string]
 // CHECK-NEXT: 12124.703831
 print: [pow[43 2.5] as string]
+
+// CHECK-NEXT: 24
+print: [round[23.7] as string]
+// CHECK-NEXT: 46
+print: [round[46.376] as string]
+// CHECK-NEXT: 2
+print: [round[1.5] as string]
+// CHECK-NEXT: 7
+print: [round[7] as string]
+
+// CHECK-NEXT: 6
+print: [floor[6.9] as string]
+// CHECK-NEXT: 2
+print: [floor[2.03] as string]
+// CHECK-NEXT: 1
+print: [floor[1] as string]
+
+// CHECK-NEXT: 7
+print: [ceil[6.9] as string]
+// CHECK-NEXT: 3
+print: [ceil[2.03] as string]
+// CHECK-NEXT: 1
+print: [ceil[1] as string]
+
+// CHECK-NEXT: 1234
+print: [max[-83 1234 24 -345 25 32 812 -4] as string]
+// CHECK-NEXT: -345
+print: [min[-83 1234 24 -345 25 32 812 -4] as string]
+
+// CHECK-NEXT: 7336
+print: [sum[1435 34 -45 5678 234] as string]
+// CHECK-NEXT: 7336
+print: [difference[1435 -34 45 -5678 -234] as string]
+// CHECK-NEXT: 1982232
+print: [multiply[23 -54 7 -3 76] as string]
+// CHECK-NEXT: 23
+print: [divide[1982232 -54 7 -3 76] as string]
+// CHECK-NEXT: 2
+print: [modulo[1290 23] as string]
+// CHECK-NEXT: 0.5
+print: [modulo[5.5 2.5] as string]
+
+// CHECK-NEXT: 3.14
+print: [PI[] as string]
