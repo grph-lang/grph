@@ -18,8 +18,22 @@ int?? secondLevelNull = (null)
 
 // CHECK: 42
 print: [a as string]
+// CHECK-NEXT: false
+print: [b == null as string]
+// CHECK-NEXT: false
+print: [b! == null as string]
 // CHECK-NEXT: 69
 print: [b!! as string]
+// CHECK-NEXT: true
+print: [c == null as string]
+// CHECK-NEXT: true
+print: [d == null as string]
+// CHECK-NEXT: true
+print: [firstLevelNull == null as string]
+// CHECK-NEXT: false
+print: [secondLevelNull == null as string]
+// CHECK-NEXT: true
+print: [secondLevelNull! == null as string]
 
 #function int? wrapA[int i] = (i)
 

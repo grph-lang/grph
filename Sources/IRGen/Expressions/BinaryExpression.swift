@@ -97,9 +97,28 @@ extension BinaryExpression: RepresentableExpression {
             return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
         } else if self.left.getType() == SimpleType.type && self.right.getType() == SimpleType.type {
             return generator.builder.buildICmp(generator.builder.buildPointerDifference(left, right), 0, op.icmpPredicate)
+        } else if self.left is NullExpression {
+            return try buildNullCheck(generator: generator, value: right, type: self.right.getType())
+        } else if self.right is NullExpression {
+            return try buildNullCheck(generator: generator, value: left, type: self.left.getType())
         }
         // TODO: other types
         throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
+    }
+    
+    func buildNullCheck(generator: IRGenerator, value: IRValue, type: GRPHType) throws -> IRValue {
+        if type is OptionalType {
+            let isset = generator.builder.buildExtractValue(value, index: 0)
+            if op == .notEqual {
+                return isset
+            } else if op == .equal {
+                return generator.builder.buildNot(isset)
+            } else {
+                preconditionFailure("Only operations with null allowed are == and !=")
+            }
+        }
+        // TODO: should be allowed for type `mixed`
+        throw GRPHCompileError(type: .unsupported, message: "Cannot null check non-optional")
     }
 }
 
