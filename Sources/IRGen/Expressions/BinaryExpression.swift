@@ -96,7 +96,7 @@ extension BinaryExpression: RepresentableExpression {
         } else if left.type is FloatType && right.type is FloatType {
             return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
         } else if self.left.getType() == SimpleType.type && self.right.getType() == SimpleType.type {
-            return generator.builder.buildICmp(generator.builder.buildPointerDifference(left, right), 0, .equal)
+            return generator.builder.buildICmp(generator.builder.buildPointerDifference(left, right), 0, op.icmpPredicate)
         }
         // TODO: other types
         throw GRPHCompileError(type: .unsupported, message: "Unsupported operator \(op)")
