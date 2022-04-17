@@ -25,9 +25,9 @@ extension CastExpression: RepresentableExpression {
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
             return try SimpleType.mixed.unsafeDowncast(generator: generator, to: dest, value: val)
         case .conversion(optional: let isOptional):
-            let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([GRPHTypes.existential], to.optional.findLLVMType()))
+            let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([PointerType(pointee: GRPHTypes.existential)], to.optional.findLLVMType()))
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            let result = generator.builder.buildCall(fn, args: [val])
+            let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
             if isOptional {
                 return result
             } else {

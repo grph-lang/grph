@@ -27,8 +27,8 @@ extension FieldExpression: RepresentableExpression {
         case (is GRPHValues.ArrayType, "length"):
             return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 2)
         default:
-            let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType()], field.type.findLLVMType()))
-            return generator.builder.buildCall(fn, args: [subject])
+            let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType(forParameter: true)], field.type.findLLVMType()))
+            return generator.builder.buildCall(fn, args: [onType.paramCCWrap(generator: generator, value: subject)])
         }
     }
 }

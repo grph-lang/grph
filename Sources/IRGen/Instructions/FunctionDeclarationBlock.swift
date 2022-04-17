@@ -66,7 +66,7 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
                 ctx.insert(variable: Variable(name: name, ref: .value(phi)))
             } else {
                 par.name = name
-                ctx.insert(variable: Variable(name: name, ref: .value(par)))
+                ctx.insert(variable: Variable(name: name, ref: (generated.trueParamTypes[i] as! RepresentableGRPHType).representationMode == .existential ? .reference(par) : .value(par)))
             }
         }
         

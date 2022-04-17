@@ -46,14 +46,29 @@ protocol RepresentableGRPHType: GRPHType {
 }
 
 extension GRPHType {
-    func findLLVMType(forReturnType: Bool = false) throws -> IRType {
+    func findLLVMType(forReturnType: Bool = false, forParameter: Bool = false) throws -> IRType {
         if forReturnType, self.isTheVoid {
             return VoidType()
         }
         if let ty = self as? RepresentableGRPHType {
+            if forParameter, ty.representationMode == .existential {
+                return PointerType(pointee: try ty.asLLVM()) // pass existentials in byval pointers
+            }
             return try ty.asLLVM()
         } else {
             throw GRPHCompileError(type: .unsupported, message: "Type \(self) not found")
         }
+    }
+    
+    func paramCCWrap(generator: IRGenerator, value: IRValue) -> IRValue {
+        guard let self = self as? RepresentableGRPHType else {
+            preconditionFailure()
+        }
+        if self.representationMode == .existential {
+            let ptr = generator.insertAlloca(type: GRPHTypes.existential)
+            generator.builder.buildStore(value, to: ptr)
+            return ptr
+        }
+        return value
     }
 }
