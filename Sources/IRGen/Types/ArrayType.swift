@@ -13,6 +13,9 @@
 import Foundation
 import GRPHValues
 import LLVM
+import GRPHLexer
+import GRPHGenerator
+import cllvm
 
 extension GRPHValues.ArrayType: RepresentableGRPHType {
     var typeid: UInt8 {
@@ -29,5 +32,64 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
     
     func asLLVM() throws -> IRType {
         PointerType.toVoid
+    }
+    
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
+        if to.isTheMixed || to == self {
+            return try upcastDefault(generator: generator, to: to, value: value)
+        }
+        guard let to = to as? Self else {
+            throw GRPHCompileError(type: .typeMismatch, message: "Can't upcast \(self) to \(to)")
+        }
+        let fn = try to.generateConversionThunk(generator: generator)
+        let val = try value.tryBuilding(generator: generator, expect: SimpleType.mixed)
+        let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
+        return generator.builder.buildExtractValue(result, index: 1) // can't fail, it is an upcast
+    }
+    
+    func generateConversionThunk(generator: IRGenerator) throws -> LLVM.Function {
+        let lexer = GRPHLexer()
+        let lines = lexer.parseDocument(content: """
+        #compiler indent spaces
+        #typealias elemty \(self.content.string)
+        boolean mixed_is_array[mixed value] = #external
+
+        #function {elemty}? __thunk_tmp[mixed input]
+            #if !mixed_is_array[input]
+                #return null
+            #unchecked[downcast] // it is not actually an {mixed}, but we can pretend
+                {mixed} val = input as! {mixed}
+            {elemty} result = ()
+            int i = 0
+            int len = val.length
+            #while i < len
+                mixed out = val{i} // can't work normally while pretending, special cased
+                result{+} = out as elemty
+                i += 1
+            #return result
+        """)
+        let compiler = GRPHGenerator(lines: lines)
+        guard compiler.compile() else {
+            for diag in lexer.diagnostics + compiler.diagnostics {
+                print(diag.represent())
+            }
+            throw GRPHCompileError(type: .unsupported, message: "could not compile array conversion thunk")
+        }
+        
+        // call to grpharr_get -> grpharr_get_mixed
+        let mangleNames = generator.mangleNames
+        let buildingAThunk = generator.buildingAThunk
+        generator.mangleNames = false
+        generator.buildingAThunk = true
+        defer {
+            generator.buildingAThunk = buildingAThunk
+            generator.mangleNames = mangleNames
+        }
+        try compiler.rootBlock.children.buildAll(generator: generator)
+        
+        var thunk = generator.builder.module.function(named: "__thunk_tmp")!
+        thunk.name = "Thunk for converting array to \(self)"
+        thunk.linkage = .internal
+        return thunk
     }
 }

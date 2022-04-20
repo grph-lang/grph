@@ -25,8 +25,16 @@ extension CastExpression: RepresentableExpression {
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
             return try SimpleType.mixed.unsafeDowncast(generator: generator, to: dest, value: val)
         case .conversion(optional: let isOptional):
-            let fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([PointerType(pointee: GRPHTypes.existential)], to.optional.findLLVMType()))
             let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
+            if to.isTheMixed {
+                return val // `as mixed` just existentializes
+            }
+            let fn: LLVM.Function
+            if let to = to as? GRPHValues.ArrayType {
+                fn = try to.generateConversionThunk(generator: generator)
+            } else {
+                fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([PointerType(pointee: GRPHTypes.existential)], to.optional.findLLVMType()))
+            }
             let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
             if isOptional {
                 return result
@@ -100,9 +108,10 @@ extension RepresentableGRPHType {
     
     /// Cast from this type, to a parent type
     /// Don't call this directly, use `Expression.tryBuilding(generator:expect:)`
-    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: IRValue) throws -> IRValue {
+    func upcastDefault(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
+        let erased = try value.tryBuildingWithoutCaringAboutType(generator: generator)
         if self == to {
-            return value
+            return erased
         }
         switch to.representationMode {
         case .pureValue, .impureValue:
@@ -111,9 +120,9 @@ extension RepresentableGRPHType {
             guard self.representationMode == .referenceType else {
                 throw GRPHCompileError(type: .unsupported, message: "Tried to upcast unrelated type \(self) to \(to)")
             }
-            return value // same thing, aka a pointer to a box
+            return erased // same thing, aka a pointer to a box
         case .existential:
-            return try existentialize(generator: generator, value: value)
+            return try existentialize(generator: generator, value: erased)
         }
     }
     

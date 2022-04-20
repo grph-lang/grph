@@ -19,7 +19,7 @@ extension ArrayValueExpression: RepresentableExpression {
         let arrayRef = try array.tryBuildingWithoutCaringAboutType(generator: generator)
         let valueptr = try generator.insertAlloca(type: getType().findLLVMType())
         // TODO: removing
-        _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: removing ? "grpharr_remove" : "grpharr_get", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
+        _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: removing ? "grpharr_remove" : generator.buildingAThunk ? "grpharr_get_mixed" : "grpharr_get", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
             arrayRef,
             index!.tryBuilding(generator: generator, expect: SimpleType.integer),
             generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))

@@ -1,0 +1,26 @@
+// RUN: grph compile %s --emit=executable -o %t; %t | FileCheck %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+#function void print[string s]
+	printOut: s
+	printOut: "\n"
+
+{mixed} mixed = ("Hello" 42 "well" 0.5)
+
+// CHECK: <mixed>{Hello, 42, well, 0.500000}
+print: [mixed as string]
+
+// CHECK-NEXT: <string>{Hello, 42, well, 0.500000}
+print: [mixed as {string} as string]
+
+{string} toconvert = ("3" "0x42" "1024")
+
+// CHECK-NEXT: <integer>{3, 66, 1024}
+print: [toconvert as {integer} as string]
+
+// CHECK-NEXT: <mixed>{3, 0x42, 1024}
+{mixed} upcast = toconvert
+print: [upcast as string]

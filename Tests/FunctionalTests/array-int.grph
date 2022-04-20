@@ -7,9 +7,12 @@
 arr{1} = 42
 
 // CHECK: 1
-// CHECK: 42
-// CHECK: 3
+// CHECK-NEXT: 42
+// CHECK-NEXT: 3
 int i = 0
 #while i < arr.length
 	log: arr{i}
 	i += 1
+
+// CHECK-NEXT: <integer>{1, 42, 3}
+log: arr

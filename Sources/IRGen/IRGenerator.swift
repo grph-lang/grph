@@ -24,6 +24,7 @@ public class IRGenerator {
     var currentContext: IRContext?
     
     public var mangleNames: Bool = true
+    internal var buildingAThunk: Bool = false
     
     public init(filename: String) {
         builder = IRBuilder(module: Module(name: filename))

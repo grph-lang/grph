@@ -43,6 +43,15 @@ protocol RepresentableGRPHType: GRPHType {
     var representationMode: RepresentationMode { get }
     /// Convert to an LLVM type
     func asLLVM() throws -> IRType
+    
+    /// Handle implicit casts to a supertype
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue
+}
+
+extension RepresentableGRPHType {
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
+        return try upcastDefault(generator: generator, to: to, value: value)
+    }
 }
 
 extension GRPHType {
