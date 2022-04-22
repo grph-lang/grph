@@ -35,10 +35,6 @@ extension FunctionDeclarationBlock {
         defer { // make sure generated is set (or use .none if we fail parsing)
             context.generator.resolveSemanticToken(name.withType(.function).withModifiers([.declaration, isExternal ? [] : .definition], data: generated.map { .function($0) }))
         }
-        guard name.tokenType == .identifier && name.literal.allSatisfy({ $0.isLetter || $0 == "_" }) else {
-            throw DiagnosticCompileError(notice: Notice(token: name, severity: .error, source: .generator, message: "Expected function name to only contain letters and underscores"))
-        }
-        
         let typeLit = Token(compound: Array(tokens[...(paramsIndex - 2)]), type: .type)
         let returnTypeOrAuto: GRPHType?
         if typeLit.literal == "auto" {
