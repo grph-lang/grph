@@ -39,3 +39,13 @@ print: [true as integer as string]
 print: [12.345 as integer as string]
 // CHECK-NEXT: 3
 print: [3 as integer as string]
+
+// CHECK-NEXT: 83
+print: [83 as num as string]
+// CHECK-NEXT: 3247.250000
+print: [3247.25 as num as string]
+
+// CHECK-NEXT: 7
+print: ["7" as num as string]
+// CHECK-NEXT: 8.000000
+print: ["8.0" as num as string]

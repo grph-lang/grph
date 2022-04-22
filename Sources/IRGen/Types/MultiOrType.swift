@@ -24,10 +24,6 @@ extension MultiOrType: RepresentableGRPHType {
         return type1.representationMode == .referenceType && type2.representationMode == .referenceType
     }
     
-    var typeid: UInt8 {
-        254
-    }
-    
     var genericsVector: [RepresentableGRPHType] {
         var result: [RepresentableGRPHType] = []
         if let nested = type1 as? MultiOrType {
@@ -48,6 +44,10 @@ extension MultiOrType: RepresentableGRPHType {
             }
         }
         return uniquified
+    }
+    
+    var typeid: UInt8 {
+        onlyReferenceTypes ? 253 : 254
     }
     
     var representationMode: RepresentationMode {

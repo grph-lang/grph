@@ -60,28 +60,27 @@ extension RepresentableGRPHType {
     func getTypeTableGlobal(generator: IRGenerator) -> Global {
         if let g = generator.builder.module.global(named: "typetable.\(self)") {
             return g
-        } else {
-            let typenameContent: [Int8] = [Int8(bitPattern: self.typeid)] + self.string.utf8CString
-            var typename = generator.builder.addGlobal("", initializer: LLVM.ArrayType.constant(typenameContent, type: IntType.int8))
-            typename.isGlobalConstant = true
-            typename.linkage = .private
-            typename.unnamedAddressKind = .global
-            
-            var vwt = generator.builder.addGlobal("", initializer: GRPHTypes.vwt.constant(values: [generator.builder.buildSizeOf(try! self.asLLVM())]))
-            vwt.isGlobalConstant = true
-            vwt.linkage = .private
-            vwt.unnamedAddressKind = .global
-            
-            var glob = generator.builder.addGlobal("typetable.\(self)", initializer: StructType.constant(values: [
-                generator.builder.buildInBoundsGEP(typename, type: LLVM.ArrayType(elementType: IntType.int8, count: typenameContent.count), indices: [0, 1]),
-                vwt
-            ] + self.genericsVector.map { type in
-                type.getTypeTableGlobal(generator: generator)
-            } + [PointerType.toVoid.null()]))
-            glob.isGlobalConstant = true
-            glob.linkage = .linkOnceAny
-            return glob
         }
+        let typenameContent: [Int8] = [Int8(bitPattern: self.typeid)] + self.string.utf8CString
+        var typename = generator.builder.addGlobal("", initializer: LLVM.ArrayType.constant(typenameContent, type: IntType.int8))
+        typename.isGlobalConstant = true
+        typename.linkage = .private
+        typename.unnamedAddressKind = .global
+        
+        var vwt = generator.builder.addGlobal("", initializer: GRPHTypes.vwt.constant(values: [generator.builder.buildSizeOf(try! self.asLLVM())]))
+        vwt.isGlobalConstant = true
+        vwt.linkage = .private
+        vwt.unnamedAddressKind = .global
+        
+        var glob = generator.builder.addGlobal("typetable.\(self)", initializer: StructType.constant(values: [
+            generator.builder.buildInBoundsGEP(typename, type: LLVM.ArrayType(elementType: IntType.int8, count: typenameContent.count), indices: [0, 1]),
+            vwt
+        ] + self.genericsVector.map { type in
+            type.getTypeTableGlobal(generator: generator)
+        } + [PointerType.toVoid.null()]))
+        glob.isGlobalConstant = true
+        glob.linkage = .linkOnceAny
+        return glob
     }
     
     func getTypeTableGlobalPtr(generator: IRGenerator) -> IRValue {
