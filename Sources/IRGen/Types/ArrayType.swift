@@ -49,12 +49,13 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
     
     func generateConversionThunk(generator: IRGenerator) throws -> LLVM.Function {
         let lexer = GRPHLexer()
+        let thunkName = "__thunk_tmp\(UInt(bitPattern: self.string.hashValue))"
         let lines = lexer.parseDocument(content: """
         #compiler indent spaces
         #typealias elemty \(self.content.string)
         boolean mixed_is_array[mixed value] = #external
 
-        #function {elemty}? __thunk_tmp[mixed input]
+        #function {elemty}? \(thunkName)[mixed input]
             #if !mixed_is_array[input]
                 #return null
             #unchecked[downcast] // it is not actually an {mixed}, but we can pretend
@@ -87,7 +88,7 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
         }
         try compiler.rootBlock.children.buildAll(generator: generator)
         
-        var thunk = generator.builder.module.function(named: "__thunk_tmp")!
+        var thunk = generator.builder.module.function(named: thunkName)!
         thunk.name = "Thunk for converting array to \(self)"
         thunk.linkage = .internal
         return thunk
