@@ -18,7 +18,19 @@ extension BreakInstruction: RepresentableInstruction {
         guard let scope = generator.currentContext?.findBreak(scope: self.scope) else {
             throw GRPHCompileError(type: .invalidArguments, message: "Break destination could not be resolved")
         }
-        // TODO: cleanup broken blocks
+        
+        // cleanup broken blocks
+        var ctx = generator.currentContext
+        while ctx != nil {
+            if let ctx = ctx as? VariableOwningIRContext {
+                try ctx.cleanup(generator: generator)
+            }
+            if ctx === scope {
+                break
+            }
+            ctx = ctx?.parent
+        }
+        
         switch self.type {
         case .break:
             generator.builder.buildBr(scope.breakDestination)

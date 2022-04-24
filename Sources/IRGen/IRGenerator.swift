@@ -50,6 +50,7 @@ public class IRGenerator {
         builder.positionAtEnd(of: entry)
         
         try instructions.buildAll(generator: self)
+        try topLevelContext.cleanup(generator: self)
         
         builder.buildRetVoid()
         globalContext = nil
