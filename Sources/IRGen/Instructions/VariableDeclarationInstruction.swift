@@ -16,7 +16,7 @@ import LLVM
 
 extension VariableDeclarationInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        let initializer = try value.tryBuilding(generator: generator, expect: type as! RepresentableGRPHType)
+        let initializer = try value.owned(generator: generator, expect: type as! RepresentableGRPHType)
         let type = try type.findLLVMType()
         if global {
             let glob: Global
@@ -32,17 +32,17 @@ extension VariableDeclarationInstruction: RepresentableInstruction {
             }
             generator.globalContext?.insert(variable: Variable(name: name, ref: .global(glob)))
         } else if constant {
-            generator.currentContext?.insert(variable: Variable(name: name, ref: .value(initializer)))
+            generator.currentContext?.insert(variable: Variable(name: name, ref: .ownedValue(initializer, cleanup: self.type.destroy(generator:value:))))
         } else {
             let variable = generator.insertAlloca(type: type, name: name)
             generator.builder.buildStore(initializer, to: variable)
-            generator.currentContext?.insert(variable: Variable(name: name, ref: .stack(variable)))
+            generator.currentContext?.insert(variable: Variable(name: name, ref: .stack(variable, cleanup: self.type.destroy(generator:value:))))
         }
     }
 }
 
 extension IRGenerator {
-    func insertAlloca(type: IRType, name: String = "") -> IRInstruction{
+    func insertAlloca(type: IRType, name: String = "") -> IRInstruction {
         let pos = builder.insertBlock!
         builder.positionBefore(builder.currentFunction!.firstBlock!.lastInstruction!)
         defer {

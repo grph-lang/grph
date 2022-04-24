@@ -23,18 +23,22 @@ extension ConstructorExpression: RepresentableExpression {
         case .generic(signature: "T?(T wrapped?)"):
             let type = constructor.type as! OptionalType
             return try values[safe: 0].map {
-                try $0.tryBuilding(generator: generator, expect: type.wrapped)
+                try $0.owned(generator: generator, expect: type.wrapped)
             }.wrapInOptional(generator: generator, type: type)
         case .generic(signature: "tuple(T wrapped...)"):
             let type = constructor.type as! TupleType
             return try type.content.indices.reduce(try type.asLLVM().undef()) { (curr, i) in
-                return try generator.builder.buildInsertValue(aggregate: curr, element: values[i]!.tryBuilding(generator: generator, expect: type.content[i]), index: i)
+                return try generator.builder.buildInsertValue(aggregate: curr, element: values[i]!.owned(generator: generator, expect: type.content[i]), index: i)
             }
         case .native:
             preconditionFailure("constructors not implemented")
         case .generic(signature: let sig):
             preconditionFailure("Generic constructor with signature \(sig) not found")
         }
+    }
+    
+    var ownership: Ownership {
+        .owned
     }
 }
 

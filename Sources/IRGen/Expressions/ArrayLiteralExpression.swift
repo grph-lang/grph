@@ -18,6 +18,10 @@ extension ArrayLiteralExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         try wrapped.inArray.buildNewArray(generator: generator, values: values)
     }
+    
+    var ownership: Ownership {
+        .owned
+    }
 }
 
 extension GRPHValues.ArrayType {
@@ -33,7 +37,7 @@ extension GRPHValues.ArrayType {
         let arrayRef = createArray(generator: generator, capacity: values.count)
         for value in values {
             let valueptr = try generator.insertAlloca(type: content.findLLVMType())
-            generator.builder.buildStore(try value.tryBuilding(generator: generator, expect: content), to: valueptr)
+            generator.builder.buildStore(try value.owned(generator: generator, expect: content), to: valueptr)
             _ = generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_append", type: FunctionType([PointerType.toVoid, PointerType.toVoid], VoidType())), args: [arrayRef, generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))])
         }
         return arrayRef

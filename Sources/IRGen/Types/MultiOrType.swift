@@ -16,12 +16,12 @@ import LLVM
 
 extension MultiOrType: RepresentableGRPHType {
     
-    var onlyReferenceTypes: Bool {
+    func only(_ mode: RepresentationMode) -> Bool {
         guard let type1 = type1 as? RepresentableGRPHType,
               let type2 = type2 as? RepresentableGRPHType else {
             return false
         }
-        return type1.representationMode == .referenceType && type2.representationMode == .referenceType
+        return type1.representationMode == mode && type2.representationMode == mode
     }
     
     var genericsVector: [RepresentableGRPHType] {
@@ -47,14 +47,18 @@ extension MultiOrType: RepresentableGRPHType {
     }
     
     var typeid: UInt8 {
-        onlyReferenceTypes ? 253 : 254
+        only(.referenceType) ? 253 : 254
     }
     
     var representationMode: RepresentationMode {
-        onlyReferenceTypes ? .referenceType : .existential
+        only(.referenceType) ? .referenceType : .existential
+    }
+    
+    var vwt: ValueWitnessTable {
+        only(.referenceType) ? .ref : only(.pureValue) ? .trivial : .existential
     }
     
     func asLLVM() -> IRType {
-        onlyReferenceTypes ? PointerType(pointee: IntType.int8) : GRPHTypes.existential
+        only(.referenceType) ? PointerType(pointee: IntType.int8) : GRPHTypes.existential
     }
 }

@@ -28,7 +28,7 @@ extension WhileBlock: RepresentableInstruction {
         generator.builder.buildBr(condBlock)
         
         generator.builder.positionAtEnd(of: condBlock)
-        generator.builder.buildCondBr(condition: try condition.tryBuilding(generator: generator, expect: SimpleType.boolean), then: whileBlock, else: postBlock)
+        generator.builder.buildCondBr(condition: try condition.owned(generator: generator, expect: SimpleType.boolean), then: whileBlock, else: postBlock)
         
         generator.builder.positionAtEnd(of: whileBlock)
         try buildChildren(generator: generator, context: BlockIRContext(parent: generator.currentContext, label: self.label, break: postBlock, continue: condBlock))
@@ -67,7 +67,7 @@ extension WhileBlock: RepresentableInstruction {
             (IntType.int1.constant(1), entryBlock),
             (IntType.int1.constant(0), repeatBlock)
         ])
-        let condition = try condition.tryBuilding(generator: generator, expect: SimpleType.boolean)
+        let condition = try condition.owned(generator: generator, expect: SimpleType.boolean)
         generator.builder.buildCondBr(condition: condition, then: bodyBlock, else: elseCheckBlock)
         
         generator.builder.positionAtEnd(of: bodyBlock)

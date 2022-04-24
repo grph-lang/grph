@@ -16,6 +16,8 @@ import LLVM
 
 protocol RepresentableExpression: Expression {
     func build(generator: IRGenerator) throws -> IRValue
+    
+    var ownership: Ownership { get }
 }
 
 protocol RepresentableAssignableExpression: RepresentableExpression, AssignableExpression {
@@ -24,14 +26,14 @@ protocol RepresentableAssignableExpression: RepresentableExpression, AssignableE
 }
 
 extension Expression {
-    func tryBuildingWithoutCaringAboutType(generator: IRGenerator) throws -> IRValue {
+    func tryBuildingWithoutCaringAboutAnythingForNow(generator: IRGenerator) throws -> IRValue {
         guard let expression = self as? RepresentableExpression else {
             throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
         }
         return try expression.build(generator: generator)
     }
     
-    func tryBuilding(generator: IRGenerator, expect: GRPHType) throws -> IRValue {
+    private func tryBuilding(generator: IRGenerator, expect: GRPHType) throws -> (IRValue, ownedCopy: Bool) {
         guard let expect = expect as? RepresentableGRPHType else {
             throw GRPHCompileError(type: .unsupported, message: "Type \(expect) is not supported in IRGen mode")
         }
@@ -39,5 +41,60 @@ extension Expression {
             throw GRPHCompileError(type: .unsupported, message: "Type \(self.getType()) is not supported in IRGen mode")
         }
         return try from.upcast(generator: generator, to: expect, value: self)
+    }
+    
+    private func tryBuildingSel(generator: IRGenerator, expect: GRPHType?) throws -> (IRValue, ownedCopy: Bool) {
+        if let expect = expect {
+            return try tryBuilding(generator: generator, expect: expect)
+        } else {
+            return (try tryBuildingWithoutCaringAboutAnythingForNow(generator: generator), ownedCopy: false)
+        }
+    }
+    
+    func borrow<T>(generator: IRGenerator, expect: GRPHType?, block: (_ value: IRValue) throws -> T) throws -> T {
+        guard let self = self as? RepresentableExpression else {
+            throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
+        }
+        let (built, ownedCopy) = try tryBuildingSel(generator: generator, expect: expect)
+        switch ownedCopy ? .owned : self.ownership {
+        case .owned:
+            defer {
+                (expect ?? getType()).destroy(generator: generator, value: built)
+            }
+            return try block(built)
+        case .borrowed, .trivial:
+            // already borrowed, nothing to do
+            return try block(built)
+        }
+    }
+    
+    func borrowWithHandle(generator: IRGenerator, expect: GRPHType?, handles: inout [() -> Void]) throws -> IRValue {
+        guard let self = self as? RepresentableExpression else {
+            throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
+        }
+        let (built, ownedCopy) = try tryBuildingSel(generator: generator, expect: expect)
+        switch ownedCopy ? .owned : self.ownership {
+        case .owned:
+            handles.append {
+                (expect ?? getType()).destroy(generator: generator, value: built)
+            }
+            return built
+        case .borrowed, .trivial:
+            // already borrowed, nothing to do
+            return built
+        }
+    }
+    
+    func owned(generator: IRGenerator, expect: GRPHType?) throws -> IRValue {
+        guard let self = self as? RepresentableExpression else {
+            throw GRPHCompileError(type: .unsupported, message: "Expression of type \(type(of: self)) is not supported in IRGen mode")
+        }
+        let (built, ownedCopy) = try tryBuildingSel(generator: generator, expect: expect)
+        switch ownedCopy ? .owned : self.ownership {
+        case .owned, .trivial:
+            return built
+        case .borrowed:
+            return (expect ?? getType()).copy(generator: generator, value: built)
+        }
     }
 }

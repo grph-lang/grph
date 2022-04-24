@@ -63,4 +63,8 @@ extension ConstantExpression: RepresentableExpression {
             throw GRPHCompileError(type: .unsupported, message: "Unknown constant of type \(type(of: value))")
         }
     }
+    
+    var ownership: Ownership {
+        .trivial
+    }
 }

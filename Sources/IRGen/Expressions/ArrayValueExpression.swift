@@ -16,14 +16,18 @@ import LLVM
 
 extension ArrayValueExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let arrayRef = try array.tryBuildingWithoutCaringAboutType(generator: generator)
         let valueptr = try generator.insertAlloca(type: getType().findLLVMType())
-        // TODO: removing
-        _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: removing ? "grpharr_remove" : generator.buildingAThunk ? "grpharr_get_mixed" : "grpharr_get", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
-            arrayRef,
-            index!.tryBuilding(generator: generator, expect: SimpleType.integer),
-            generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))
-        ])
+        try array.borrow(generator: generator, expect: nil) { arrayRef in
+            _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: removing ? "grpharr_remove" : generator.buildingAThunk ? "grpharr_get_mixed" : "grpharr_get", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
+                arrayRef,
+                index!.owned(generator: generator, expect: SimpleType.integer),
+                generator.builder.buildBitCast(valueptr, type: PointerType(pointee: IntType.int8))
+            ])
+        }
         return try generator.builder.buildLoad(valueptr, type: getType().findLLVMType())
+    }
+    
+    var ownership: Ownership {
+        .owned
     }
 }

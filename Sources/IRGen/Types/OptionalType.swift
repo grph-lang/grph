@@ -31,6 +31,10 @@ extension OptionalType: RepresentableGRPHType {
         return .impureValue
     }
     
+    var vwt: ValueWitnessTable {
+        representationMode == .pureValue ? .trivial : .optionalRecursive
+    }
+    
     func getLLVMType() throws -> StructType {
         StructType(elementTypes: [IntType.int1, try wrapped.findLLVMType()])
     }

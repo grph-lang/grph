@@ -30,11 +30,15 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
         .referenceType
     }
     
+    var vwt: ValueWitnessTable {
+        ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_array")
+    }
+    
     func asLLVM() throws -> IRType {
         PointerType.toVoid
     }
     
-    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> (IRValue, ownedCopy: Bool) {
         if to.isTheMixed || to == self {
             return try upcastDefault(generator: generator, to: to, value: value)
         }
@@ -42,9 +46,11 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
             throw GRPHCompileError(type: .typeMismatch, message: "Can't upcast \(self) to \(to)")
         }
         let fn = try to.generateConversionThunk(generator: generator)
-        let val = try value.tryBuilding(generator: generator, expect: SimpleType.mixed)
-        let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
-        return generator.builder.buildExtractValue(result, index: 1) // can't fail, it is an upcast
+        return try value.borrow(generator: generator, expect: SimpleType.mixed) { val in
+            let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
+            // can't fail, it is an upcast
+            return (generator.builder.buildExtractValue(result, index: 1), ownedCopy: true)
+        }
     }
     
     func generateConversionThunk(generator: IRGenerator) throws -> LLVM.Function {

@@ -17,12 +17,21 @@ import LLVM
 extension UnboxExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         // TODO: throw on null
-        generator.builder.buildExtractValue(try exp.tryBuilding(generator: generator, expect: exp.getType()), index: 1)
+        // ownership is transferred, and no type conversion is occurring
+        return generator.builder.buildExtractValue(try exp.tryBuildingWithoutCaringAboutAnythingForNow(generator: generator), index: 1)
+    }
+    
+    var ownership: Ownership {
+        (exp as! RepresentableExpression).ownership
     }
 }
 
 extension NullExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         try (getType() as! OptionalType).asLLVM().null()
+    }
+    
+    var ownership: Ownership {
+        .trivial
     }
 }

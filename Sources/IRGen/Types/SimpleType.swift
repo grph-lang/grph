@@ -25,10 +25,13 @@ extension GRPHTypes {
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     static let type = PointerType.toVoid
     
+    static let copyFunc = FunctionType([PointerType.toVoid, PointerType.toVoid, GRPHTypes.type], VoidType())
+    static let destroyFunc = FunctionType([PointerType.toVoid, GRPHTypes.type], VoidType())
+    
     static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
     static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
-    static let vwt = StructType(elementTypes: [GRPHTypes.integer])
-    static let arrayStruct = StructType(elementTypes: [IntType.int64, PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
+    static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc)])
+    static let arrayStruct = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
@@ -95,6 +98,21 @@ extension SimpleType: RepresentableGRPHType {
         case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
             return .referenceType
         case .num, .mixed, .paint, .funcref:
+            return .existential
+        }
+    }
+    
+    var vwt: ValueWitnessTable {
+        switch self {
+        case .integer, .float, .rotation, .pos, .boolean, .color, .linear, .radial, .direction, .stroke, .void, .type, .num, .paint:
+            return .trivial
+        case .string:
+            return .string
+        case .font:
+            return .font
+        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
+            return .ref
+        case .mixed, .funcref:
             return .existential
         }
     }

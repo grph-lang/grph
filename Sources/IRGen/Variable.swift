@@ -26,21 +26,21 @@ class Variable {
     
     func getContent(generator: IRGenerator) throws -> IRValue {
         switch ref {
-        case .global(let ptr as IRValue), .stack(let ptr as IRValue), .reference(let ptr):
+        case .global(let ptr as IRValue), .stack(let ptr as IRValue, _), .reference(let ptr):
             guard let ty = ptr.type as? PointerType else {
                 throw GRPHCompileError(type: .unsupported, message: "Allocated value is not a pointer")
             }
             return generator.builder.buildLoad(ptr, type: ty.pointee)
-        case .value(let val):
+        case .ownedValue(let val, _), .borrowedValue(let val):
             return val
         }
     }
     
     func getPointer(generator: IRGenerator) throws -> IRValue {
         switch ref {
-        case .global(let ptr as IRValue), .stack(let ptr as IRValue), .reference(let ptr):
+        case .global(let ptr as IRValue), .stack(let ptr as IRValue, _), .reference(let ptr):
             return ptr
-        case .value(_):
+        case .ownedValue(_, _), .borrowedValue(_):
             throw GRPHCompileError(type: .unsupported, message: "Cannot get pointer to a register")
         }
     }
@@ -49,10 +49,12 @@ class Variable {
 enum VariableReference {
     /// A global variable or constant that is allocated statically
     case global(LLVM.Global)
-    /// A local constant that is stored in a register, or a constant value
-    case value(IRValue)
-    /// A local variable that was allocated on the stack
-    case stack(IRInstruction)
-    /// A reference to an array element, inside a ForEachBlock
+    /// An owned local constant that is stored in a register, or a constant value
+    case ownedValue(IRValue, cleanup: (IRGenerator, IRValue) -> Void)
+    /// A borrowed parameter that is stored in a register
+    case borrowedValue(IRValue)
+    /// An owned local variable that was allocated on the stack
+    case stack(IRInstruction, cleanup: (IRGenerator, IRValue) -> Void)
+    /// A borrowed reference to an array element, inside a ForEachBlock
     case reference(IRValue)
 }

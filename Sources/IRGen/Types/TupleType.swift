@@ -30,6 +30,10 @@ extension TupleType: RepresentableGRPHType {
         return .pureValue
     }
     
+    var vwt: ValueWitnessTable {
+        .tupleRecursive
+    }
+    
     func asLLVM() throws -> IRType {
         try StructType(elementTypes: content.map { try $0.findLLVMType() })
     }

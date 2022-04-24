@@ -16,8 +16,8 @@ import LLVM
 
 extension UnaryExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        // TODO: Do care about type
-        let value = try exp.tryBuildingWithoutCaringAboutType(generator: generator)
+        // type is always trivial and statically correct (int, float or num)
+        let value = try exp.owned(generator: generator, expect: nil)
         switch op {
         case .bitwiseComplement, .not: // ~ and ! are the same, but with different int width
             return generator.builder.buildNot(value)
@@ -25,5 +25,9 @@ extension UnaryExpression: RepresentableExpression {
             // TODO: value can here be integer (OK), float (OK), but also the num existential (NOT OK!)
             return generator.builder.buildNeg(value)
         }
+    }
+    
+    var ownership: Ownership {
+        .trivial
     }
 }

@@ -39,11 +39,19 @@ extension ConstantPropertyExpression: RepresentableExpression {
             throw GRPHCompileError(type: .unsupported, message: "Unsupported constant property: \(inType).\(property.name)")
         }
     }
+    
+    var ownership: Ownership {
+        .trivial
+    }
 }
 
 extension TypeValueExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         let glob = (type as! RepresentableGRPHType).getTypeTableGlobal(generator: generator)
         return generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8))
+    }
+    
+    var ownership: Ownership {
+        .trivial
     }
 }

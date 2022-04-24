@@ -50,11 +50,11 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
                 builder.buildCondBr(condition: builder.buildExtractValue(par, index: 0), then: valueBranch, else: emptyBranch)
                 
                 builder.positionAtEnd(of: valueBranch)
-                let unwrapped = builder.buildExtractValue(par, index: 1)
+                let unwrapped = param.type.copy(generator: generator, value: builder.buildExtractValue(par, index: 1))
                 builder.buildBr(mergeBranch)
                 
                 builder.positionAtEnd(of: emptyBranch)
-                let defaulted = try def.tryBuilding(generator: generator, expect: param.type)
+                let defaulted = try def.owned(generator: generator, expect: param.type)
                 builder.buildBr(mergeBranch)
                 
                 builder.positionAtEnd(of: mergeBranch)
@@ -63,17 +63,17 @@ extension FunctionDeclarationBlock: RepresentableInstruction {
                     (unwrapped, valueBranch),
                     (defaulted, emptyBranch)
                 ])
-                ctx.insert(variable: Variable(name: name, ref: .value(phi)))
+                ctx.insert(variable: Variable(name: name, ref: .ownedValue(phi, cleanup: param.type.destroy(generator:value:))))
             } else {
                 par.name = name
-                ctx.insert(variable: Variable(name: name, ref: (generated.trueParamTypes[i] as! RepresentableGRPHType).representationMode == .existential ? .reference(par) : .value(par)))
+                ctx.insert(variable: Variable(name: name, ref: (generated.trueParamTypes[i] as! RepresentableGRPHType).representationMode == .existential ? .reference(par) : .borrowedValue(par)))
             }
         }
         
         try children.buildAll(generator: generator)
         
         if let rd = returnDefault {
-            let built = try rd.tryBuilding(generator: generator, expect: generated.returnType)
+            let built = try rd.owned(generator: generator, expect: generated.returnType)
             if generated.returnType.isTheVoid {
                 builder.buildRetVoid()
             } else {

@@ -17,18 +17,27 @@ import LLVM
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
+        var handles: [() -> Void] = []
+        defer {
+            handles.forEach { $0() }
+        }
         return generator.builder.buildCall(fn, args: try function.parameters.enumerated().map { i, param in
             let raw: IRValue = try {
                 let arg = values[safe: i]
                 if i == function.parameters.indices.last, function.varargs {
+                    let ret: IRValue
                     if i <= values.count {
-                        return try param.type.inArray.buildNewArray(generator: generator, values: values[i...].map { $0! })
+                        ret = try param.type.inArray.buildNewArray(generator: generator, values: values[i...].map { $0! })
                     } else {
-                        return try param.type.inArray.buildNewArray(generator: generator, values: [])
+                        ret = try param.type.inArray.buildNewArray(generator: generator, values: [])
                     }
+                    handles.append {
+                        param.type.inArray.destroy(generator: generator, value: ret)
+                    }
+                    return ret
                 }
                 let value = try arg.map { arg in
-                    return try arg.tryBuilding(generator: generator, expect: param.type as! RepresentableGRPHType)
+                    return try arg.borrowWithHandle(generator: generator, expect: param.type as! RepresentableGRPHType, handles: &handles)
                 }
                 if param.optional {
                     return try value.wrapInOptional(generator: generator, type: param.type.optional)
@@ -37,6 +46,10 @@ extension FunctionExpression: RepresentableExpression {
             }()
             return function.trueParamTypes[i].paramCCWrap(generator: generator, value: raw)
         })
+    }
+    
+    var ownership: Ownership {
+        .owned
     }
 }
 

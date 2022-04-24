@@ -28,4 +28,8 @@ extension VariableExpression: RepresentableAssignableExpression {
         }
         return try variable.getPointer(generator: generator)
     }
+    
+    var ownership: Ownership {
+        .borrowed
+    }
 }

@@ -15,6 +15,6 @@ import GRPHValues
 
 extension ExpressionInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        _ = try expression.tryBuildingWithoutCaringAboutType(generator: generator)
+        _ = try expression.borrow(generator: generator, expect: nil) { _ in }
     }
 }

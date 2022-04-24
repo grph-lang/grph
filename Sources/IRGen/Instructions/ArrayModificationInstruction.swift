@@ -22,7 +22,7 @@ extension ArrayModificationInstruction: RepresentableInstruction {
         let arrayRef = try array.getContent(generator: generator)
         let valueptr = try value.map { exp -> IRValue in
             let variable = try generator.insertAlloca(type: exp.getType().findLLVMType())
-            generator.builder.buildStore(try exp.tryBuilding(generator: generator, expect: exp.getType()), to: variable)
+            generator.builder.buildStore(try exp.owned(generator: generator, expect: exp.getType()), to: variable)
             return generator.builder.buildBitCast(variable, type: PointerType(pointee: IntType.int8))
         }
         switch op {
@@ -30,7 +30,7 @@ extension ArrayModificationInstruction: RepresentableInstruction {
             if let index = index {
                 _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_insert", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
                     arrayRef,
-                    index.tryBuilding(generator: generator, expect: SimpleType.integer),
+                    index.owned(generator: generator, expect: SimpleType.integer),
                     valueptr!
                 ])
             } else {
@@ -42,9 +42,10 @@ extension ArrayModificationInstruction: RepresentableInstruction {
         case .remove:
             throw GRPHCompileError(type: .unsupported, message: "Trailing equal sign remove is not implemented")
         case .set:
+            // TODO: release in grpharr_set
             _ = try generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grpharr_set", type: FunctionType([PointerType.toVoid, GRPHTypes.integer, PointerType.toVoid], VoidType())), args: [
                 arrayRef,
-                index!.tryBuilding(generator: generator, expect: SimpleType.integer),
+                index!.owned(generator: generator, expect: SimpleType.integer),
                 valueptr!
             ])
         }

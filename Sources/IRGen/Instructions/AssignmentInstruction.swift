@@ -16,20 +16,21 @@ import LLVM
 
 extension AssignmentInstruction: RepresentableInstruction {
     func build(generator: IRGenerator) throws {
-        if let assigned = assigned as? RepresentableAssignableExpression {
-            let ptr = try assigned.getPointer(generator: generator)
-            if virtualized {
-                generator.currentContext = VirtualContext(parent: generator.currentContext, ptr: ptr)
-            }
-            defer {
-                if virtualized {
-                    generator.currentContext = generator.currentContext?.parent
-                }
-            }
-            generator.builder.buildStore(try value.tryBuilding(generator: generator, expect: assigned.getType()), to: ptr)
-        } else {
+        guard let assigned = assigned as? RepresentableAssignableExpression else {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: self)) is not supported in IRGen mode")
         }
+        let ptr = try assigned.getPointer(generator: generator)
+        if virtualized {
+            generator.currentContext = VirtualContext(parent: generator.currentContext, ptr: ptr)
+        }
+        defer {
+            if virtualized {
+                generator.currentContext = generator.currentContext?.parent
+            }
+        }
+        let previous = generator.builder.buildLoad(ptr, type: try assigned.getType().findLLVMType())
+        generator.builder.buildStore(try value.owned(generator: generator, expect: assigned.getType()), to: ptr)
+        assigned.getType().destroy(generator: generator, value: previous)
     }
 }
 
@@ -50,5 +51,9 @@ extension AssignmentInstruction.VirtualExpression: RepresentableExpression {
             preconditionFailure("VirtualExpression referenced outside of VirtualContext")
         }
         return generator.builder.buildLoad(ctx.ptr, type: try type.findLLVMType())
+    }
+    
+    var ownership: Ownership {
+        .borrowed
     }
 }

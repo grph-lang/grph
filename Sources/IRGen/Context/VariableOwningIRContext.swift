@@ -22,4 +22,15 @@ class VariableOwningIRContext: IRContext {
     override func insert(variable: Variable) {
         variables.append(variable)
     }
+    
+    func cleanup(generator: IRGenerator) throws {
+        for variable in variables {
+            switch variable.ref {
+            case .ownedValue(_, let cleanup), .stack(_, let cleanup):
+                cleanup(generator, try variable.getContent(generator: generator))
+            case .borrowedValue(_), .global(_), .reference(_):
+                break
+            }
+        }
+    }
 }

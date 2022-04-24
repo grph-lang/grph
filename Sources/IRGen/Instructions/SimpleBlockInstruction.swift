@@ -54,5 +54,6 @@ extension BlockInstruction {
             generator.currentContext = restore
         }
         try children.buildAll(generator: generator)
+        try context.cleanup(generator: generator)
     }
 }

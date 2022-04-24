@@ -41,15 +41,17 @@ protocol RepresentableGRPHType: GRPHType {
     var genericsVector: [RepresentableGRPHType] { get }
     /// How the type is represented in memory
     var representationMode: RepresentationMode { get }
+    /// The stdlib ARC functions for the type
+    var vwt: ValueWitnessTable { get }
     /// Convert to an LLVM type
     func asLLVM() throws -> IRType
     
     /// Handle implicit casts to a supertype
-    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> (IRValue, ownedCopy: Bool)
 }
 
 extension RepresentableGRPHType {
-    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
+    func upcast(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> (IRValue, ownedCopy: Bool) {
         return try upcastDefault(generator: generator, to: to, value: value)
     }
 }
@@ -79,5 +81,41 @@ extension GRPHType {
             return ptr
         }
         return value
+    }
+    
+    func copy(generator: IRGenerator, value: IRValue) -> IRValue {
+        let vwt = (self as! RepresentableGRPHType).vwt
+        if vwt.copy == ValueWitnessTable.trivial.copy {
+            return value // copy is bitwise
+        }
+        let src = generator.insertAlloca(type: value.type)
+        let dest = generator.insertAlloca(type: value.type)
+        generator.builder.buildStore(value, to: src)
+        let fn = generator.module.getOrInsertFunction(named: vwt.copy, type: FunctionType([PointerType.toVoid, PointerType.toVoid, GRPHTypes.type], VoidType()))
+        fn.addAttribute(.nocapture, to: .argument(0))
+        fn.addAttribute(.nocapture, to: .argument(1))
+        fn.addAttribute(.nocapture, to: .argument(2))
+        _ = generator.builder.buildCall(fn, args: [
+            generator.builder.buildPointerCast(of: dest, to: PointerType.toVoid),
+            generator.builder.buildPointerCast(of: src, to: PointerType.toVoid),
+            (self as! RepresentableGRPHType).getTypeTableGlobalPtr(generator: generator)
+        ])
+        return generator.builder.buildLoad(src, type: value.type)
+    }
+    
+    func destroy(generator: IRGenerator, value: IRValue) {
+        let vwt = (self as! RepresentableGRPHType).vwt
+        if vwt.destroy == ValueWitnessTable.trivial.destroy {
+            return // function is noop
+        }
+        let src = generator.insertAlloca(type: value.type)
+        generator.builder.buildStore(value, to: src)
+        let fn = generator.module.getOrInsertFunction(named: vwt.destroy, type: FunctionType([PointerType.toVoid, GRPHTypes.type], VoidType()))
+        fn.addAttribute(.nocapture, to: .argument(0))
+        fn.addAttribute(.nocapture, to: .argument(1))
+        _ = generator.builder.buildCall(fn, args: [
+            generator.builder.buildPointerCast(of: src, to: PointerType.toVoid),
+            (self as! RepresentableGRPHType).getTypeTableGlobalPtr(generator: generator)
+        ])
     }
 }

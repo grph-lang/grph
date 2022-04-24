@@ -17,19 +17,23 @@ import LLVM
 extension FieldExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         // writeable struct fields should use direct pointers instead
-        let subject = try on.tryBuilding(generator: generator, expect: onType)
-        
-        switch (onType, field.name) {
-        case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
-            return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
-        case (is TupleType, let name):
-            return generator.builder.buildExtractValue(subject, index: Int(name.dropFirst())!)
-        case (is GRPHValues.ArrayType, "length"):
-            return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 2)
-        default:
-            let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType(forParameter: true)], field.type.findLLVMType()))
-            return generator.builder.buildCall(fn, args: [onType.paramCCWrap(generator: generator, value: subject)])
+        return try on.borrow(generator: generator, expect: onType) { subject in
+            switch (onType, field.name) {
+            case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
+                return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
+            case (is TupleType, let name):
+                return generator.builder.buildExtractValue(subject, index: Int(name.dropFirst())!)
+            case (is GRPHValues.ArrayType, "length"):
+                return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 1)
+            default:
+                let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType(forParameter: true)], field.type.findLLVMType()))
+                return generator.builder.buildCall(fn, args: [onType.paramCCWrap(generator: generator, value: subject)])
+            }
         }
+    }
+    
+    var ownership: Ownership {
+        .owned
     }
 }
 
@@ -53,7 +57,12 @@ extension FieldExpression: RepresentableAssignableExpression {
 
 extension ValueTypeExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let val = try on.tryBuilding(generator: generator, expect: SimpleType.mixed)
-        return generator.builder.buildExtractValue(val, index: 0)
+        return try on.borrow(generator: generator, expect: SimpleType.mixed) { val in
+            return generator.builder.buildExtractValue(val, index: 0)
+        }
+    }
+    
+    var ownership: Ownership {
+        .trivial
     }
 }

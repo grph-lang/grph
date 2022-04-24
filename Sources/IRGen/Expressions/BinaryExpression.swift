@@ -23,8 +23,12 @@ extension BinaryExpression: RepresentableExpression {
             return try buildEquality(generator: generator)
         }
         // TODO: handle num existential everywhere + handle pos
-        let left = try self.left.tryBuilding(generator: generator, expect: operands)
-        let right = try self.right.tryBuilding(generator: generator, expect: operands)
+        var handles: [() -> Void] = []
+        defer {
+            handles.forEach { $0() }
+        }
+        let left = try self.left.borrowWithHandle(generator: generator, expect: operands, handles: &handles)
+        let right = try self.right.borrowWithHandle(generator: generator, expect: operands, handles: &handles)
         switch op {
         case .greaterOrEqualTo, .lessOrEqualTo, .greaterThan, .lessThan:
             if operands == .integer {
@@ -61,7 +65,7 @@ extension BinaryExpression: RepresentableExpression {
     }
     
     func buildShortCircuiting(generator: IRGenerator) throws -> IRValue {
-        let left = try self.left.tryBuilding(generator: generator, expect: SimpleType.boolean)
+        let left = try self.left.owned(generator: generator, expect: SimpleType.boolean)
         
         let shortBranch = generator.builder.currentFunction!.appendBasicBlock(named: "shortcircuit")
         let longBranch = generator.builder.currentFunction!.appendBasicBlock(named: "longcircuit")
@@ -75,7 +79,7 @@ extension BinaryExpression: RepresentableExpression {
         generator.builder.buildBr(mergeBranch)
         
         generator.builder.positionAtEnd(of: longBranch)
-        let right = try self.right.tryBuilding(generator: generator, expect: SimpleType.boolean)
+        let right = try self.right.owned(generator: generator, expect: SimpleType.boolean)
         let longLastBr = generator.builder.insertBlock!
         generator.builder.buildBr(mergeBranch)
         
@@ -89,8 +93,12 @@ extension BinaryExpression: RepresentableExpression {
     }
     
     func buildEquality(generator: IRGenerator) throws -> IRValue {
-        let left = try self.left.tryBuildingWithoutCaringAboutType(generator: generator)
-        let right = try self.right.tryBuildingWithoutCaringAboutType(generator: generator)
+        var handles: [() -> Void] = []
+        defer {
+            handles.forEach { $0() }
+        }
+        let left = try self.left.borrowWithHandle(generator: generator, expect: nil, handles: &handles)
+        let right = try self.right.borrowWithHandle(generator: generator, expect: nil, handles: &handles)
         if left.type is IntType && right.type is IntType {
             return generator.builder.buildICmp(left, right, op.icmpPredicate)
         } else if left.type is FloatType && right.type is FloatType {
@@ -119,6 +127,10 @@ extension BinaryExpression: RepresentableExpression {
         }
         // TODO: should be allowed for type `mixed`
         throw GRPHCompileError(type: .unsupported, message: "Cannot null check non-optional")
+    }
+    
+    var ownership: Ownership {
+        op == .concat ? .owned : .trivial
     }
 }
 

@@ -1,6 +1,6 @@
 //
 //  CastExpression.swift
-//  GRPH
+//  GRPH IRGen
 // 
 //  Created by Emil Pedersen on 14/02/2022.
 //  Copyright © 2020 Snowy_1803. All rights reserved.
@@ -22,25 +22,26 @@ extension CastExpression: RepresentableExpression {
             guard let dest = to as? RepresentableGRPHType else {
                 throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `as!`")
             }
-            let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
+            let val = try from.owned(generator: generator, expect: SimpleType.mixed)
             return try SimpleType.mixed.unsafeDowncast(generator: generator, to: dest, value: val)
         case .conversion(optional: let isOptional):
-            let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            if to.isTheMixed {
-                return val // `as mixed` just existentializes
-            }
-            let fn: LLVM.Function
-            if let to = to as? GRPHValues.ArrayType {
-                fn = try to.generateConversionThunk(generator: generator)
-            } else {
-                fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([PointerType(pointee: GRPHTypes.existential)], to.optional.findLLVMType()))
-            }
-            let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
-            if isOptional {
-                return result
-            } else {
-                // TODO: throw on null
-                return generator.builder.buildExtractValue(result, index: 1)
+            return try from.borrow(generator: generator, expect: SimpleType.mixed) { val in
+                if to.isTheMixed {
+                    return val // `as mixed` just existentializes
+                }
+                let fn: LLVM.Function
+                if let to = to as? GRPHValues.ArrayType {
+                    fn = try to.generateConversionThunk(generator: generator)
+                } else {
+                    fn = try generator.builder.module.getOrInsertFunction(named: "grphas_\(to.string)", type: FunctionType([PointerType(pointee: GRPHTypes.existential)], to.optional.findLLVMType()))
+                }
+                let result = generator.builder.buildCall(fn, args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
+                if isOptional {
+                    return result
+                } else {
+                    // TODO: throw on null
+                    return generator.builder.buildExtractValue(result, index: 1)
+                }
             }
         case .typeCheck:
             // TODO: support reference types
@@ -48,11 +49,16 @@ extension CastExpression: RepresentableExpression {
                   dest.representationMode == .pureValue || dest.representationMode == .impureValue else {
                 throw GRPHCompileError(type: .unsupported, message: "Type \(to) not supported in `is`")
             }
-            let val = try from.tryBuilding(generator: generator, expect: SimpleType.mixed)
-            let glob = dest.getTypeTableGlobalPtr(generator: generator)
-            return generator.builder.buildICmp(
-                generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), glob), 0, .equal)
+            return try from.borrow(generator: generator, expect: SimpleType.mixed) { val in
+                let glob = dest.getTypeTableGlobalPtr(generator: generator)
+                return generator.builder.buildICmp(
+                    generator.builder.buildPointerDifference(generator.builder.buildExtractValue(val, index: 0), glob), 0, .equal)
+            }
         }
+    }
+    
+    var ownership: Ownership {
+        .owned
     }
 }
 
@@ -67,7 +73,12 @@ extension RepresentableGRPHType {
         typename.linkage = .private
         typename.unnamedAddressKind = .global
         
-        var vwt = generator.builder.addGlobal("", initializer: GRPHTypes.vwt.constant(values: [generator.builder.buildSizeOf(try! self.asLLVM())]))
+        var vwt = generator.builder.addGlobal("", initializer: GRPHTypes.vwt.constant(values: [
+            generator.builder.buildSizeOf(try! self.asLLVM()),
+            generator.builder.buildAlignOf(try! self.asLLVM()),
+            generator.module.getOrInsertFunction(named: self.vwt.copy, type: GRPHTypes.copyFunc),
+            generator.module.getOrInsertFunction(named: self.vwt.destroy, type: GRPHTypes.destroyFunc),
+        ]))
         vwt.isGlobalConstant = true
         vwt.linkage = .private
         vwt.unnamedAddressKind = .global
@@ -84,13 +95,13 @@ extension RepresentableGRPHType {
     }
     
     func getTypeTableGlobalPtr(generator: IRGenerator) -> IRValue {
-        generator.builder.buildBitCast(getTypeTableGlobal(generator: generator), type: PointerType(pointee: IntType.int8))
+        generator.builder.buildBitCast(getTypeTableGlobal(generator: generator), type: GRPHTypes.type)
     }
     
-    /// transform a pure value type into an existential
-    private func existentialize(generator: IRGenerator, value: IRValue) throws -> IRValue {
+    /// transform anything into an existential
+    private func existentialize(generator: IRGenerator, value: Expression) throws -> (IRValue, ownedCopy: Bool) {
         if self.representationMode == .existential {
-            return value
+            return (try value.tryBuildingWithoutCaringAboutAnythingForNow(generator: generator), false)
         }
         let glob = getTypeTableGlobal(generator: generator)
         
@@ -98,19 +109,20 @@ extension RepresentableGRPHType {
         // this shouldn't be needed (reset value to zero)
         generator.builder.buildStore(GRPHTypes.existentialData.null(), to: data)
         
+        // TODO: handle types bigger than 3 words
+        
         let dataErased = generator.builder.buildBitCast(data, type: PointerType(pointee: try self.asLLVM()))
-        generator.builder.buildStore(value, to: dataErased)
+        generator.builder.buildStore(try value.owned(generator: generator, expect: nil), to: dataErased)
         
         let constExt = GRPHTypes.existential.constant(values: [generator.builder.buildBitCast(glob, type: PointerType(pointee: IntType.int8)), GRPHTypes.existentialData.undef()])
-        return generator.builder.buildInsertValue(aggregate: constExt, element: generator.builder.buildLoad(data, type: GRPHTypes.existentialData), index: 1)
+        return (generator.builder.buildInsertValue(aggregate: constExt, element: generator.builder.buildLoad(data, type: GRPHTypes.existentialData), index: 1), true)
     }
     
     /// Cast from this type, to a parent type
     /// Don't call this directly, use `Expression.tryBuilding(generator:expect:)`
-    func upcastDefault(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> IRValue {
-        let erased = try value.tryBuildingWithoutCaringAboutType(generator: generator)
+    func upcastDefault(generator: IRGenerator, to: RepresentableGRPHType, value: Expression) throws -> (IRValue, ownedCopy: Bool) {
         if self == to {
-            return erased
+            return (try value.tryBuildingWithoutCaringAboutAnythingForNow(generator: generator), ownedCopy: false)
         }
         switch to.representationMode {
         case .pureValue, .impureValue:
@@ -119,9 +131,9 @@ extension RepresentableGRPHType {
             guard self.representationMode == .referenceType else {
                 throw GRPHCompileError(type: .unsupported, message: "Tried to upcast unrelated type \(self) to \(to)")
             }
-            return erased // same thing, aka a pointer to a box
+            return (try value.tryBuildingWithoutCaringAboutAnythingForNow(generator: generator), ownedCopy: false) // same thing, aka a pointer to a box
         case .existential:
-            return try existentialize(generator: generator, value: erased)
+            return try existentialize(generator: generator, value: value)
         }
     }
     
