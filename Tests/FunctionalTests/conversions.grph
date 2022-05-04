@@ -33,6 +33,14 @@ print: ["0x101" as integer as string]
 print: ["0o101" as integer as string]
 // CHECK-NEXT: 1297
 print: ["0z101" as integer as string]
+// CHECK-NEXT: -17
+print: ["-17" as integer as string]
+// CHECK-NEXT: 18
+print: ["--18" as integer as string]
+// CHECK-NEXT: 18
+print: ["+18" as integer as string]
+// CHECK-NEXT: -19
+print: ["--+---+--19" as integer as string]
 // CHECK-NEXT: 1
 print: [true as integer as string]
 // CHECK-NEXT: 12
