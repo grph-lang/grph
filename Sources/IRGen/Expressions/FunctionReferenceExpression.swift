@@ -19,7 +19,7 @@ extension FunctionReferenceExpression: RepresentableExpression {
         let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
         guard function.varargs || function.parameters.count != argumentGrid.count || argumentGrid.contains(false) else {
             // trivial
-            return GRPHTypes.funcref.constant(values: [fn, 0, 0])
+            return GRPHTypes.funcref.constant(values: [generator.builder.buildBitCast(fn, type: PointerType.toVoid), 0, 0])
         }
         throw GRPHCompileError(type: .unsupported, message: "Function pointer requires thunk")
     }
