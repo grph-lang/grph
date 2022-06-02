@@ -49,4 +49,6 @@ extension ValueWitnessTable {
     static let string = ValueWitnessTable(copy: "grphvwt_retain_string", destroy: "grphvwt_release_string")
     /// This vwt retains and releases its box if it is mortal
     static let font = ValueWitnessTable(copy: "grphvwt_retain_font", destroy: "grphvwt_release_font")
+    /// This vwt retains and releases its box if it is mortal
+    static let funcref = ValueWitnessTable(copy: "grphvwt_retain_funcref", destroy: "grphvwt_release_funcref")
 }

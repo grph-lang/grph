@@ -32,6 +32,8 @@ extension GRPHTypes {
     static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
     static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc)])
     static let arrayStruct = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
+    // the pointer to the function, the type of saved data, the pointer to saved data
+    static let funcref = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.type, PointerType.toVoid])
     
     /// Warning: void is special. When used as a function return type, it is `VoidType` and has no instances possible, just emptyness
     /// When used in other cases, it is a zero-width type, and is represented by an empty struct, as it is here.
