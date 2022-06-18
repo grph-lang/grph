@@ -58,7 +58,7 @@ let package = Package(
             dependencies: ["GRPHValues"]),
         .target(
             name: "IRGen",
-            dependencies: ["GRPHValues", .product(name: "LLVM", package: "LLVMSwift")]),
+            dependencies: ["GRPHValues", "GRPHGenerator", .product(name: "LLVM", package: "LLVMSwift")]),
         
         .executableTarget(
             name: "CLI",

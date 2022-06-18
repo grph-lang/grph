@@ -37,16 +37,11 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
         }
         for (token, component) in zip(tokens, elements) {
             switch component {
-            case .literal(let literal):
-                if literal != token.literal {
+            case let .one(type: type, literal: literal):
+                guard literal == nil || literal! == token.literal,
+                      type == nil || type == token.tokenType else {
                     return false
                 }
-            case .type(let type):
-                if type != token.tokenType {
-                    return false
-                }
-            case .any:
-                break
             }
         }
         return true
@@ -57,12 +52,22 @@ struct TokenMatcher: ExpressibleByArrayLiteral {
     }
     
     enum Component: ExpressibleByStringLiteral {
-        case type(TokenType)
-        case literal(String)
-        case any
+        case one(type: TokenType?, literal: String?)
         
         init(stringLiteral value: StringLiteralType) {
             self = .literal(value)
+        }
+        
+        static func type(_ type: TokenType) -> Self {
+            .one(type: type, literal: nil)
+        }
+        
+        static func literal(_ str: String) -> Self {
+            .one(type: nil, literal: str)
+        }
+        
+        static var any: Self {
+            .one(type: nil, literal: nil)
         }
     }
 }
