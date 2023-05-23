@@ -24,6 +24,7 @@ extension GRPHTypes {
     static let stroke = IntType.int8
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     static let type = PointerType.toVoid
+    static let color = StructType(elementTypes: [IntType.int8, IntType.int8, IntType.int8, FloatType.float])
     
     static let copyFunc = FunctionType([PointerType.toVoid, PointerType.toVoid, GRPHTypes.type], VoidType())
     static let destroyFunc = FunctionType([PointerType.toVoid, GRPHTypes.type], VoidType())
@@ -145,6 +146,8 @@ extension SimpleType: RepresentableGRPHType {
             return GRPHTypes.type
         case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
             return PointerType.toVoid
+        case .color:
+            return GRPHTypes.color
         default:
             print("Illegal usage of an irrepresentable type")
             return VoidType()
