@@ -48,9 +48,18 @@ extension BinaryExpression: RepresentableExpression {
         case .bitrotation:
             return generator.builder.buildShr(left, right, isArithmetic: false)
         case .plus:
-            return generator.builder.buildAdd(left, right)
+            let addition = generator.builder.buildAdd(left, right)
+            if (operands == .rotation) {
+                return generator.builder.buildRem(addition, GRPHTypes.rotation.constant(360))
+            }
+            return addition
         case .minus:
-            return generator.builder.buildSub(left, right)
+            let subtraction = generator.builder.buildSub(left, right)
+            if (operands == .rotation) {
+                let dis = generator.builder.buildAdd(subtraction, GRPHTypes.rotation.constant(360))
+                return generator.builder.buildRem(dis, GRPHTypes.rotation.constant(360))
+            }
+            return subtraction
         case .multiply:
             return generator.builder.buildMul(left, right)
         case .divide:

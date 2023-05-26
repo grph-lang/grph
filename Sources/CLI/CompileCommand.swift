@@ -149,7 +149,7 @@ struct CompileCommand: ParsableCommand {
             // LD works on macOS, but on Linux, it doesn't find _start
             // Find clang in env instead of a specific path
             ld.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-            ld.arguments = ["clang", "-o", output!, tmpfile.path, "-lgrph", "-L/usr/local/lib"]
+            ld.arguments = ["clang", "-o", output!, tmpfile.path, "-lm", "-lgrph", "-L/usr/local/lib"]
             try ld.run()
             ld.waitUntilExit()
             try? FileManager.default.removeItem(at: tmpfile)

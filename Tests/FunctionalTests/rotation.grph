@@ -1,0 +1,45 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+#import stdio
+
+rotation r = 0°
+
+// CHECK: 0°
+log: r
+
+r += 10°
+
+// CHECK-NEXT: 10°
+log: r
+
+r += 180°
+
+// CHECK-NEXT: 190°
+log: r
+
+r = r + 150°
+
+// CHECK-NEXT: 340°
+log: r
+
+r += 30°
+
+// CHECK-NEXT: 10°
+log: r
+
+r -= 20°
+
+// CHECK-NEXT: 350°
+log: r
+
+r += 719°
+
+// CHECK-NEXT: 349°
+log: r
+
+r = r + 20° - 8°
+
+// CHECK-NEXT: 1°
+log: r
