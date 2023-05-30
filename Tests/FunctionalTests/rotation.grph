@@ -43,3 +43,20 @@ r = r + 20° - 8°
 
 // CHECK-NEXT: 1°
 log: r
+
+// MARK: - Conversions
+
+rotation r1 = 50°
+rotation r2 = "50" as rotation
+rotation r3 = "50°" as rotation
+rotation r4 = 50 as rotation
+rotation r5 = 50.0 as rotation
+
+// CHECK-NEXT: true
+log: [r1 == r2]
+// CHECK-NEXT: true
+log: [r1 == r3]
+// CHECK-NEXT: true
+log: [r1 == r4]
+// CHECK-NEXT: true
+log: [r1 == r5]
