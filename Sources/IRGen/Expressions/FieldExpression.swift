@@ -29,6 +29,19 @@ extension FieldExpression {
             return nil
         }
     }
+    
+    func typeExtract(generator: IRGenerator, value: IRValue) -> IRValue {
+        switch (onType, field.name) {
+        case (SimpleType.color, "red"), (SimpleType.color, "green"), (SimpleType.color, "blue"):
+            return generator.builder.buildZExt(value, type: GRPHTypes.integer)
+        case (SimpleType.color, "falpha"):
+            return generator.builder.buildFPCast(value, type: GRPHTypes.float)
+        case (is TupleType, let name):
+            return Int(name.dropFirst())!
+        default:
+            return value
+        }
+    }
 }
 
 extension FieldExpression: RepresentableExpression {
@@ -36,7 +49,7 @@ extension FieldExpression: RepresentableExpression {
         // writeable struct fields should use direct pointers instead
         return try on.borrow(generator: generator, expect: onType) { subject in
             if let index = getStructFieldIndex() {
-                return generator.builder.buildExtractValue(subject, index: index)
+                return typeExtract(generator: generator, value: generator.builder.buildExtractValue(subject, index: index))
             }
             switch (onType, field.name) {
             case (is GRPHValues.ArrayType, "length"):
