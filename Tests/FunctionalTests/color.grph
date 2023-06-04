@@ -1,0 +1,29 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+color someCyan = (77 228 193)
+
+color someTranslucentYellow = (255 200 50 0.5)
+
+// CHECK: color(77 228 193)
+log: someCyan
+
+// CHECK-NEXT: color(255 200 50 0.5)
+log: someTranslucentYellow
+
+color current = someTranslucentYellow
+
+// CHECK-NEXT: 200
+log: current.green
+
+current.green += 55
+
+// CHECK-NEXT: 255
+log: current.green
+
+// CHECK-NEXT: color(255 255 50 0.5)
+log: current
+
+// CHECK-NEXT: color(255 200 50 0.5)
+log: someTranslucentYellow
