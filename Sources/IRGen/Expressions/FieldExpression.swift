@@ -14,15 +14,31 @@ import Foundation
 import GRPHValues
 import LLVM
 
+extension FieldExpression {
+    func getStructFieldIndex() -> Int? {
+        switch (onType, field.name) {
+        case (SimpleType.pos, "x"): return 0
+        case (SimpleType.pos, "y"): return 1
+        case (SimpleType.color, "red"): return 0
+        case (SimpleType.color, "green"): return 1
+        case (SimpleType.color, "blue"): return 2
+        case (SimpleType.color, "falpha"): return 3
+        case (is TupleType, let name):
+            return Int(name.dropFirst())!
+        default:
+            return nil
+        }
+    }
+}
+
 extension FieldExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         // writeable struct fields should use direct pointers instead
         return try on.borrow(generator: generator, expect: onType) { subject in
+            if let index = getStructFieldIndex() {
+                return generator.builder.buildExtractValue(subject, index: index)
+            }
             switch (onType, field.name) {
-            case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
-                return generator.builder.buildExtractValue(subject, index: field.name == "y" ? 1 : 0)
-            case (is TupleType, let name):
-                return generator.builder.buildExtractValue(subject, index: Int(name.dropFirst())!)
             case (is GRPHValues.ArrayType, "length"):
                 return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 1)
             default:
@@ -44,14 +60,10 @@ extension FieldExpression: RepresentableAssignableExpression {
         }
         let subject = try on.getPointer(generator: generator)
         
-        switch (onType, field.name) {
-        case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
-            return generator.builder.buildStructGEP(subject, type: GRPHTypes.pos, index: field.name == "y" ? 1 : 0)
-        case (let tuple as TupleType, let name):
-            return generator.builder.buildStructGEP(subject, type: try tuple.asLLVM(), index: Int(name.dropFirst())!)
-        default:
-            throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
+        if let index = getStructFieldIndex() {
+            return generator.builder.buildStructGEP(subject, type: try (onType as! RepresentableGRPHType).asLLVM(), index: index)
         }
+        throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
     }
 }
 
