@@ -31,7 +31,21 @@ extension ConstructorExpression: RepresentableExpression {
                 return try generator.builder.buildInsertValue(aggregate: curr, element: values[i]!.owned(generator: generator, expect: type.content[i]), index: i)
             }
         case .native:
-            preconditionFailure("constructors not implemented")
+            switch constructor.name {
+            case "color":
+                var value: IRValue = GRPHTypes.color.constant(values: [IntType.int8.zero(), IntType.int8.zero(), IntType.int8.zero(), FloatType.float.constant(1)])
+                for cmp in 0..<3 {
+                    let intval = try values[cmp]!.owned(generator: generator, expect: SimpleType.integer)
+                    value = generator.builder.buildInsertValue(aggregate: value, element: generator.builder.buildTrunc(intval, type: IntType.int8), index: cmp)
+                }
+                if let alpha = self.values[safe: 3] {
+                    let grphfloat = try alpha.owned(generator: generator, expect: SimpleType.float)
+                    value = generator.builder.buildInsertValue(aggregate: value, element: generator.builder.buildFPCast(grphfloat, type: FloatType.float), index: 3)
+                }
+                return value
+            default:
+                preconditionFailure("constructor not implemented")
+            }
         case .generic(signature: let sig):
             preconditionFailure("Generic constructor with signature \(sig) not found")
         }
