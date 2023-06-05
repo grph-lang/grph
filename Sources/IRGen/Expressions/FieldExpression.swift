@@ -36,8 +36,6 @@ extension FieldExpression {
             return generator.builder.buildZExt(value, type: GRPHTypes.integer)
         case (SimpleType.color, "falpha"):
             return generator.builder.buildFPCast(value, type: GRPHTypes.float)
-        case (is TupleType, let name):
-            return Int(name.dropFirst())!
         default:
             return value
         }
