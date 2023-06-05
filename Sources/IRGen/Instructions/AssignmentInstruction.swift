@@ -19,18 +19,19 @@ extension AssignmentInstruction: RepresentableInstruction {
         guard let assigned = assigned as? RepresentableAssignableExpression else {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: self)) is not supported in IRGen mode")
         }
-        let ptr = try assigned.getPointer(generator: generator)
-        if virtualized {
-            generator.currentContext = VirtualContext(parent: generator.currentContext, ptr: ptr)
-        }
-        defer {
+        try assigned.withPointer(generator: generator) { ptr in
             if virtualized {
-                generator.currentContext = generator.currentContext?.parent
+                generator.currentContext = VirtualContext(parent: generator.currentContext, ptr: ptr)
             }
+            defer {
+                if virtualized {
+                    generator.currentContext = generator.currentContext?.parent
+                }
+            }
+            let previous = generator.builder.buildLoad(ptr, type: try assigned.getType().findLLVMType())
+            generator.builder.buildStore(try value.owned(generator: generator, expect: assigned.getType()), to: ptr)
+            assigned.getType().destroy(generator: generator, value: previous)
         }
-        let previous = generator.builder.buildLoad(ptr, type: try assigned.getType().findLLVMType())
-        generator.builder.buildStore(try value.owned(generator: generator, expect: assigned.getType()), to: ptr)
-        assigned.getType().destroy(generator: generator, value: previous)
     }
 }
 

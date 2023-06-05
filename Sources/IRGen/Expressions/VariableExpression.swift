@@ -22,11 +22,11 @@ extension VariableExpression: RepresentableAssignableExpression {
         return try variable.getContent(generator: generator)
     }
     
-    func getPointer(generator: IRGenerator) throws -> IRValue {
+    func withPointer<T>(generator: IRGenerator, block: (IRValue) throws -> T) throws -> T {
         guard let variable = generator.currentContext?.findVariable(named: name) else {
             throw GRPHCompileError(type: .undeclared, message: "Variable was not found")
         }
-        return try variable.getPointer(generator: generator)
+        return try block(variable.getPointer(generator: generator))
     }
     
     var ownership: Ownership {

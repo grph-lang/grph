@@ -22,7 +22,8 @@ protocol RepresentableExpression: Expression {
 
 protocol RepresentableAssignableExpression: RepresentableExpression, AssignableExpression {
     /// Gets the pointer to the data. When possible, only this function is called for compound assignments.
-    func getPointer(generator: IRGenerator) throws -> IRValue
+    /// The `value` from the block will only be accessible inside the closure, and will be invalidated when this function returns.
+    func withPointer<T>(generator: IRGenerator, block: (_ value: IRValue) throws -> T) throws -> T
 }
 
 extension Expression {

@@ -65,16 +65,16 @@ extension FieldExpression: RepresentableExpression {
 }
 
 extension FieldExpression: RepresentableAssignableExpression {
-    func getPointer(generator: IRGenerator) throws -> IRValue {
+    func withPointer<T>(generator: IRGenerator, block: (IRValue) throws -> T) throws -> T {
         guard let on = on as? RepresentableAssignableExpression else {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: on)) is not supported in IRGen mode")
         }
-        let subject = try on.getPointer(generator: generator)
-        
-        if let index = getStructFieldIndex() {
-            return generator.builder.buildStructGEP(subject, type: try (onType as! RepresentableGRPHType).asLLVM(), index: index)
+        return try on.withPointer(generator: generator) { subject in
+            if let index = getStructFieldIndex() {
+                return try block(generator.builder.buildStructGEP(subject, type: onType.findLLVMType(), index: index))
+            }
+            throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
         }
-        throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
     }
 }
 
