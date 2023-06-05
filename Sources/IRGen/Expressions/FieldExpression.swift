@@ -29,6 +29,17 @@ extension FieldExpression {
             return nil
         }
     }
+
+    var hasDirectAccess: Bool {
+        switch (onType, field.name) {
+        case (SimpleType.pos, "x"), (SimpleType.pos, "y"):
+            return true
+        case (is TupleType, _):
+            return true
+        default:
+            return false
+        }
+    }
     
     func typeExtract(generator: IRGenerator, value: IRValue) -> IRValue {
         switch (onType, field.name) {
@@ -36,6 +47,17 @@ extension FieldExpression {
             return generator.builder.buildZExt(value, type: GRPHTypes.integer)
         case (SimpleType.color, "falpha"):
             return generator.builder.buildFPCast(value, type: GRPHTypes.float)
+        default:
+            return value
+        }
+    }
+
+    func typeInsert(generator: IRGenerator, value: IRValue) -> IRValue {
+        switch (onType, field.name) {
+        case (SimpleType.color, "red"), (SimpleType.color, "green"), (SimpleType.color, "blue"):
+            return generator.builder.buildTrunc(value, type: IntType.int8)
+        case (SimpleType.color, "falpha"):
+            return generator.builder.buildFPCast(value, type: FloatType.float)
         default:
             return value
         }
@@ -71,7 +93,21 @@ extension FieldExpression: RepresentableAssignableExpression {
         }
         return try on.withPointer(generator: generator) { subject in
             if let index = getStructFieldIndex() {
-                return try block(generator.builder.buildStructGEP(subject, type: onType.findLLVMType(), index: index))
+                let onType = try self.onType.findLLVMType()
+                let subptr = generator.builder.buildStructGEP(subject, type: onType, index: index)
+                if hasDirectAccess {
+                    return try block(subptr)
+                } else {
+                    let fieldType = try field.type.findLLVMType()
+                    let uncastedValue = generator.builder.buildLoad(subptr, type: (onType as! StructType).elementTypes[index])
+                    let value = typeExtract(generator: generator, value: uncastedValue)
+                    let tmp = generator.insertAlloca(type: fieldType)
+                    generator.builder.buildStore(value, to: tmp)
+                    let result = try block(tmp)
+                    let changed = typeInsert(generator: generator, value: generator.builder.buildLoad(tmp, type: fieldType))
+                    generator.builder.buildStore(changed, to: subptr)
+                    return result
+                }
             }
             throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
         }
