@@ -34,6 +34,30 @@ extension ConstantPropertyExpression: RepresentableExpression {
             
         case (SimpleType.void, "VOID"):
             return GRPHTypes.void.constant(values: [])
+
+        case (SimpleType.direction, "RIGHT"):
+            return GRPHTypes.direction.constant(0)
+        case (SimpleType.direction, "DOWN_RIGHT"):
+            return GRPHTypes.direction.constant(1)
+        case (SimpleType.direction, "DOWN"):
+            return GRPHTypes.direction.constant(2)
+        case (SimpleType.direction, "DOWN_LEFT"):
+            return GRPHTypes.direction.constant(3)
+        case (SimpleType.direction, "LEFT"):
+            return GRPHTypes.direction.constant(4)
+        case (SimpleType.direction, "UP_LEFT"):
+            return GRPHTypes.direction.constant(5)
+        case (SimpleType.direction, "UP"):
+            return GRPHTypes.direction.constant(6)
+        case (SimpleType.direction, "UP_RIGHT"):
+            return GRPHTypes.direction.constant(7)
+
+        case (SimpleType.stroke, "ELONGATED"):
+            return GRPHTypes.stroke.constant(0)
+        case (SimpleType.stroke, "CUT"):
+            return GRPHTypes.stroke.constant(1)
+        case (SimpleType.stroke, "ROUNDED"):
+            return GRPHTypes.stroke.constant(2)
             
         default:
             throw GRPHCompileError(type: .unsupported, message: "Unsupported constant property: \(inType).\(property.name)")
