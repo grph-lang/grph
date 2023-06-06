@@ -1,0 +1,15 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+// CHECK: direction.LEFT
+log: direction.LEFT
+
+// CHECK-NEXT: direction.UP_RIGHT
+log: direction.UP_RIGHT
+
+// CHECK-NEXT: stroke.ELONGATED
+log: stroke.ELONGATED
+
+// CHECK-NEXT: stroke.CUT
+log: stroke.CUT
