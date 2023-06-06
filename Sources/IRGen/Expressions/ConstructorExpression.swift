@@ -44,7 +44,8 @@ extension ConstructorExpression: RepresentableExpression {
                 }
                 return value
             default:
-                preconditionFailure("constructor not implemented")
+                let fn = try generator.module.getOrInsertFunction(named: "grphc_\(constructor.name)", type: constructor.llvmFunctionType())
+                return try FunctionExpression.buildCall(generator: generator, fn: fn, function: constructor, values: values)
             }
         case .generic(signature: let sig):
             preconditionFailure("Generic constructor with signature \(sig) not found")

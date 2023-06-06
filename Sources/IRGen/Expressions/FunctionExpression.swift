@@ -16,7 +16,11 @@ import LLVM
 
 extension FunctionExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
-        let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: FunctionType(function.llvmParameters(), function.returnType.findLLVMType(forReturnType: true)))
+        let fn = try generator.builder.module.getOrInsertFunction(named: function.getMangledName(generator: generator), type: function.llvmFunctionType())
+        return try Self.buildCall(generator: generator, fn: fn, function: function, values: values)
+    }
+
+    static func buildCall(generator: IRGenerator, fn: LLVM.Function, function: Parametrable, values: [Expression?]) throws -> IRValue {
         var handles: [() -> Void] = []
         defer {
             handles.forEach { $0() }
@@ -70,6 +74,10 @@ extension Parametrable {
         return try trueParamTypes.map {
             return try $0.findLLVMType(forParameter: true)
         }
+    }
+
+    func llvmFunctionType() throws -> FunctionType {
+        return try FunctionType(llvmParameters(), returnType.findLLVMType(forReturnType: true))
     }
 }
 
