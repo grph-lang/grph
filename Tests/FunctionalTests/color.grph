@@ -9,7 +9,7 @@ color someTranslucentYellow = (255 200 50 0.5)
 // CHECK: color(77 228 193)
 log: someCyan
 
-// CHECK-NEXT: color(255 200 50 0.5)
+// CHECK-NEXT: color(255 200 50 0.500000)
 log: someTranslucentYellow
 
 color current = someTranslucentYellow
@@ -22,8 +22,8 @@ current.green += 55
 // CHECK-NEXT: 255
 log: current.green
 
-// CHECK-NEXT: color(255 255 50 0.5)
+// CHECK-NEXT: color(255 255 50 0.500000)
 log: current
 
-// CHECK-NEXT: color(255 200 50 0.5)
+// CHECK-NEXT: color(255 200 50 0.500000)
 log: someTranslucentYellow
