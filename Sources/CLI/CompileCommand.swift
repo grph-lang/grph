@@ -35,6 +35,9 @@ struct CompileCommand: ParsableCommand {
     
     @Flag(help: "Generate position independent code")
     var pic = false
+
+    @Flag(help: "Link with graphic library")
+    var graphic = false
     
     @Flag(name: .customShort("O"), help: "Optimize the code to run faster")
     var optimize = false
@@ -150,6 +153,9 @@ struct CompileCommand: ParsableCommand {
             // Find clang in env instead of a specific path
             ld.executableURL = URL(fileURLWithPath: "/usr/bin/env")
             ld.arguments = ["clang", "-o", output!, tmpfile.path, "-lm", "-lgrph", "-L/usr/local/lib"]
+            if graphic {
+                ld.arguments?.append("-lgrphysfml")
+            }
             try ld.run()
             ld.waitUntilExit()
             try? FileManager.default.removeItem(at: tmpfile)
