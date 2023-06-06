@@ -1,0 +1,24 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+// CHECK: 0.000000,0.000000
+log: pos.ORIGIN
+
+// CHECK-NEXT: 5.000000,5.000000
+log: 5,5
+
+// CHECK-NEXT: -1.000000,-1.000000
+log: -1,-1
+
+pos p = 5,5
+
+// p += 3,-1
+
+// NO-CHECK-NEXT: 8.000000,4.000000
+// log: p
+
+// p -= 10,4
+
+// NO-CHECK-NEXT: -2.000000,0.000000
+// log: p
