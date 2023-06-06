@@ -29,14 +29,21 @@ public class IRGenerator {
     public init(filename: String) {
         builder = IRBuilder(module: Module(name: filename))
     }
-    
+
+    @discardableResult
+    func registerGlobal(name: String, type: IRType = PointerType.toVoid) -> Global {
+        var global = builder.addGlobal("grphv_global_\(name)", type: type)
+        global.linkage = .external
+        globalContext!.insert(variable: Variable(name: name, ref: .global(global)))
+        return global
+    }
+
     public func build(from instructions: [GRPHValues.Instruction]) throws {
         globalContext = VariableOwningIRContext(parent: nil)
-        
-        var argv = builder.addGlobal("grphv_global_argv", type: PointerType.toVoid)
-        argv.linkage = .external
-        
-        globalContext!.insert(variable: Variable(name: "argv", ref: .global(argv)))
+
+        registerGlobal(name: "argv")
+        registerGlobal(name: "back")
+
         let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
         
