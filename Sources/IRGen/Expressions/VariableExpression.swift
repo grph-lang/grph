@@ -26,7 +26,12 @@ extension VariableExpression: RepresentableAssignableExpression {
         guard let variable = generator.currentContext?.findVariable(named: name) else {
             throw GRPHCompileError(type: .undeclared, message: "Variable was not found")
         }
-        return try block(variable.getPointer(generator: generator))
+        let ret = try block(variable.getPointer(generator: generator))
+        if variable.name == "back" {
+            let updateBack = generator.module.getOrInsertFunction(named: "grphg_update_back", type: FunctionType([], VoidType()))
+            _ = generator.builder.buildCall(updateBack, args: [])
+        }
+        return ret
     }
     
     var ownership: Ownership {
