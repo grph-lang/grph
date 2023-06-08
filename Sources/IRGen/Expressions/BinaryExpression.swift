@@ -106,13 +106,15 @@ extension BinaryExpression: RepresentableExpression {
         defer {
             handles.forEach { $0() }
         }
+        let leftType = self.left.getType() as! RepresentableGRPHType
+        let rightType = self.right.getType() as! RepresentableGRPHType
         let left = try self.left.borrowWithHandle(generator: generator, expect: nil, handles: &handles)
         let right = try self.right.borrowWithHandle(generator: generator, expect: nil, handles: &handles)
         if left.type is IntType && right.type is IntType {
             return generator.builder.buildICmp(left, right, op.icmpPredicate)
         } else if left.type is FloatType && right.type is FloatType {
             return generator.builder.buildFCmp(left, right, op.fcmpPredicate)
-        } else if self.left.getType() == SimpleType.type && self.right.getType() == SimpleType.type {
+        } else if (leftType == SimpleType.type && rightType == SimpleType.type) || (leftType.representationMode == .referenceType && rightType.representationMode == .referenceType) {
             return generator.builder.buildICmp(generator.builder.buildPointerDifference(left, right), 0, op.icmpPredicate)
         } else if self.left is NullExpression {
             return try buildNullCheck(generator: generator, value: right, type: self.right.getType())
