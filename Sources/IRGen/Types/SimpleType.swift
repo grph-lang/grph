@@ -25,13 +25,17 @@ extension GRPHTypes {
     static let string = StructType(elementTypes: [IntType.int64, PointerType(pointee: IntType.int8)])
     static let type = PointerType.toVoid
     static let color = StructType(elementTypes: [IntType.int8, IntType.int8, IntType.int8, FloatType.float])
-    
+
+    /// The type for a value copy function
     static let copyFunc = FunctionType([PointerType.toVoid, PointerType.toVoid, GRPHTypes.type], VoidType())
+    /// The type for a value destroy function
     static let destroyFunc = FunctionType([PointerType.toVoid, GRPHTypes.type], VoidType())
+    /// The type for a reference type's deinitilizer function
+    static let deinitFunc = FunctionType([PointerType.toVoid], VoidType())
     
     static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
     static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
-    static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc)])
+    static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc), PointerType(pointee: GRPHTypes.deinitFunc)])
     static let arrayStruct = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
     // the pointer to the function, the type of saved data, the pointer to saved data
     static let funcref = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.type, PointerType.toVoid])
@@ -116,9 +120,9 @@ extension SimpleType: RepresentableGRPHType {
         case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path:
             return .ref
         case .Group:
-            return ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_Group")
+            return ValueWitnessTable(destructor: "grphd_Group")
         case .Background:
-            return ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_Background")
+            return ValueWitnessTable(destructor: "grphd_Background")
         case .mixed, .funcref:
             return .existential
         }

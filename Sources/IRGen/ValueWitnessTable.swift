@@ -32,13 +32,34 @@ struct ValueWitnessTable {
     /// void grphvwt_destroy_sometype(void *restrict value, struct typetable *restrict type)
     /// ```
     var destroy: String
+    /// Deinitializes a reference type (runs the destructor)
+    ///
+    /// The prototype of such a function is usually:
+    /// ```c
+    /// void grphd_sometype(void *value)
+    /// ```
+    /// The given pointer is the reference type's box, it will be freed after this function returns
+    var destructor: String = "__destructor_was_not_set_you_should_not_be_seeing_this"
+
+    /// Creates a new vwt for a value type
+    init(copy: String, destroy: String) {
+        self.copy = copy
+        self.destroy = destroy
+    }
+
+    /// Creates a new vwt for a reference type
+    init(destructor: String) {
+        self.copy = "grphvwt_retain_ref"
+        self.destroy = "grphvwt_release_ref"
+        self.destructor = destructor
+    }
 }
 
 extension ValueWitnessTable {
     /// This vwt just copies bytes, and destroy is a noop
     static let trivial = ValueWitnessTable(copy: "grphvwt_copy_trivial", destroy: "grphvwt_destroy_trivial")
-    /// This vwt retains and releases reference types
-    static let ref = ValueWitnessTable(copy: "grphvwt_retain_ref", destroy: "grphvwt_release_ref")
+    /// This vwt retains and releases simple reference types
+    static let ref = ValueWitnessTable(destructor: "grphd_ref")
     /// This vwt uses its content's vwt
     static let existential = ValueWitnessTable(copy: "grphvwt_copy_mixed", destroy: "grphvwt_destroy_mixed")
     /// This vwt uses its content's vwt if it's not null

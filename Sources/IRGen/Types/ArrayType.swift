@@ -31,7 +31,7 @@ extension GRPHValues.ArrayType: RepresentableGRPHType {
     }
     
     var vwt: ValueWitnessTable {
-        ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_array")
+        ValueWitnessTable(destructor: "grphd_array")
     }
     
     func asLLVM() throws -> IRType {

@@ -78,6 +78,7 @@ extension RepresentableGRPHType {
             generator.builder.buildAlignOf(try! self.asLLVM()),
             generator.module.getOrInsertFunction(named: self.vwt.copy, type: GRPHTypes.copyFunc),
             generator.module.getOrInsertFunction(named: self.vwt.destroy, type: GRPHTypes.destroyFunc),
+            self.representationMode == .referenceType ? generator.module.getOrInsertFunction(named: self.vwt.destructor, type: GRPHTypes.deinitFunc) : PointerType(pointee: GRPHTypes.deinitFunc).null(),
         ]))
         vwt.isGlobalConstant = true
         vwt.linkage = .private
