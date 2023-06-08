@@ -46,17 +46,18 @@ struct HeaderGenCommand: ParsableCommand {
             #define GRPH_NS_\(ns.name.uppercased())_H
             
             #include "grph_types.h"
+            #include "grph_shapes.h"
 
             """)
         
         for fn in ns.exportedFunctions {
             guard let rt = fn.returnType.getNameInC(asReturnType: true),
+                  !fn.varargs,
                   let params = fn.parameters.map({ par -> String? in
-                      // TODO: varargs
                       guard let t = (par.optional ? par.type.optional : par.type).getNameInC(asReturnType: false) else {
                           return nil
                       }
-                      return "\(t) \(par.name)"
+                      return "\(t) \(par.name == "char" ? "character" : par.name)"
                   }).reduce(into: [] as [String]?, { into, curr in
                       if let curr = curr {
                           into?.append(curr)
@@ -85,13 +86,20 @@ extension GRPHType {
             switch self {
             case SimpleType.void:
                 return asReturnType ? "void" : "grph_void_t"
-            case .integer, .float, .rotation, .boolean, .pos, .string:
+            case .integer, .float, .rotation, .boolean, .pos, .string, .Background, .Group:
                 return "grph_\(self.string)_t"
+            case .mixed, .paint, .num, .funcref:
+                return "struct grph_existential *"
+            case .shape:
+                return "grph_shape_t *"
             default:
                 return nil
             }
         case let self as OptionalType:
             if let wrapped = self.wrapped.getNameInC(asReturnType: false) {
+                if wrapped.contains("*") {
+                    return nil
+                }
                 return "optional_\(wrapped.dropFirst(5))"
             } else {
                 return nil
