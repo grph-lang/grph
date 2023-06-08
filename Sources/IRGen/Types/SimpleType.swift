@@ -113,8 +113,12 @@ extension SimpleType: RepresentableGRPHType {
             return .string
         case .font:
             return .font
-        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path, .Group, .Background:
+        case .shape, .Rectangle, .Circle, .Line, .Polygon, .Text, .Path:
             return .ref
+        case .Group:
+            return ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_Group")
+        case .Background:
+            return ValueWitnessTable(copy: ValueWitnessTable.ref.copy, destroy: "grphvwt_release_Background")
         case .mixed, .funcref:
             return .existential
         }
