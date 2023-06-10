@@ -54,6 +54,7 @@ public extension BuiltinsCompilingContext {
             Variable(name: "this", type: SimpleType.rootThisType, content: "currentDocument", final: true, builtin: true),
             Variable(name: "back", type: SimpleType.Background, final: false, builtin: true, compileTime: true),
             Variable(name: "argv", type: SimpleType.string.inArray, final: true, builtin: true, compileTime: true),
+            Variable(name: "autoupdate", type: SimpleType.boolean, final: false, builtin: true, compileTime: true),
             Variable(name: "WHITE", type: SimpleType.color,
                      content: ColorPaint.components(red: 1, green: 1, blue: 1),
                      final: true, builtin: true),

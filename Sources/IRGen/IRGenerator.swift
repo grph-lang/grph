@@ -43,6 +43,7 @@ public class IRGenerator {
 
         registerGlobal(name: "argv")
         registerGlobal(name: "back")
+        registerGlobal(name: "autoupdate", type: GRPHTypes.boolean)
 
         let topLevelContext = VariableOwningIRContext(parent: globalContext)
         currentContext = topLevelContext
