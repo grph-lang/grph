@@ -29,6 +29,10 @@ Operators: `grphop_{operator_name}`
 
 Value Witness Table function: `grphvwt_{action}_{generic_type}`
 
+Reference type destructors: `grphd_{type}`
+
 Graphics-rendering functions: `grphg_{name}`
+
+Shape drawing functions: `grphg_draw_{name}`
 
 Array actions: `grpharr_{action}`

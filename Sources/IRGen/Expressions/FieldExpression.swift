@@ -120,7 +120,7 @@ extension FieldExpression: RepresentableAssignableExpression {
 extension ValueTypeExpression: RepresentableExpression {
     func build(generator: IRGenerator) throws -> IRValue {
         return try on.borrow(generator: generator, expect: SimpleType.mixed) { val in
-            return generator.builder.buildExtractValue(val, index: 0)
+            return try generator.builder.buildCall(generator.module.getOrInsertFunction(named: "grphp_mixed_type_get", type: FunctionType([SimpleType.mixed.findLLVMType(forParameter: true)], GRPHTypes.type)), args: [SimpleType.mixed.paramCCWrap(generator: generator, value: val)])
         }
     }
     
