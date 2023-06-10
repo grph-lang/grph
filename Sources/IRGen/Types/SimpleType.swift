@@ -35,7 +35,7 @@ extension GRPHTypes {
     
     static let existentialData = LLVM.ArrayType(elementType: GRPHTypes.type, count: 3)
     static let existential = StructType(elementTypes: [PointerType.toVoid, existentialData])
-    static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc), PointerType(pointee: GRPHTypes.deinitFunc)])
+    static let vwt = StructType(elementTypes: [GRPHTypes.integer, GRPHTypes.integer, PointerType(pointee: GRPHTypes.copyFunc), PointerType(pointee: GRPHTypes.destroyFunc), PointerType(pointee: GRPHTypes.deinitFunc), PointerType.toVoid])
     static let arrayStruct = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.integer, GRPHTypes.integer, PointerType.toVoid])
     // the pointer to the function, the type of saved data, the pointer to saved data
     static let funcref = StructType(elementTypes: [PointerType.toVoid, GRPHTypes.type, PointerType.toVoid])
