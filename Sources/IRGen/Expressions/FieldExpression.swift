@@ -92,8 +92,8 @@ extension FieldExpression: RepresentableAssignableExpression {
             throw GRPHCompileError(type: .unsupported, message: "AssignableExpression of type \(type(of: on)) is not supported in IRGen mode")
         }
         return try on.withPointer(generator: generator) { subject in
+            let onType = try self.onType.findLLVMType()
             if let index = getStructFieldIndex() {
-                let onType = try self.onType.findLLVMType()
                 let subptr = generator.builder.buildStructGEP(subject, type: onType, index: index)
                 if hasDirectAccess {
                     return try block(subptr)
@@ -109,7 +109,11 @@ extension FieldExpression: RepresentableAssignableExpression {
                     return result
                 }
             }
-            throw GRPHCompileError(type: .unsupported, message: "Field \(onType).\(field.name) is not assignable in IRGen mode")
+            let fieldType = try field.type.findLLVMType()
+            let fn = generator.module.getOrInsertFunction(named: "grphp_\(self.onType.string)_\(field.name)_ptr", type: FunctionType([PointerType(pointee: onType)], PointerType(pointee: fieldType)))
+            let ptr = generator.builder.buildCall(fn, args: [subject])
+            return try block(ptr)
+            // no cleanup to do, it returns directly the pointer to the object
         }
     }
 }
