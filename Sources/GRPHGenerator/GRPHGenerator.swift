@@ -1002,9 +1002,9 @@ public class GRPHGenerator: GRPHCompilerProtocol {
                     return ValueTypeExpression(on: exp)
                 }
                 let type = exp.getType()
-                if let property = GRPHTypes.field(named: String(field.literal), in: type) {
+                if let (onType, property) = GRPHTypes.field(named: String(field.literal), in: type) {
                     resolveSemanticToken(field.withType(.property).withModifiers(property.writeable ? .none : .readonly, data: .property(property, in: type)))
-                    return FieldExpression(on: exp, onType: type, field: property)
+                    return FieldExpression(on: exp, onType: onType, field: property)
                 } else {
                     throw DiagnosticCompileError(notice: Notice(token: field, severity: .error, source: .generator, message: "Could not find field '\(field.literal)' in type \(type)"))
                 }

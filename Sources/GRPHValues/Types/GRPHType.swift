@@ -206,9 +206,9 @@ public extension GRPHTypes {
         return expression
     }
     
-    static func field(named name: String, in type: GRPHType) -> Field? {
+    static func field(named name: String, in type: GRPHType) -> (onType: GRPHType, field: Field)? {
         if let property = type.fields.first(where: { $0.name == name }) {
-            return property
+            return (type, property)
         }
         if type.isTheMixed {
             return nil

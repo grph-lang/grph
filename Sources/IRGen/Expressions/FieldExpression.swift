@@ -74,9 +74,6 @@ extension FieldExpression: RepresentableExpression {
             switch (onType, field.name) {
             case (is GRPHValues.ArrayType, "length"):
                 return generator.builder.buildExtractValue(generator.builder.buildLoad(generator.builder.buildBitCast(subject, type: PointerType(pointee: GRPHTypes.arrayStruct)), type: GRPHTypes.arrayStruct), index: 1)
-            case (let t as SimpleType, "shapes") where t.isInstance(of: SimpleType.Group):
-                let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_Group_shapes_get", type: FunctionType([t.findLLVMType(forParameter: true)], field.type.findLLVMType()))
-                return generator.builder.buildCall(fn, args: [onType.paramCCWrap(generator: generator, value: subject)])
             default:
                 let fn = try generator.builder.module.getOrInsertFunction(named: "grphp_\(onType.string)_\(field.name)_get", type: FunctionType([onType.findLLVMType(forParameter: true)], field.type.findLLVMType()))
                 return generator.builder.buildCall(fn, args: [onType.paramCCWrap(generator: generator, value: subject)])
