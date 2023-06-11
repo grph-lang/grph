@@ -1,0 +1,13 @@
+// RUN: grph compile %s --emit=executable -o %t && %t | FileCheck -v %s
+
+#requires GRPH 1.11
+
+Rectangle r = ("Hello" 10,10 50,50 0° color(255 0 0))
+
+// CHECK: 5.000000
+log: r.strokeWidth
+
+r.strokeWidth = 10f
+
+// CHECK: 10.000000
+log: r.strokeWidth
