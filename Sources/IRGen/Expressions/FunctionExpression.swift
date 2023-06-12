@@ -25,10 +25,10 @@ extension FunctionExpression: RepresentableExpression {
         defer {
             handles.forEach { $0() }
         }
-        return generator.builder.buildCall(fn, args: try function.parameters.enumerated().map { i, param in
+        return generator.builder.buildCall(fn, args: try function.trueParams.enumerated().map { i, param in
             let raw: IRValue = try {
                 let arg = values[safe: i]
-                if i == function.parameters.indices.last, function.varargs {
+                if i == function.trueParams.indices.last, function.varargs {
                     let ret: IRValue
                     if i <= values.count {
                         ret = try param.type.inArray.buildNewArray(generator: generator, values: values[i...].map { $0! })
@@ -58,8 +58,16 @@ extension FunctionExpression: RepresentableExpression {
 }
 
 extension Parametrable {
+    var trueParams: [GRPHValues.Parameter] {
+        if let self = self as? Method {
+            return [Parameter(name: "subject", type: self.inType)] + self.parameters
+        } else {
+            return self.parameters
+        }
+    }
+    
     var trueParamTypes: [GRPHType] {
-        parameters.enumerated().map { i, par in
+        trueParams.enumerated().map { i, par in
             if i == parameters.indices.last, varargs {
                 return par.type.inArray
             }
